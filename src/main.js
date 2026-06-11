@@ -192,7 +192,7 @@ function createHouseInput(hrid) {
 
 function refreshAchievementStatics() {
     let tierMap = Object.values(achievementTierMap).sort((a, b) => a.sortIndex - b.sortIndex);
-    for(const tier of Object.values(tierMap)) {
+    for (const tier of Object.values(tierMap)) {
         const checks = document.querySelectorAll(`input[data-achievement-hrid][data-tier="${tier.sortIndex}"]`);
         const done = Array.from(checks).filter(cb => cb.checked).length;
         const total = checks.length;
@@ -211,13 +211,13 @@ function refreshAchievementStatics() {
     }
 }
 
-function initAchievementsModal(){
+function initAchievementsModal() {
     let achievementsList = document.getElementById("achievementsList");
     let newChildren = [];
     player.achievements = {};
 
     let tierMap = Object.values(achievementTierMap).sort((a, b) => a.sortIndex - b.sortIndex);
-    for(const tier of Object.values(tierMap)) {
+    for (const tier of Object.values(tierMap)) {
         let detailMap = Object.values(achievementDetailMap).filter((detail) => detail.tierHrid == tier.hrid).sort((a, b) => a.sortIndex - b.sortIndex);
         let detailMapCount = detailMap.length;
         if (detailMapCount <= 0) continue;
@@ -226,17 +226,17 @@ function initAchievementsModal(){
         let cardHeader = createElement("div", "card-header d-flex align-items-center");
 
         let cardTitle = createElement("a", "btn", tier.name);
-        cardTitle.setAttribute("data-bs-toggle","collapse");
+        cardTitle.setAttribute("data-bs-toggle", "collapse");
         cardTitle.setAttribute("href", `#AchTier${tier.sortIndex}`);
-        cardTitle.setAttribute("data-i18n", "achievementTierNames."+tier.hrid);
+        cardTitle.setAttribute("data-i18n", "achievementTierNames." + tier.hrid);
         cardHeader.appendChild(cardTitle);
 
         let bufDesc = createElement("div", "small text-secondary");
         let buffName = createElement("i", "");
-        buffName.setAttribute("data-i18n", "buffTypeNames."+tier["buff"].typeHrid);
+        buffName.setAttribute("data-i18n", "buffTypeNames." + tier["buff"].typeHrid);
         bufDesc.appendChild(buffName);
         let buffValue = createElement("i", "");
-        buffValue.innerText = ":+" + parseFloat(tier["buff"].ratioBoost==0?tier["buff"].flatBoost:tier["buff"].ratioBoost)*100 + "%";
+        buffValue.innerText = ":+" + parseFloat(tier["buff"].ratioBoost == 0 ? tier["buff"].flatBoost : tier["buff"].ratioBoost) * 100 + "%";
         bufDesc.appendChild(buffValue);
         cardHeader.appendChild(bufDesc);
 
@@ -575,9 +575,9 @@ function updateLevels() {
 }
 
 function calcCombatLevel(staminaLevel, intelligenceLevel, defenseLevel, attackLevel, meleeLevel, rangedLevel, magicLevel) {
-    return 0.1 * (staminaLevel + intelligenceLevel + attackLevel + defenseLevel + Math.max(meleeLevel, rangedLevel, magicLevel)) + 
+    return 0.1 * (staminaLevel + intelligenceLevel + attackLevel + defenseLevel + Math.max(meleeLevel, rangedLevel, magicLevel)) +
         0.5 * Math.max(attackLevel, defenseLevel, meleeLevel, rangedLevel, magicLevel)
-    ;
+        ;
 }
 
 
@@ -719,31 +719,31 @@ function initAbilitiesSection() {
         selectElement.addEventListener("change", abilitySelectHandler);
     }
 
-    document.getElementById('abilityOrderSwitch').addEventListener('change', function() {
-            const gear = document.getElementById('gearLabel');
-            const arrow = document.getElementById('arrowLabel');
-            
-            if (this.checked) {
-                gear.classList.remove('text-primary', 'fw-bold');
-                gear.classList.add('text-secondary');
-                
-                arrow.classList.remove('text-secondary');
-                arrow.classList.add('text-primary', 'fw-bold');
-            } else {
-                gear.classList.remove('text-secondary');
-                gear.classList.add('text-primary', 'fw-bold');
-                
-                arrow.classList.remove('text-primary', 'fw-bold');
-                arrow.classList.add('text-secondary');
-            }
+    document.getElementById('abilityOrderSwitch').addEventListener('change', function () {
+        const gear = document.getElementById('gearLabel');
+        const arrow = document.getElementById('arrowLabel');
 
-            for (let i = 0; i < 5; i++) {
-                let triggerButton = document.getElementById("buttonAbilityTrigger_" + i);
-                triggerButton.parentElement.style.display = this.checked ? 'none' : 'block';
-                let moveButton = document.getElementById("selectAbilityMoveUp_" + i);
-                moveButton.parentElement.style.display = this.checked ? 'block' : 'none';
-            }
-        });
+        if (this.checked) {
+            gear.classList.remove('text-primary', 'fw-bold');
+            gear.classList.add('text-secondary');
+
+            arrow.classList.remove('text-secondary');
+            arrow.classList.add('text-primary', 'fw-bold');
+        } else {
+            gear.classList.remove('text-secondary');
+            gear.classList.add('text-primary', 'fw-bold');
+
+            arrow.classList.remove('text-primary', 'fw-bold');
+            arrow.classList.add('text-secondary');
+        }
+
+        for (let i = 0; i < 5; i++) {
+            let triggerButton = document.getElementById("buttonAbilityTrigger_" + i);
+            triggerButton.parentElement.style.display = this.checked ? 'none' : 'block';
+            let moveButton = document.getElementById("selectAbilityMoveUp_" + i);
+            moveButton.parentElement.style.display = this.checked ? 'block' : 'none';
+        }
+    });
 
 }
 
@@ -1206,7 +1206,7 @@ function initLabyrinth() {
     Object.keys(LabyrinthSupplyItems).forEach((categoryKey, index) => {
         const items = LabyrinthSupplyItems[categoryKey];
 
-        const categorySelect = document.getElementById('select'+categoryKey);
+        const categorySelect = document.getElementById('select' + categoryKey);
         if (!categorySelect) return;
 
         // Create radio buttons
@@ -1367,7 +1367,7 @@ function showSimulationResult(simResult) {
     window.noRngProfit = window.noRngRevenue - window.expenses;
     document.getElementById('noRngProfitSpan').innerText = window.noRngProfit.toLocaleString();
     document.getElementById('noRngProfitPreview').innerText = window.noRngProfit.toLocaleString();
-    
+
     // 显示战斗图表
     if (document.getElementById('hpMpVisualizationToggle').checked) {
         renderCombatCharts(simResult);
@@ -1391,7 +1391,7 @@ function showAllSimulationResults(simResults) {
                 cell.style.backgroundColor = 'green';
                 cell.style.color = 'white';
             }
-        }        
+        }
     } else {
         const table = document.getElementById('allZonesData');
         const rows = table.getElementsByTagName('tr');
@@ -1438,27 +1438,27 @@ function updateChartsRealtime(timeSeriesData) {
         return;
     }
     lastUpdateTime = now;
-    
+
     if (!timeSeriesData || !timeSeriesData.timestamps || timeSeriesData.timestamps.length === 0) {
         return;
     }
-    
+
     // 显示图表容器
     const container = document.getElementById('combatChartsContainer');
     if (container) {
         container.classList.remove('d-none');
     }
-    
+
     // 如果图表不存在，先创建
     if (!combatCharts.hpChart || !combatCharts.mpChart) {
         initializeRealtimeCharts();
         // 等待下一次更新周期再更新数据
         return;
     }
-    
+
     const timeLabels = timeSeriesData.timestamps.map(t => (t / ONE_SECOND).toFixed(1));
     const playerIds = Object.keys(timeSeriesData.players);
-    
+
     // 生成颜色方案
     const colors = [
         { border: 'rgb(75, 192, 192)', bg: 'rgba(75, 192, 192, 0.2)' },
@@ -1467,7 +1467,7 @@ function updateChartsRealtime(timeSeriesData) {
         { border: 'rgb(255, 206, 86)', bg: 'rgba(255, 206, 86, 0.2)' },
         { border: 'rgb(153, 102, 255)', bg: 'rgba(153, 102, 255, 0.2)' }
     ];
-    
+
     // 重建datasets以确保完整更新
     const hpDatasets = playerIds.map((playerId, index) => {
         const playerData = timeSeriesData.players[playerId];
@@ -1481,7 +1481,7 @@ function updateChartsRealtime(timeSeriesData) {
             tension: 0.1
         };
     });
-    
+
     const mpDatasets = playerIds.map((playerId, index) => {
         const playerData = timeSeriesData.players[playerId];
         return {
@@ -1494,14 +1494,14 @@ function updateChartsRealtime(timeSeriesData) {
             tension: 0.1
         };
     });
-    
+
     // 更新HP图表
     combatCharts.hpChart.data.labels = timeLabels;
     combatCharts.hpChart.data.datasets = hpDatasets;
     combatCharts.hpChart.options.plugins.legend.display = true;
     combatCharts.hpChart.options.plugins.title.text = i18next.t('common:Experiment.hpOverTime');
     combatCharts.hpChart.update('none');
-    
+
     // 更新MP图表
     combatCharts.mpChart.data.labels = timeLabels;
     combatCharts.mpChart.data.datasets = mpDatasets;
@@ -1516,18 +1516,18 @@ function renderCombatCharts(simResult) {
     if (container) {
         container.classList.remove('d-none');
     }
-    
+
     if (!simResult.timeSeriesData || !simResult.timeSeriesData.timestamps || simResult.timeSeriesData.timestamps.length === 0) {
         // 显示空状态
         showEmptyCharts();
         return;
     }
-    
+
     const timeLabels = simResult.timeSeriesData.timestamps.map(t => (t / ONE_SECOND).toFixed(1));
-    
+
     // 获取所有玩家
     const playerIds = Object.keys(simResult.timeSeriesData.players);
-    
+
     // 生成颜色方案
     const colors = [
         { border: 'rgb(75, 192, 192)', bg: 'rgba(75, 192, 192, 0.2)' },
@@ -1536,7 +1536,7 @@ function renderCombatCharts(simResult) {
         { border: 'rgb(255, 206, 86)', bg: 'rgba(255, 206, 86, 0.2)' },
         { border: 'rgb(153, 102, 255)', bg: 'rgba(153, 102, 255, 0.2)' }
     ];
-    
+
     // HP图表
     destroyChart('hpChart');
     const hpDatasets = playerIds.map((playerId, index) => {
@@ -1551,7 +1551,7 @@ function renderCombatCharts(simResult) {
             tension: 0.1
         };
     });
-    
+
     combatCharts.hpChart = new Chart(document.getElementById('hpChart'), {
         type: 'line',
         data: {
@@ -1560,7 +1560,7 @@ function renderCombatCharts(simResult) {
         },
         options: getChartOptions(i18next.t('common:Experiment.hpOverTime'), i18next.t('common:Experiment.timeInSeconds'), 'HP')
     });
-    
+
     // MP图表
     destroyChart('mpChart');
     const mpDatasets = playerIds.map((playerId, index) => {
@@ -1575,7 +1575,7 @@ function renderCombatCharts(simResult) {
             tension: 0.1
         };
     });
-    
+
     combatCharts.mpChart = new Chart(document.getElementById('mpChart'), {
         type: 'line',
         data: {
@@ -1660,15 +1660,15 @@ function initializeRealtimeCharts() {
     // 销毁现有图表
     destroyChart('hpChart');
     destroyChart('mpChart');
-    
+
     const hpCanvas = document.getElementById('hpChart');
     const mpCanvas = document.getElementById('mpChart');
-    
+
     if (!hpCanvas || !mpCanvas) {
         console.warn('图表canvas元素未找到');
         return;
     }
-    
+
     // 显示等待状态
     const emptyOptions = {
         responsive: true,
@@ -1695,14 +1695,14 @@ function initializeRealtimeCharts() {
             }
         }
     };
-    
+
     try {
         combatCharts.hpChart = new Chart(hpCanvas, {
             type: 'line',
             data: { labels: [], datasets: [] },
             options: emptyOptions
         });
-        
+
         combatCharts.mpChart = new Chart(mpCanvas, {
             type: 'line',
             data: { labels: [], datasets: [] },
@@ -1729,9 +1729,9 @@ function initHpMpVisualization() {
         container.classList.remove('d-none');
         showEmptyCharts();
     }
-    
+
     if (toggle && container) {
-        toggle.addEventListener('change', function() {
+        toggle.addEventListener('change', function () {
             if (this.checked) {
                 container.classList.remove('d-none');
                 showEmptyCharts();
@@ -1804,11 +1804,11 @@ function manipulateSimResultsDataForDisplay(simResults) {
 }
 
 function fidDropAmount(dropAmount) {
-  if (Number.isInteger(dropAmount)) return dropAmount;
+    if (Number.isInteger(dropAmount)) return dropAmount;
 
-  const intPart   = Math.floor(dropAmount);
-  const fracPart  = dropAmount - intPart;
-  return Math.random() < fracPart ? intPart + 1 : intPart;
+    const intPart = Math.floor(dropAmount);
+    const fracPart = dropAmount - intPart;
+    return Math.random() < fracPart ? intPart + 1 : intPart;
 }
 
 function calcDropMaps(simResult, playerToDisplay) {
@@ -2119,7 +2119,7 @@ function showKills(simResult, playerToDisplay) {
             newChildren.push(maximumTimeRow);
         }
     } else {
-        encountersPerHour = (simResult.encounters / hoursSimulated).toFixed(1); 
+        encountersPerHour = (simResult.encounters / hoursSimulated).toFixed(1);
         encountersRow = createRow(["col-md-6", "col-md-6 text-end"], ["Encounters", encountersPerHour]);
         encountersRow.firstElementChild.setAttribute("data-i18n", "common:simulationResults.encounters");
     }
@@ -2161,7 +2161,7 @@ function showKills(simResult, playerToDisplay) {
             newChildren.push(monsterRow);
         });
 
-    let { totalDropMap, noRngTotalDropMap } = !simResult.isDungeon ? calcDropMaps(simResult, playerToDisplay) : {totalDropMap:new Map(), noRngTotalDropMap:new Map()};
+    let { totalDropMap, noRngTotalDropMap } = !simResult.isDungeon ? calcDropMaps(simResult, playerToDisplay) : { totalDropMap: new Map(), noRngTotalDropMap: new Map() };
 
     let revenueModalTable = document.querySelector("#revenueTable > tbody");
     let total = 0;
@@ -3050,14 +3050,17 @@ function startSimulation(selectedPlayers) {
         extra.comDrop = Number(document.getElementById("comDropInput").value);
     }
     extra.enableHpMpVisualization = document.getElementById("hpMpVisualizationToggle").checked;
-    extra.personalBuffs = [];
+    extra.personalBuffs = {};
     if (document.getElementById("personalBuffsToggle").checked) {
-        let personalBuffs = document.getElementById("personalBuffsBox").querySelectorAll("input");
-        for (let buff of personalBuffs) {
-            if (buff.checked) {
-                extra.personalBuffs.push(buff.value);
-            }
-        }
+        const groups = document.querySelectorAll("#personalBuffsBox .character-group");
+        groups.forEach((group, index) => {
+            const checkedBuffs = [];
+            group.querySelectorAll("input[type='checkbox']:checked").forEach(input => {
+                checkedBuffs.push(input.value);
+            });
+            extra.personalBuffs[index] = checkedBuffs;
+        });
+        console.log("extra.personalBuffs:", extra.personalBuffs);
     }
 
     let simAllZonesToggle = document.getElementById("simAllZoneToggle");
@@ -3074,7 +3077,7 @@ function startSimulation(selectedPlayers) {
 
     let crates = [];
     Object.keys(LabyrinthSupplyItems).forEach((categoryKey, index) => {
-        const categorySelect = document.getElementById('select'+categoryKey);
+        const categorySelect = document.getElementById('select' + categoryKey);
         if (!categorySelect) return;
 
         if (categorySelect.value !== "") crates.push(categorySelect.value);
@@ -3103,7 +3106,7 @@ function startSimulation(selectedPlayers) {
             zone: simZone,
             labyrinth: simLabyrinth,
             simulationTimeLimit: simulationTimeLimit,
-            extra : extra
+            extra: extra
         };
         simStartTime = Date.now();
         if (!worker) {
@@ -3113,14 +3116,14 @@ function startSimulation(selectedPlayers) {
         worker.postMessage(workerMessage);
     } else if (simAllLabyrinthsToggle.checked) {
         let gameLabyrinths = Object.values(combatMonsterDetailMap)
-        .filter((monster) => monster.isLabyrinthMonster === true)
-        .sort((a, b) => a.sortIndex - b.sortIndex);
+            .filter((monster) => monster.isLabyrinthMonster === true)
+            .sort((a, b) => a.sortIndex - b.sortIndex);
 
         let simHrids = gameLabyrinths
             .map(action => {
                 let result = [];
                 // floor 1 is room level 20-40, +20 level per floor
-                for (let roomLevel = 40; roomLevel <= 220; roomLevel+=20) {
+                for (let roomLevel = 40; roomLevel <= 220; roomLevel += 20) {
                     result.push({ labyrinthHrid: action.hrid, roomLevel: roomLevel, crates: crates });
                 }
                 return result;
@@ -3207,7 +3210,7 @@ function parsePlayerJson(playerJson, hrid) {
     const triggerMap = playerJson.triggerMap;
     ["head", "body", "legs", "feet", "hands", "off_hand", "pouch", "neck", "earrings", "ring", "back", "main_hand", "two_hand", "charm"].forEach((type) => {
         let currentEquipment = playerJson.player.equipment.find(item => item.itemLocationHrid === "/item_locations/" + type);
-        if (currentEquipment){
+        if (currentEquipment) {
             playerData.equipment[`/equipment_types/${type}`] = new Equipment(currentEquipment.itemHrid, currentEquipment.enhancementLevel);
         }
     });
@@ -3333,9 +3336,9 @@ document.getElementById("buttonUploadJSONSimulate").addEventListener("click", (e
                         players: playersToSim,
                         zones: simHrids,
                         simulationTimeLimit: simulationTimeLimit,
-                        extra : extra
+                        extra: extra
                     };
-                    const worker = new Worker(new URL("worker.js", import.meta.url)); 
+                    const worker = new Worker(new URL("worker.js", import.meta.url));
                     worker.onmessage = mainWorkerOnMessage;
                     worker.postMessage(workerMessage);
                     customAlert("Simulation task Created", "info")
@@ -3352,9 +3355,9 @@ document.getElementById("buttonUploadJSONSimulate").addEventListener("click", (e
                         players: playersToSim,
                         zone: { zoneHrid: zoneHrid, difficultyTier: difficultyTier },
                         simulationTimeLimit: simulationTimeLimit,
-                        extra : extra
+                        extra: extra
                     };
-                    const worker = new Worker(new URL("worker.js", import.meta.url)); 
+                    const worker = new Worker(new URL("worker.js", import.meta.url));
                     worker.onmessage = mainWorkerOnMessage;
                     worker.postMessage(workerMessage);
                     customAlert("Simulation task Created", "info")
@@ -3468,7 +3471,7 @@ function renderSelectedWipeEvent(index, simResult) {
             sourceSpan.className = 'log-source';
             if (log.ability === "damageOverTime") {
                 sourceSpan.textContent = log.target;
-            } else if(log.source == 'UNKNOWN_SOURCE') {
+            } else if (log.source == 'UNKNOWN_SOURCE') {
                 sourceSpan.textContent = 'UNKNOWN';
             } else {
                 sourceSpan.setAttribute('data-i18n', `monsterNames.${log.source}`);
@@ -4493,7 +4496,7 @@ async function fetchPrices() {
                     window.prices[hrid].bid = priceTmp[hrid]['0'].b;
                 }
             }
-        } 
+        }
 
         window.prices["/items/coin"] = { "ask": 1, "bid": 1, "vendor": 1 };
 
@@ -4657,7 +4660,7 @@ function initExtraBuffSection() {
     mooPassToggle.onchange = () => {
         localStorage.setItem('mooPass', mooPassToggle.checked);
     }
-    
+
     // comExp
     let comExpToggle = document.getElementById("comExpToggle");
     let comExpInput = document.getElementById("comExpInput");
@@ -4675,7 +4678,7 @@ function initExtraBuffSection() {
     const updateComExp = () => {
         if (comExpToggle.checked) {
             let comExp = Number(comExpInput.value);
-            localStorage.setItem('comExp', comExp); 
+            localStorage.setItem('comExp', comExp);
             comExpInput.disabled = false;
         } else {
             localStorage.setItem('comExp', 0);
@@ -4702,7 +4705,7 @@ function initExtraBuffSection() {
     const updateComDrop = () => {
         if (comDropToggle.checked) {
             let comDrop = Number(comDropInput.value);
-            localStorage.setItem('comDrop', comDrop); 
+            localStorage.setItem('comDrop', comDrop);
             comDropInput.disabled = false;
         } else {
             localStorage.setItem('comDrop', 0);
@@ -4723,30 +4726,54 @@ function initExtraBuffSection() {
         "/items/seal_of_rare_find",
     ];
     const personalBuffsTable = document.getElementById('personalBuffsBox');
-    for (const buff of personalBuffKeys) {
-        const buffDiv = document.createElement('div');
-        buffDiv.className = 'form-check form-switch mb-1';
-        const buffInput = document.createElement('input');
-        buffInput.className = 'form-check-input';
-        buffInput.type = 'checkbox';
-        buffInput.id = buff.split('/').pop() + 'Toggle';
-        buffInput.value = buff;
-        buffDiv.appendChild(buffInput);
-        const buffLabel = document.createElement('label');
-        buffLabel.className = 'form-check-label';
-        buffLabel.setAttribute('for', buffInput.id);
-        buffLabel.innerHTML = buff;
-        buffLabel.setAttribute("data-i18n", "itemNames." +buff);
-        buffDiv.appendChild(buffLabel);
+    personalBuffsTable.innerHTML = ''; // 清空原有内容
 
-        personalBuffsTable.appendChild(buffDiv);
+    const NUM_CHARACTERS = 5;
+
+    for (let charIdx = 0; charIdx < NUM_CHARACTERS; charIdx++) {
+        // 创建角色分组容器
+        const charGroup = document.createElement('div');
+        charGroup.className = 'character-group mb-3';
+
+        // 角色标题
+        const charTitle = document.createElement('h6');
+        charTitle.textContent = `角色 ${charIdx + 1}`;
+        charGroup.appendChild(charTitle);
+
+        // 为该角色添加所有 Buff 开关
+        for (const buff of personalBuffKeys) {
+            const buffDiv = document.createElement('div');
+            buffDiv.className = 'form-check form-switch mb-1';
+
+            const buffInput = document.createElement('input');
+            buffInput.className = 'form-check-input';
+            buffInput.type = 'checkbox';
+
+            const buffId = buff.split('/').pop(); // 例如 "seal_of_combat_drop"
+            const uniqueId = `char${charIdx}_${buffId}Toggle`; // 确保 ID 唯一
+            buffInput.id = uniqueId;
+            buffInput.value = buff;
+
+            buffDiv.appendChild(buffInput);
+
+            const buffLabel = document.createElement('label');
+            buffLabel.className = 'form-check-label';
+            buffLabel.setAttribute('for', uniqueId);
+            buffLabel.innerHTML = buff;
+            buffLabel.setAttribute("data-i18n", "itemNames." + buff);
+
+            buffDiv.appendChild(buffLabel);
+            charGroup.appendChild(buffDiv);
+        }
+
+        personalBuffsTable.appendChild(charGroup);
     }
 
     let personalBuffsToggle = document.getElementById("personalBuffsToggle");
     personalBuffsToggle.onchange = () => {
         personalBuffsTable.classList.toggle('d-none');
     }
-    
+
 }
 
 

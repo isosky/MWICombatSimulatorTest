@@ -7,6 +7,7 @@ onmessage = async function (event) {
     switch (event.data.type) {
         case "start_simulation":
             let extraBuffs = [];
+            let extrapersonalBuffs = {};
             if (event.data.extra.mooPass) {
                 const mooPassBuff = {
                     "uniqueHrid": "/buff_uniques/experience_moo_pass_buff",
@@ -119,9 +120,13 @@ onmessage = async function (event) {
                         "duration": 0
                     }
                 };
-                for (let buff of event.data.extra.personalBuffs) {
-                    if (personalBuffs[buff]) {
-                        extraBuffs.push(personalBuffs[buff]);
+                for (let groupIndex in event.data.extra.personalBuffs) {
+                    let buffs = event.data.extra.personalBuffs[groupIndex];
+                    for (let buff of buffs) {
+                        if (personalBuffs[buff]) {
+                            extrapersonalBuffs[groupIndex] = extrapersonalBuffs[groupIndex] || [];
+                            extrapersonalBuffs[groupIndex].push(personalBuffs[buff]);
+                        }
                     }
                 }
             }
@@ -139,17 +144,17 @@ onmessage = async function (event) {
             for (let i = 0; i < playersData.length; i++) {
                 let currentPlayer = Player.createFromDTO(structuredClone(playersData[i]));
                 currentPlayer.zoneBuffs = zone?.buffs || labyrinth?.buffs || [];
-                currentPlayer.extraBuffs = extraBuffs;
+                currentPlayer.extraBuffs = extrapersonalBuffs[i] || [];
                 players.push(currentPlayer);
             }
             let simulationTimeLimit = event.data.simulationTimeLimit;
             let enableHpMpVisualization = event.data.extra.enableHpMpVisualization || false;
             let combatSimulator = new CombatSimulator(players, zone, labyrinth, { enableHpMpVisualization });
             combatSimulator.addEventListener("progress", (event) => {
-                this.postMessage({ 
-                    type: "simulation_progress", 
-                    progress: event.detail.progress, 
-                    zone: event.detail.zone, 
+                this.postMessage({
+                    type: "simulation_progress",
+                    progress: event.detail.progress,
+                    zone: event.detail.zone,
                     difficultyTier: event.detail.difficultyTier,
                     labyrinth: event.detail.labyrinth,
                     roomLevel: event.detail.roomLevel,
