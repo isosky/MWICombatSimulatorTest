@@ -2286,8 +2286,8 @@ class CombatUnit {
             }
         });
 
-        this.combatDetails.defensiveMaxDamage =
-            (10 + this.combatDetails.defenseLevel) *
+        this.combatDetails.defensiveMaxDamage = 
+            (10 + this.combatDetails.defenseLevel) * 
             (1 + this.combatDetails.combatStats.defensiveDamage) *
             (1 + damageRatioBoost) *
             (1 + damageRatioBoostFromFury);
@@ -2590,7 +2590,7 @@ class CombatUnit {
 
     reset(currentTime = 0) {
         this.clearCCs();
-
+        
         // 只有玩家在地下城团灭重开时保留buff和CD，敌人始终完全重置
         if (currentTime == 0 || !this.isPlayer) {
             // 首次战斗开始 或 敌人重置：完全重置
