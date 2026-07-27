@@ -3012,6 +3012,14 @@ function startSimulation(selectedPlayers) {
                 }
             }
 
+            // 增加公会神龛部分
+            player.guildShrine = {};
+            let inputLevel_force = document.getElementById("inputLevel_force");
+            player.guildShrine.force = Number(inputLevel_force.value);
+            let inputLevel_tempo = document.getElementById("inputLevel_tempo");
+            player.guildShrine.tempo = Number(inputLevel_tempo.value);
+            let inputLevel_spirit = document.getElementById("inputLevel_spirit");
+            player.guildShrine.spirit = Number(inputLevel_spirit.value);
             playersToSim.push(structuredClone(player));
         }
     }

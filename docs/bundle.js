@@ -538,8 +538,8 @@ class CombatUnit {
             }
         });
 
-        this.combatDetails.defensiveMaxDamage = 
-            (10 + this.combatDetails.defenseLevel) * 
+        this.combatDetails.defensiveMaxDamage =
+            (10 + this.combatDetails.defenseLevel) *
             (1 + this.combatDetails.combatStats.defensiveDamage) *
             (1 + damageRatioBoost) *
             (1 + damageRatioBoostFromFury);
@@ -842,7 +842,7 @@ class CombatUnit {
 
     reset(currentTime = 0) {
         this.clearCCs();
-        
+
         // 只有玩家在地下城团灭重开时保留buff和CD，敌人始终完全重置
         if (currentTime == 0 || !this.isPlayer) {
             // 首次战斗开始 或 敌人重置：完全重置
@@ -4856,6 +4856,14 @@ function startSimulation(selectedPlayers) {
                 }
             }
 
+            // 增加公会神龛部分
+            player.guildShrine = {};
+            let inputLevel_force = document.getElementById("inputLevel_force");
+            player.guildShrine.force = Number(inputLevel_force.value);
+            let inputLevel_tempo = document.getElementById("inputLevel_tempo");
+            player.guildShrine.tempo = Number(inputLevel_tempo.value);
+            let inputLevel_spirit = document.getElementById("inputLevel_spirit");
+            player.guildShrine.spirit = Number(inputLevel_spirit.value);
             playersToSim.push(structuredClone(player));
         }
     }

@@ -132,6 +132,7 @@ onmessage = async function (event) {
             }
 
             let playersData = event.data.players;
+            console.log("Received players data:", playersData);
             let players = [];
             let zone = null;
             if (event.data.zone) {
@@ -145,8 +146,49 @@ onmessage = async function (event) {
                 let currentPlayer = Player.createFromDTO(structuredClone(playersData[i]));
                 currentPlayer.zoneBuffs = zone?.buffs || labyrinth?.buffs || [];
                 currentPlayer.extraBuffs = extrapersonalBuffs[i] || [];
+                // 力量神龛
+                if (playersData[i].guildShrine.force > 0) {
+                    currentPlayer.extraBuffs.push({
+                        "uniqueHrid": "/buff_uniques/damage_guild_buff",
+                        "typeHrid": "/buff_types/damage",
+                        "ratioBoost": 0.003 * playersData[i].guildShrine.force,
+                        "ratioBoostLevelBonus": 0,
+                        "flatBoost": 0,
+                        "flatBoostLevelBonus": 0,
+                        "startTime": "0001-01-01T00:00:00Z",
+                        "duration": 0
+                    });
+                }
+                // 节奏神龛
+                if (playersData[i].guildShrine.tempo > 0) {
+                    currentPlayer.extraBuffs.push({
+                        "uniqueHrid": "/buff_uniques/attack_speed_guild_buff",
+                        "typeHrid": "/buff_types/attack_speed",
+                        "ratioBoost": 0.004 * playersData[i].guildShrine.tempo,
+                        "ratioBoostLevelBonus": 0,
+                        "flatBoost": 0,
+                        "flatBoostLevelBonus": 0,
+                        "startTime": "0001-01-01T00:00:00Z",
+                        "duration": 0
+                    });
+                    currentPlayer.extraBuffs.push({
+                        "uniqueHrid": "/buff_uniques/cast_speed_guild_buff",
+                        "typeHrid": "/buff_types/cast_speed",
+                        "ratioBoost": 0,
+                        "ratioBoostLevelBonus": 0,
+                        "flatBoost": 0.004 * playersData[i].guildShrine.tempo,
+                        "flatBoostLevelBonus": 0,
+                        "startTime": "0001-01-01T00:00:00Z",
+                        "duration": 0
+                    });
+                }
+                // 精神神龛
+                currentPlayer.combatDetails.combatStats.maxHitpointsRatio = 0.01 * playersData[i].guildShrine.spirit;
+                currentPlayer.combatDetails.combatStats.maxManapointsRatio = 0.01 * playersData[i].guildShrine.spirit;
+                console.log(currentPlayer);
                 players.push(currentPlayer);
             }
+            console.log("Starting simulation with players:", players);
             let simulationTimeLimit = event.data.simulationTimeLimit;
             let enableHpMpVisualization = event.data.extra.enableHpMpVisualization || false;
             let combatSimulator = new CombatSimulator(players, zone, labyrinth, { enableHpMpVisualization });
