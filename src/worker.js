@@ -145,7 +145,10 @@ onmessage = async function (event) {
             for (let i = 0; i < playersData.length; i++) {
                 let currentPlayer = Player.createFromDTO(structuredClone(playersData[i]));
                 currentPlayer.zoneBuffs = zone?.buffs || labyrinth?.buffs || [];
-                currentPlayer.extraBuffs = extrapersonalBuffs[i] || [];
+                currentPlayer.extraBuffs = [
+                    ...structuredClone(extraBuffs),
+                    ...(extrapersonalBuffs[i] || [])
+                ];
                 // 力量神龛
                 if (playersData[i].guildShrine.force > 0) {
                     currentPlayer.extraBuffs.push({
