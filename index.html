@@ -106,6 +106,40 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             /* Optional shadow for better visibility */
         }
+
+        #combatStatsPanel .combat-stat-header,
+        #combatStatsPanel .combat-stat-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(2.5rem, 0.8fr) minmax(3rem, 1fr) minmax(3rem, 1fr);
+            gap: 4px;
+            align-items: center;
+            margin: 0;
+        }
+
+        #combatStatsPanel .combat-stat-header>*,
+        #combatStatsPanel .combat-stat-row>* {
+            width: auto;
+            max-width: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #combatStatsPanel .combat-stat-header {
+            margin-bottom: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        #combatStatsPanel .combat-stat-name {
+            overflow-wrap: anywhere;
+        }
+
+        #combatStatsPanel .combat-stat-final,
+        #combatStatsPanel .combat-stat-equipment,
+        #combatStatsPanel .combat-stat-talisman {
+            text-align: right;
+            white-space: nowrap;
+        }
     </style>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -150,11 +184,15 @@
                 <a contenteditable="true" class="nav-link" id="player5-tab" data-bs-toggle="tab" href="#player5"
                     role="tab" aria-controls="player5" aria-selected="false">Player 5</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="https://greasyfork.org/scripts/556755" target="_blank"
+                    rel="noopener noreferrer">配装导入链接</a>
+            </li>
         </ul>
         <div class="row pt-3">
             <div class="col-md-5">
                 <div class="row mb-3">
-                    <div class="col-md-4">
+                    <div class="col-md-2">
                         <!-- #region Levels -->
                         <div class="row mb-3">
                             <b data-i18n="sharableProfile.skills">Levels</b>
@@ -265,7 +303,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-8">
+                    <div class="col-md-4">
                         <!-- #region Equipment -->
                         <div class="row mb-3">
                             <div class="col-md-2"><b data-i18n="settingsPanel.slots">Slot</b></div>
@@ -443,6 +481,19 @@
                             </div>
                         </div>
                         <div class="row mb-2">
+                            <label for="selectEquipment_belt" class="col-md-2 col-form-label"
+                                data-i18n="characterItemsUtil.belt">Belt</label>
+                            <div class="col-md-6">
+                                <select id="selectEquipment_belt" class="form-select">
+                                    <option value="" data-i18n="characterSelectPage.slots.empty">Empty</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="number" id="inputEquipmentEnhancementLevel_belt" class="form-control"
+                                    value="0" min="0" max="20" required />
+                            </div>
+                        </div>
+                        <div class="row mb-2">
                             <label for="selectEquipment_set" class="col-md-2 col-form-label">Presets</label>
                             <div class="col-md-6">
                                 <select id="selectEquipment_set" class="form-select">
@@ -474,6 +525,52 @@
                             </div>
                         </div>
                         <!-- #endregion -->
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row mb-3">
+                            <b>符石属性选择</b>
+                        </div>
+                        <table class="table table-sm align-middle" id="talismanModifierTable">
+                            <thead>
+                                <tr>
+                                    <th scope="col">属性选择</th>
+                                    <th scope="col">等级</th>
+                                    <th scope="col">属性值</th>
+                                </tr>
+                            </thead>
+                            <tbody id="talismanModifierRows"></tbody>
+                        </table>
+                        <div class="border-top pt-2" id="talismanPresetPanel">
+                            <div class="row g-2 mb-2">
+                                <div class="col-8">
+                                    <input id="talismanPresetName" class="form-control form-control-sm" type="text"
+                                        maxlength="40" data-i18n-placeholder="talismanPresets.namePlaceholder"
+                                        placeholder="配置名称" required />
+                                </div>
+                                <div class="col-4 d-grid">
+                                    <button id="buttonSaveTalismanPreset" class="btn btn-sm btn-primary" type="button"
+                                        data-i18n="talismanPresets.save">保存</button>
+                                </div>
+                            </div>
+                            <div class="row g-2 align-items-center">
+                                <div class="col-12">
+                                    <select id="selectTalismanPreset" class="form-select form-select-sm">
+                                        <option value="" data-i18n="talismanPresets.selectPlaceholder">选择已保存配置</option>
+                                    </select>
+                                </div>
+                                <div class="col-4">
+                                    <button id="buttonLoadTalismanPreset" class="btn btn-sm btn-outline-primary w-100"
+                                        type="button" data-i18n="talismanPresets.load">加载</button>
+                                </div>
+                                <div class="col-4">
+                                    <button id="buttonDeleteTalismanPreset" class="btn btn-sm btn-outline-danger w-100"
+                                        type="button" data-i18n="talismanPresets.delete" disabled>删除</button>
+                                </div>
+                                <div class="col-4 text-end">
+                                    <small id="talismanPresetCount" aria-live="polite">0/10</small>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="row mb-3">
@@ -832,10 +929,16 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-2" id="combatStatsPanel">
                 <!-- #region Combat stats -->
                 <div class="row mb-3">
                     <b data-i18n="equipmentPanel.combatStats">Combat Stats</b>
+                </div>
+                <div class="row combat-stat-header">
+                    <div data-i18n="combatStats.statName">属性名称</div>
+                    <div data-i18n="combatStats.finalValue">最终值</div>
+                    <div data-i18n="combatStats.equipmentContribution">装备加成</div>
+                    <div data-i18n="combatStats.talismanContribution">符石加成</div>
                 </div>
                 <div class="row">
                     <div class="col-md-8" data-i18n="combatStats.maxHitpoints">Max HP:</div>
@@ -956,6 +1059,10 @@
                 <div class="row">
                     <div class="col-md-8" data-i18n="combatStats.fireResistance">Fire Resistance:</div>
                     <div class="col-md-4" id="combatStat_totalFireResistance"></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-8" data-i18n="combatStats.damageTaken">Damage Taken:</div>
+                    <div class="col-md-4" id="combatStat_damageTaken"></div>
                 </div>
                 <div class="row">
                     <div class="col-md-8" data-i18n="combatStats.lifeSteal">Life Steal:</div>

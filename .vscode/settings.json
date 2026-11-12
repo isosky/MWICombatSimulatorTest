@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^@'\nconst fs = require\\(\"fs\"\\);\nconst vm = require\\(\"vm\"\\);\nconst path = \"js/i18n\\.js\";\nconst translationFile = fs\\.readdirSync\\(\"js\"\\)\\.find\\(\\(name\\) => name\\.endsWith\\(\"\\.txt\"\\)\\);\nif \\(!translationFile\\) throw new Error\\(\"找不到翻译文本文件\"\\);\nconst translation = JSON\\.parse\\(fs\\.readFileSync\\(\"js/\" \\+ translationFile, \"utf8\"\\)\\)\\.translation;\nconst source = fs\\.readFileSync\\(path, \"utf8\"\\);\nconst start = source\\.indexOf\\(\"    zh: \\{\"\\);\nconst init = source\\.indexOf\\(\"// i18next初始化\", start\\);\nconst end = source\\.lastIndexOf\\(\"\\\\n\\};\", init\\);\nif \\(start < 0 \\|\\| init < 0 \\|\\| end < 0\\) throw new Error\\(\"找不到 zh\\.translation 区块边界\"\\);\nconst formatted = JSON\\.stringify\\(translation, null, 4\\)\\.split\\(\"\\\\n\"\\)\\.map\\(\\(line, index\\) => index === 0 \\? line : \"        \" \\+ line\\)\\.join\\(\"\\\\n\"\\);\nconst replacement = \"    zh: \\{\\\\n        translation: \" \\+ formatted \\+ \"\\\\n    \\}\";\nconst updated = source\\.slice\\(0, start\\) \\+ replacement \\+ source\\.slice\\(end\\);\nnew vm\\.Script\\(updated, \\{ filename: path \\}\\);\nconst resource = vm\\.runInNewContext\\(updated\\.slice\\(0, end \\+ replacement\\.length \\+ 3\\) \\+ \"\\\\nWa\\.zh\\.translation\"\\);\nif \\(JSON\\.stringify\\(resource\\) !== JSON\\.stringify\\(translation\\)\\) throw new Error\\(\"写入后的中文资源与翻译\\.txt 不一致\"\\);\nfs\\.writeFileSync\\(path, updated, \"utf8\"\\);\nconsole\\.log\\(\"已替换 zh\\.translation；JSON 对比通过，JavaScript 语法检查通过。顶层键数：\" \\+ Object\\.keys\\(resource\\)\\.length\\);\n'@ \\| node$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

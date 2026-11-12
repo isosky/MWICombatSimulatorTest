@@ -4,8 +4,25 @@ import Consumable from "./consumable";
 import Equipment from "./equipment";
 import HouseRoom from "./houseRoom";
 import Achievement from "./achievement";
+import talismanModifierDetailMap from "./data/talismanModifierDetailMap.json";
 
 class Player extends CombatUnit {
+    static combatEquipmentStats = [
+        "stabAccuracy", "slashAccuracy", "smashAccuracy", "rangedAccuracy", "magicAccuracy",
+        "stabDamage", "slashDamage", "smashDamage", "rangedDamage", "magicDamage", "defensiveDamage",
+        "taskDamage", "physicalAmplify", "waterAmplify", "natureAmplify", "fireAmplify", "healingAmplify",
+        "stabEvasion", "slashEvasion", "smashEvasion", "rangedEvasion", "magicEvasion", "armor",
+        "waterResistance", "natureResistance", "fireResistance", "damageTaken", "maxHitpoints", "maxManapoints",
+        "lifeSteal", "hpRegenPer10", "mpRegenPer10", "physicalThorns", "elementalThorns",
+        "combatDropRate", "combatRareFind", "combatDropQuantity", "combatExperience", "criticalRate",
+        "criticalDamage", "armorPenetration", "waterPenetration", "naturePenetration", "firePenetration",
+        "abilityHaste", "tenacity", "manaLeech", "castSpeed", "threat", "parry", "mayhem", "pierce",
+        "curse", "fury", "weaken", "ripple", "bloom", "blaze", "attackSpeed", "foodHaste",
+        "drinkConcentration", "autoAttackDamage", "abilityDamage", "staminaExperience", "intelligenceExperience",
+        "attackExperience", "defenseExperience", "meleeExperience", "rangedExperience", "magicExperience",
+        "retaliation",
+    ];
+    talismanModifiers = [];
     equipment = {
         "/equipment_types/head": null,
         "/equipment_types/body": null,
@@ -26,6 +43,31 @@ class Player extends CombatUnit {
         this.hrid = "player";
     }
 
+    static getActiveTalismanModifierIndices(selections = []) {
+        const groupedSelections = new Map();
+        selections.forEach((selection, index) => {
+            const modifier = talismanModifierDetailMap[selection?.modifierHrid];
+            const gradeIndex = Number(selection?.gradeIndex);
+            if (!modifier || !Number.isInteger(gradeIndex) || gradeIndex < 0 || gradeIndex >= modifier.gradeValues.length) {
+                return;
+            }
+
+            const modifierName = modifier.keys.join("|");
+            const group = groupedSelections.get(modifierName) ?? [];
+            group.push({ index, gradeIndex });
+            groupedSelections.set(modifierName, group);
+        });
+
+        const activeIndices = new Set();
+        groupedSelections.forEach((group) => {
+            group.sort((a, b) => b.gradeIndex - a.gradeIndex || a.index - b.index)
+                .slice(0, 3)
+                .forEach(({ index }) => activeIndices.add(index));
+        });
+
+        return activeIndices;
+    }
+
     static createFromDTO(dto) {
         let player = new Player();
 
@@ -38,6 +80,7 @@ class Player extends CombatUnit {
         player.magicLevel = dto.magicLevel;
 
         player.hrid = dto.hrid;
+        player.talismanModifiers = dto.talismanModifiers ?? [];
 
         for (const [key, value] of Object.entries(dto.equipment)) {
             player.equipment[key] = value ? Equipment.createFromDTO(value) : null;
@@ -66,7 +109,7 @@ class Player extends CombatUnit {
             this.combatDetails.combatStats.damageType = this.equipment["/equipment_types/main_hand"].getDamageType();
             this.combatDetails.combatStats.attackInterval =
                 this.equipment["/equipment_types/main_hand"].getCombatStat("attackInterval");
-            this.combatDetails.combatStats.primaryTraining = 
+            this.combatDetails.combatStats.primaryTraining =
                 this.equipment["/equipment_types/main_hand"].getPrimaryTraining();
         } else if (this.equipment["/equipment_types/two_hand"]) {
             this.combatDetails.combatStats.combatStyleHrid =
@@ -74,7 +117,7 @@ class Player extends CombatUnit {
             this.combatDetails.combatStats.damageType = this.equipment["/equipment_types/two_hand"].getDamageType();
             this.combatDetails.combatStats.attackInterval =
                 this.equipment["/equipment_types/two_hand"].getCombatStat("attackInterval");
-            this.combatDetails.combatStats.primaryTraining = 
+            this.combatDetails.combatStats.primaryTraining =
                 this.equipment["/equipment_types/two_hand"].getPrimaryTraining();
         } else {
             this.combatDetails.combatStats.combatStyleHrid = "/combat_styles/smash";
@@ -89,82 +132,39 @@ class Player extends CombatUnit {
             this.combatDetails.combatStats.focusTraining = "";
         }
 
-        [
-            "stabAccuracy",
-            "slashAccuracy",
-            "smashAccuracy",
-            "rangedAccuracy",
-            "magicAccuracy",
-            "stabDamage",
-            "slashDamage",
-            "smashDamage",
-            "rangedDamage",
-            "magicDamage",
-            "defensiveDamage",
-            "taskDamage",
-            "physicalAmplify",
-            "waterAmplify",
-            "natureAmplify",
-            "fireAmplify",
-            "healingAmplify",
-            "stabEvasion",
-            "slashEvasion",
-            "smashEvasion",
-            "rangedEvasion",
-            "magicEvasion",
-            "armor",
-            "waterResistance",
-            "natureResistance",
-            "fireResistance",
-            "maxHitpoints",
-            "maxManapoints",
-            "lifeSteal",
-            "hpRegenPer10",
-            "mpRegenPer10",
-            "physicalThorns",
-            "elementalThorns",
-            "combatDropRate",
-            "combatRareFind",
-            "combatDropQuantity",
-            "combatExperience",
-            "criticalRate",
-            "criticalDamage",
-            "armorPenetration",
-            "waterPenetration",
-            "naturePenetration",
-            "firePenetration",
-            "abilityHaste",
-            "tenacity",
-            "manaLeech",
-            "castSpeed",
-            "threat",
-            "parry",
-            "mayhem",
-            "pierce",
-            "curse",
-            "fury",
-            "weaken",
-            "ripple",
-            "bloom",
-            "blaze",
-            "attackSpeed",
-            "foodHaste",
-            "drinkConcentration",
-            "autoAttackDamage",
-            "abilityDamage",
-            "staminaExperience",
-            "intelligenceExperience",
-            "attackExperience",
-            "defenseExperience",
-            "meleeExperience",
-            "rangedExperience",
-            "magicExperience",
-            "retaliation"
-        ].forEach((stat) => {
-            this.combatDetails.combatStats[stat] = Object.values(this.equipment)
+        Player.combatEquipmentStats.forEach((stat) => {
+            const equipmentValue = Object.values(this.equipment)
                 .filter((equipment) => equipment != null)
-                .map((equipment) => equipment.getCombatStat(stat))
-                .reduce((prev, cur) => prev + cur, 0);
+                .reduce((total, equipment) => total + equipment.getCombatStat(stat), 0);
+            this.combatDetails.equipmentStats ??= {};
+            this.combatDetails.talismanStats ??= {};
+            this.combatDetails.equipmentStats[stat] = equipmentValue;
+
+            const beltPower = this.equipment["/equipment_types/belt"]?.getCombatStat("talismanPower") ?? 0;
+            const activeTalismanModifierIndices = Player.getActiveTalismanModifierIndices(this.talismanModifiers);
+            const talismanValue = this.talismanModifiers.reduce((total, selection, index) => {
+                if (!activeTalismanModifierIndices.has(index)) {
+                    return total;
+                }
+
+                const modifier = talismanModifierDetailMap[selection.modifierHrid];
+                if (!modifier || !Number.isInteger(Number(selection.gradeIndex))) {
+                    return total;
+                }
+
+                const gradeValue = modifier.gradeValues[Number(selection.gradeIndex)];
+                if (gradeValue === undefined) {
+                    return total;
+                }
+
+                const statValue = modifier.keys
+                    .filter((key) => key.charAt(0).toLowerCase() + key.slice(1) === stat)
+                    .length * gradeValue * (1 + beltPower);
+                return total + statValue;
+            }, 0);
+
+            this.combatDetails.talismanStats[stat] = talismanValue;
+            this.combatDetails.combatStats[stat] = equipmentValue + talismanValue;
         });
 
         if (this.equipment["/equipment_types/pouch"]) {
