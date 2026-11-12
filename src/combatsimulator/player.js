@@ -46,6 +46,10 @@ class Player extends CombatUnit {
     static getActiveTalismanModifierIndices(selections = [], maxActiveCount = Infinity) {
         const groupedSelections = new Map();
         selections.forEach((selection, index) => {
+            if (index >= maxActiveCount) {
+                return;
+            }
+
             const modifier = talismanModifierDetailMap[selection?.modifierHrid];
             const gradeIndex = Number(selection?.gradeIndex);
             if (!modifier || !Number.isInteger(gradeIndex) || gradeIndex < 0 || gradeIndex >= modifier.gradeValues.length) {
@@ -58,17 +62,14 @@ class Player extends CombatUnit {
             groupedSelections.set(modifierName, group);
         });
 
-        const topModifierSelections = [];
+        const activeIndices = new Set();
         groupedSelections.forEach((group) => {
             group.sort((a, b) => b.gradeIndex - a.gradeIndex || a.index - b.index)
                 .slice(0, 3)
-                .forEach((selection) => topModifierSelections.push(selection));
+                .forEach(({ index }) => activeIndices.add(index));
         });
 
-        return new Set(topModifierSelections
-            .sort((a, b) => a.index - b.index)
-            .slice(0, Math.max(0, maxActiveCount))
-            .map(({ index }) => index));
+        return activeIndices;
     }
 
     static createFromDTO(dto) {

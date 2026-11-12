@@ -286,21 +286,34 @@ function updateTalismanModifierDisplays() {
     const belt = player.equipment["/equipment_types/belt"];
     const beltPower = belt?.getCombatStat("talismanPower") ?? 0;
     const beltSlots = belt?.getCombatStat("talismanSlots") ?? 0;
+    const activeRowCount = Math.min(12, Math.max(0, Math.floor(beltSlots * 4)));
     const activeModifierIndices = Player.getActiveTalismanModifierIndices(
         getTalismanModifierSelections(),
-        beltSlots * 4
+        activeRowCount
     );
     document.querySelectorAll("#talismanModifierRows tr").forEach((row, index) => {
+        const rowIsAvailable = index < activeRowCount;
+        row.querySelectorAll("select").forEach((select) => {
+            select.disabled = !rowIsAvailable;
+        });
+        row.classList.toggle("text-muted", !rowIsAvailable);
+
         const modifierHrid = row.cells[0].querySelector("select").value;
         const gradeIndex = Number(row.cells[1].querySelector("select").value);
         const modifier = talismanModifierDetailMap[modifierHrid];
         if (!modifier) {
-            row.cells[2].textContent = "";
-            row.cells[2].removeAttribute("title");
+            row.cells[2].textContent = rowIsAvailable ? "" : "未生效";
+            if (!rowIsAvailable) {
+                row.cells[2].title = beltSlots === 0
+                    ? "未装备腰带，符石属性不生效"
+                    : `腰带最多生效${activeRowCount}条属性`;
+            } else {
+                row.cells[2].removeAttribute("title");
+            }
             return;
         }
 
-        if (!activeModifierIndices.has(index)) {
+        if (!rowIsAvailable || !activeModifierIndices.has(index)) {
             row.cells[2].textContent = "未生效";
             row.cells[2].title = beltSlots === 0
                 ? "未装备腰带，符石属性不生效"

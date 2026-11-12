@@ -1200,6 +1200,10 @@ class Player extends _combatUnit__WEBPACK_IMPORTED_MODULE_1__["default"] {
     static getActiveTalismanModifierIndices(selections = [], maxActiveCount = Infinity) {
         const groupedSelections = new Map();
         selections.forEach((selection, index) => {
+            if (index >= maxActiveCount) {
+                return;
+            }
+
             const modifier = _data_talismanModifierDetailMap_json__WEBPACK_IMPORTED_MODULE_6__[selection?.modifierHrid];
             const gradeIndex = Number(selection?.gradeIndex);
             if (!modifier || !Number.isInteger(gradeIndex) || gradeIndex < 0 || gradeIndex >= modifier.gradeValues.length) {
@@ -1212,17 +1216,14 @@ class Player extends _combatUnit__WEBPACK_IMPORTED_MODULE_1__["default"] {
             groupedSelections.set(modifierName, group);
         });
 
-        const topModifierSelections = [];
+        const activeIndices = new Set();
         groupedSelections.forEach((group) => {
             group.sort((a, b) => b.gradeIndex - a.gradeIndex || a.index - b.index)
                 .slice(0, 3)
-                .forEach((selection) => topModifierSelections.push(selection));
+                .forEach(({ index }) => activeIndices.add(index));
         });
 
-        return new Set(topModifierSelections
-            .sort((a, b) => a.index - b.index)
-            .slice(0, Math.max(0, maxActiveCount))
-            .map(({ index }) => index));
+        return activeIndices;
     }
 
     static createFromDTO(dto) {
@@ -2156,21 +2157,34 @@ function updateTalismanModifierDisplays() {
     const belt = player.equipment["/equipment_types/belt"];
     const beltPower = belt?.getCombatStat("talismanPower") ?? 0;
     const beltSlots = belt?.getCombatStat("talismanSlots") ?? 0;
+    const activeRowCount = Math.min(12, Math.max(0, Math.floor(beltSlots * 4)));
     const activeModifierIndices = _combatsimulator_player_js__WEBPACK_IMPORTED_MODULE_1__["default"].getActiveTalismanModifierIndices(
         getTalismanModifierSelections(),
-        beltSlots * 4
+        activeRowCount
     );
     document.querySelectorAll("#talismanModifierRows tr").forEach((row, index) => {
+        const rowIsAvailable = index < activeRowCount;
+        row.querySelectorAll("select").forEach((select) => {
+            select.disabled = !rowIsAvailable;
+        });
+        row.classList.toggle("text-muted", !rowIsAvailable);
+
         const modifierHrid = row.cells[0].querySelector("select").value;
         const gradeIndex = Number(row.cells[1].querySelector("select").value);
         const modifier = _combatsimulator_data_talismanModifierDetailMap_json__WEBPACK_IMPORTED_MODULE_19__[modifierHrid];
         if (!modifier) {
-            row.cells[2].textContent = "";
-            row.cells[2].removeAttribute("title");
+            row.cells[2].textContent = rowIsAvailable ? "" : "未生效";
+            if (!rowIsAvailable) {
+                row.cells[2].title = beltSlots === 0
+                    ? "未装备腰带，符石属性不生效"
+                    : `腰带最多生效${activeRowCount}条属性`;
+            } else {
+                row.cells[2].removeAttribute("title");
+            }
             return;
         }
 
-        if (!activeModifierIndices.has(index)) {
+        if (!rowIsAvailable || !activeModifierIndices.has(index)) {
             row.cells[2].textContent = "未生效";
             row.cells[2].title = beltSlots === 0
                 ? "未装备腰带，符石属性不生效"
