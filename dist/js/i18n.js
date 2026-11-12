@@ -130,6 +130,7 @@ const Wa = {
                 talismanPresets: {
                     namePlaceholder: "Preset name",
                     save: "Save",
+                    clear: "Clear Talismans",
                     selectPlaceholder: "Select a saved preset",
                     load: "Load",
                     delete: "Delete",
@@ -6131,6 +6132,7 @@ const Wa = {
             "talismanPresets": {
                 "namePlaceholder": "配置名称",
                 "save": "保存",
+                "clear": "清空符石",
                 "selectPlaceholder": "选择已保存配置",
                 "load": "加载",
                 "delete": "删除",

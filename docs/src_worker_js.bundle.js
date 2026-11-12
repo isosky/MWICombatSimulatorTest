@@ -4173,7 +4173,7 @@ class Player extends _combatUnit__WEBPACK_IMPORTED_MODULE_1__["default"] {
         this.hrid = "player";
     }
 
-    static getActiveTalismanModifierIndices(selections = []) {
+    static getActiveTalismanModifierIndices(selections = [], maxActiveCount = Infinity) {
         const groupedSelections = new Map();
         selections.forEach((selection, index) => {
             const modifier = _data_talismanModifierDetailMap_json__WEBPACK_IMPORTED_MODULE_6__[selection?.modifierHrid];
@@ -4188,14 +4188,17 @@ class Player extends _combatUnit__WEBPACK_IMPORTED_MODULE_1__["default"] {
             groupedSelections.set(modifierName, group);
         });
 
-        const activeIndices = new Set();
+        const topModifierSelections = [];
         groupedSelections.forEach((group) => {
             group.sort((a, b) => b.gradeIndex - a.gradeIndex || a.index - b.index)
                 .slice(0, 3)
-                .forEach(({ index }) => activeIndices.add(index));
+                .forEach((selection) => topModifierSelections.push(selection));
         });
 
-        return activeIndices;
+        return new Set(topModifierSelections
+            .sort((a, b) => a.index - b.index)
+            .slice(0, Math.max(0, maxActiveCount))
+            .map(({ index }) => index));
     }
 
     static createFromDTO(dto) {
@@ -4262,6 +4265,14 @@ class Player extends _combatUnit__WEBPACK_IMPORTED_MODULE_1__["default"] {
             this.combatDetails.combatStats.focusTraining = "";
         }
 
+        const belt = this.equipment["/equipment_types/belt"];
+        const beltPower = belt?.getCombatStat("talismanPower") ?? 0;
+        const maxActiveTalismanModifiers = (belt?.getCombatStat("talismanSlots") ?? 0) * 4;
+        const activeTalismanModifierIndices = Player.getActiveTalismanModifierIndices(
+            this.talismanModifiers,
+            maxActiveTalismanModifiers
+        );
+
         Player.combatEquipmentStats.forEach((stat) => {
             const equipmentValue = Object.values(this.equipment)
                 .filter((equipment) => equipment != null)
@@ -4270,8 +4281,6 @@ class Player extends _combatUnit__WEBPACK_IMPORTED_MODULE_1__["default"] {
             this.combatDetails.talismanStats ??= {};
             this.combatDetails.equipmentStats[stat] = equipmentValue;
 
-            const beltPower = this.equipment["/equipment_types/belt"]?.getCombatStat("talismanPower") ?? 0;
-            const activeTalismanModifierIndices = Player.getActiveTalismanModifierIndices(this.talismanModifiers);
             const talismanValue = this.talismanModifiers.reduce((total, selection, index) => {
                 if (!activeTalismanModifierIndices.has(index)) {
                     return total;

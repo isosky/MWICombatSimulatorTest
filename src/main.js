@@ -198,6 +198,7 @@ function initTalismanPresetControls() {
     const presetSelect = document.getElementById("selectTalismanPreset");
     const countLabel = document.getElementById("talismanPresetCount");
     const saveButton = document.getElementById("buttonSaveTalismanPreset");
+    const clearButton = document.getElementById("buttonClearTalismans");
     const loadButton = document.getElementById("buttonLoadTalismanPreset");
     const deleteButton = document.getElementById("buttonDeleteTalismanPreset");
     const placeholderOption = presetSelect.options[0];
@@ -234,6 +235,11 @@ function initTalismanPresetControls() {
 
         localStorage.setItem(TALISMAN_PRESETS_STORAGE_KEY, JSON.stringify(presets));
         renderPresets(name);
+    });
+
+    clearButton.addEventListener("click", () => {
+        setTalismanModifierSelections([]);
+        updateUI();
     });
 
     loadButton.addEventListener("click", () => {
@@ -277,8 +283,13 @@ function setTalismanModifierSelections(selections = []) {
 }
 
 function updateTalismanModifierDisplays() {
-    const beltPower = player.equipment["/equipment_types/belt"]?.getCombatStat("talismanPower") ?? 0;
-    const activeModifierIndices = Player.getActiveTalismanModifierIndices(getTalismanModifierSelections());
+    const belt = player.equipment["/equipment_types/belt"];
+    const beltPower = belt?.getCombatStat("talismanPower") ?? 0;
+    const beltSlots = belt?.getCombatStat("talismanSlots") ?? 0;
+    const activeModifierIndices = Player.getActiveTalismanModifierIndices(
+        getTalismanModifierSelections(),
+        beltSlots * 4
+    );
     document.querySelectorAll("#talismanModifierRows tr").forEach((row, index) => {
         const modifierHrid = row.cells[0].querySelector("select").value;
         const gradeIndex = Number(row.cells[1].querySelector("select").value);
@@ -291,7 +302,9 @@ function updateTalismanModifierDisplays() {
 
         if (!activeModifierIndices.has(index)) {
             row.cells[2].textContent = "未生效";
-            row.cells[2].title = "同名属性只生效等级最高的3条";
+            row.cells[2].title = beltSlots === 0
+                ? "未装备腰带，符石属性不生效"
+                : `腰带最多生效${beltSlots * 4}条属性；同名属性只生效等级最高的3条`;
             return;
         }
 
