@@ -21,6 +21,7 @@ class CombatUnit {
     experience = 0;
     experienceRate = 0;
     enrageTime = 0;
+    storedOverkillDamage = 0;
 
     abilities = [null, null, null, null];
     food = [null, null, null];
@@ -75,6 +76,10 @@ class CombatUnit {
             abilityDamage: 0,
             criticalRate: 0,
             criticalDamage: 0,
+            shatter: 0,
+            echo: 0,
+            smite: 0,
+            overkill: 0,
             stabAccuracy: 0,
             slashAccuracy: 0,
             smashAccuracy: 0,

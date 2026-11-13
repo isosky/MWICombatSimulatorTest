@@ -60,6 +60,10 @@ const Wa = {
                     abilityHaste: "Ability Haste",
                     criticalRate: "Critical Rate",
                     criticalDamage: "Critical Damage",
+                    shatter: "Shatter",
+                    echo: "Echo",
+                    smite: "Smite",
+                    overkill: "Overkill",
                     stabAccuracy: "Stab Accuracy",
                     slashAccuracy: "Slash Accuracy",
                     smashAccuracy: "Smash Accuracy",
@@ -1706,6 +1710,7 @@ const Wa = {
                     drink: "Drink"
                 },
                 guildShrineNames: {
+                    name: "Guild Shrines",
                     force: "force",
                     tempo: "tempo",
                     spirit: "spirit"
@@ -6055,6 +6060,9 @@ const Wa = {
                 "abilityHaste": "技能急速",
                 "criticalRate": "暴击率",
                 "criticalDamage": "暴击伤害",
+                "shatter": "破甲",
+                "echo": "回响",
+                "smite": "制裁",
                 "stabAccuracy": "刺击精准度",
                 "slashAccuracy": "斩击精准度",
                 "smashAccuracy": "钝击精准度",
@@ -12092,6 +12100,10 @@ const Wa = {
                 "/guild_buildings/mystical_study": "公会神秘研究室"
             },
             "guildShrineNames": {
+                "name": "公会神龛",
+                "force": "力量神龛",
+                "tempo": "节奏神龛",
+                "spirit": "精神神龛",
                 "/guild_shrines/force": "力量神龛",
                 "/guild_shrines/tempo": "节奏神龛",
                 "/guild_shrines/spirit": "精神神龛",

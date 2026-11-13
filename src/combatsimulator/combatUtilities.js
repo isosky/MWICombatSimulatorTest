@@ -46,7 +46,7 @@ class CombatUtilities {
         }
     }
 
-    static processAttack(source, target, abilityEffect = null) {
+    static processAttack(source, target, abilityEffect = null, echoMultiplier = 1) {
         let combatStyle = abilityEffect
             ? abilityEffect.combatStyleHrid
             : source.combatDetails.combatStats.combatStyleHrid;
@@ -181,17 +181,32 @@ class CombatUtilities {
         } else {
             damageRoll *= (1 + source.combatDetails.combatStats.abilityDamage);
         }
+        if (source.isPlayer && target.isBoss && source.combatDetails.combatStats.smite > 0) {
+            damageRoll *= 1 + source.combatDetails.combatStats.smite;
+        }
+        const baseDamageRoll = damageRoll;
+        damageRoll *= echoMultiplier;
 
         let damageDone = 0;
+        let baseDamageDone = 0;
+        let echoDamageDone = 0;
+        let overkillDamageDone = 0;
         let thornDamageDone = 0;
 
         let didHit = false;
         if (Math.random() < hitChance) {
             didHit = true;
-            let penetratedTargetResistance = targetResistance;
+            const initialTargetResistance = targetResistance;
+            let shatterAdjustedResistance = initialTargetResistance;
+            const shatterPenetration = source.combatDetails.combatStats.shatter;
+            if (isCrit && shatterPenetration > 0 && initialTargetResistance > 0) {
+                // Reduce the initial positive armor/resistance value before normal penetration.
+                shatterAdjustedResistance -= initialTargetResistance * shatterPenetration;
+            }
 
-            if (sourcePenetration > 0 && targetResistance > 0) {
-                penetratedTargetResistance = targetResistance / (1 + sourcePenetration);
+            let penetratedTargetResistance = shatterAdjustedResistance;
+            if (sourcePenetration > 0 && shatterAdjustedResistance > 0) {
+                penetratedTargetResistance = shatterAdjustedResistance / (1 + sourcePenetration);
             }
 
             let targetDamageTakenRatio = 100 / (100 + penetratedTargetResistance);
@@ -199,8 +214,26 @@ class CombatUtilities {
                 targetDamageTakenRatio = (100 - penetratedTargetResistance) / 100;
             }
 
-            let mitigatedDamage = Math.ceil(targetDamageTakenRatio * damageRoll);
-            damageDone = Math.min(mitigatedDamage, target.combatDetails.currentHitpoints);
+            const mitigatedBaseDamage = Math.ceil(targetDamageTakenRatio * baseDamageRoll);
+            const mitigatedDamage = Math.ceil(targetDamageTakenRatio * damageRoll);
+            const storedOverkillDamage = Math.max(0, source.storedOverkillDamage ?? 0);
+            const totalDamageBeforeHealthCap = mitigatedDamage + storedOverkillDamage;
+            const targetHitpointsBeforeAttack = target.combatDetails.currentHitpoints;
+            damageDone = Math.min(totalDamageBeforeHealthCap, targetHitpointsBeforeAttack);
+            baseDamageDone = Math.min(mitigatedBaseDamage, damageDone);
+            echoDamageDone = Math.min(
+                Math.max(0, mitigatedDamage - mitigatedBaseDamage),
+                Math.max(0, damageDone - baseDamageDone)
+            );
+            overkillDamageDone = Math.max(0, damageDone - baseDamageDone - echoDamageDone);
+
+            source.storedOverkillDamage = 0;
+            const overkillOverflow = Math.max(0, totalDamageBeforeHealthCap - targetHitpointsBeforeAttack);
+            const overkillRatio = source.combatDetails.combatStats.overkill ?? 0;
+            if (source.isPlayer && !target.isPlayer && overkillOverflow > 0 && overkillRatio > 0) {
+                source.storedOverkillDamage = Math.floor(overkillOverflow * overkillRatio);
+            }
+
             target.combatDetails.currentHitpoints -= damageDone;
         }
 
@@ -234,7 +267,7 @@ class CombatUtilities {
 
         let retaliationDamageDone = 0;
         if (target.combatDetails.combatStats.retaliation > 0) {
-            let retaliationHitChance = 
+            let retaliationHitChance =
                 Math.pow(target.combatDetails.smashAccuracyRating, 1.4) /
                 (Math.pow(target.combatDetails.smashAccuracyRating, 1.4) + Math.pow(source.combatDetails.smashEvasionRating, 1.4));
 
@@ -282,10 +315,10 @@ class CombatUtilities {
             manaLeechMana = source.addManapoints(Math.floor(source.combatDetails.combatStats.manaLeech * damageDone));
         }
 
-        return { damageDone, didHit, thornDamageDone, thornType, retaliationDamageDone, lifeStealHeal, hpDrain, manaLeechMana, isCrit};
+        return { damageDone, baseDamageDone, echoDamageDone, overkillDamageDone, didHit, thornDamageDone, thornType, retaliationDamageDone, lifeStealHeal, hpDrain, manaLeechMana, isCrit };
     }
 
-    static processHeal(source, abilityEffect, target) {
+    static processHeal(source, abilityEffect, target, echoMultiplier = 1) {
         if (abilityEffect.combatStyleHrid != "/combat_styles/magic") {
             throw new Error("Heal ability effect not supported for combat style: " + abilityEffect.combatStyleHrid);
         }
@@ -299,7 +332,7 @@ class CombatUtilities {
         let minHeal = healingAmplify * (1 + baseHealFlat);
         let maxHeal = healingAmplify * (baseHealRatio * magicMaxDamage + baseHealFlat);
 
-        let heal = this.randomInt(minHeal, maxHeal);
+        let heal = Math.floor(this.randomInt(minHeal, maxHeal) * echoMultiplier);
         let amountHealed = target.addHitpoints(heal);
 
         return amountHealed;

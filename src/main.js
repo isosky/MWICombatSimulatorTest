@@ -677,7 +677,7 @@ function updateCombatStatsUI() {
         "defensiveDamage", "stabEvasion", "slashEvasion", "smashEvasion", "rangedEvasion",
         "magicEvasion", "physicalAmplify", "waterAmplify", "natureAmplify", "fireAmplify",
         "healingAmplify", "lifeSteal", "hpRegenPer10", "mpRegenPer10", "physicalThorns",
-        "elementalThorns", "damageTaken", "criticalRate", "criticalDamage", "combatExperience", "taskDamage",
+        "elementalThorns", "damageTaken", "criticalRate", "criticalDamage", "shatter", "echo", "smite", "overkill", "combatExperience", "taskDamage",
         "armorPenetration", "waterPenetration", "naturePenetration", "firePenetration", "manaLeech",
         "castSpeed", "parry", "mayhem", "pierce", "curse", "fury", "weaken", "ripple", "bloom",
         "blaze", "attackSpeed", "autoAttackDamage", "abilityDamage", "drinkConcentration", "foodHaste",
@@ -827,6 +827,10 @@ function updateCombatStatsUI() {
         "elementalThorns",
         "criticalRate",
         "criticalDamage",
+        "shatter",
+        "echo",
+        "smite",
+        "overkill",
         "combatExperience",
         "taskDamage",
         "armorPenetration",
@@ -3091,6 +3095,14 @@ function createDamageTable(resultDiv, damageDone, secondsSimulated) {
             case "damageOverTime":
                 abilityText = "Damage Over Time";
                 abilityFullHrid = "common:simulationResults.damageOverTime";
+                break;
+            case "echo":
+                abilityText = "Echo";
+                abilityFullHrid = "combatStats.echo";
+                break;
+            case "overkill":
+                abilityText = "Overkill";
+                abilityFullHrid = "combatStats.overkill";
                 break;
             case "physicalThorns":
                 abilityText = "Physical Thorns";

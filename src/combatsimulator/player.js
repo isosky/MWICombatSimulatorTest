@@ -15,7 +15,7 @@ class Player extends CombatUnit {
         "waterResistance", "natureResistance", "fireResistance", "damageTaken", "maxHitpoints", "maxManapoints",
         "lifeSteal", "hpRegenPer10", "mpRegenPer10", "physicalThorns", "elementalThorns",
         "combatDropRate", "combatRareFind", "combatDropQuantity", "combatExperience", "criticalRate",
-        "criticalDamage", "armorPenetration", "waterPenetration", "naturePenetration", "firePenetration",
+        "criticalDamage", "shatter", "echo", "smite", "overkill", "armorPenetration", "waterPenetration", "naturePenetration", "firePenetration",
         "abilityHaste", "tenacity", "manaLeech", "castSpeed", "threat", "parry", "mayhem", "pierce",
         "curse", "fury", "weaken", "ripple", "bloom", "blaze", "attackSpeed", "foodHaste",
         "drinkConcentration", "autoAttackDamage", "abilityDamage", "staminaExperience", "intelligenceExperience",

@@ -50,7 +50,7 @@ class CombatSimulator extends EventTarget {
         };
     }
 
-        addToWipeLogs(logEntry) {
+    addToWipeLogs(logEntry) {
         const { buffer, maxSize } = this.wipeLogs;
 
         buffer[this.wipeLogs.index] = logEntry;
@@ -60,16 +60,16 @@ class CombatSimulator extends EventTarget {
 
     logAndResetWipeLogs() {
         const logs = this.getOrderedWipeLogs();
-        
+
         // console.log("===== 团灭日志 =====");
         // console.log(`最后 ${logs.length} 条战斗日志：`);
-        
+
         logs.forEach(log => {
             if (log.error) {
                 console.log(log.error);
                 return;
             }
-            
+
             const time = (log.time / 1e9).toFixed(2);
             // console.log(
             //     `[${time}s] [${log.source}] 用 [${log.ability}] ` +
@@ -83,12 +83,12 @@ class CombatSimulator extends EventTarget {
         this.wipeLogs.count = 0;
         // console.log("===== 团灭日志结束 =====");
     }
-    
+
     buildCombatLog(source, ability, target, damageDone) {
         try {
             const sourceHrid = source?.hrid || "UNKNOWN_SOURCE";
             const targetHrid = target?.hrid || "UNKNOWN_TARGET";
-            
+
             const afterHp = target?.combatDetails?.currentHitpoints || 0;
             const beforeHp = Math.max(0, afterHp + damageDone);
 
@@ -97,7 +97,7 @@ class CombatSimulator extends EventTarget {
                 current: p.combatDetails?.currentHitpoints ?? 0,
                 max: p.combatDetails?.maxHitpoints ?? 0
             }));
-            
+
             return {
                 time: this.simulationTime,
                 wave: (this.zone.encountersKilled - 1),
@@ -123,7 +123,7 @@ class CombatSimulator extends EventTarget {
             const sourceHrid = source?.hrid || "UNKNOWN_SOURCE";
             const targetHrid = target?.hrid || "UNKNOWN_TARGET";
             const damage = attackResult?.damageDone || 0;
-            
+
             const afterHp = target?.combatDetails?.currentHitpoints || 0;
             const beforeHp = Math.max(0, afterHp + damage);
 
@@ -132,7 +132,7 @@ class CombatSimulator extends EventTarget {
                 current: p.combatDetails?.currentHitpoints ?? 0,
                 max: p.combatDetails?.maxHitpoints ?? 0
             }));
-            
+
             return {
                 time: this.simulationTime,
                 wave: (this.zone.encountersKilled - 1),
@@ -152,16 +152,16 @@ class CombatSimulator extends EventTarget {
             };
         }
     }
-    
+
     getOrderedWipeLogs() {
         const { buffer, maxSize, count } = this.wipeLogs;
         const logs = [];
-        
+
         for (let i = 0; i < count; i++) {
             const idx = (this.wipeLogs.index - count + maxSize + i) % maxSize;
             logs.push(buffer[idx]);
         }
-        
+
         return logs;
     }
 
@@ -230,7 +230,7 @@ class CombatSimulator extends EventTarget {
             }
         }
         this.simResult.simulatedTime = this.simulationTime;
-        
+
         for (let i = 0; i < this.players.length; i++) {
             this.simResult.setDropRateMultipliers(this.players[i]);
             this.simResult.setManaUsed(this.players[i]);
@@ -557,7 +557,7 @@ class CombatSimulator extends EventTarget {
                     let furyExpirationEvent = new FuryExpirationEvent(this.simulationTime + furyExpireTime, furyAmount, source);
                     this.eventQueue.addEvent(furyExpirationEvent);
 
-                    source.addBuffs([furyAccuracyBuf , furyDamageBuf], this.simulationTime);
+                    source.addBuffs([furyAccuracyBuf, furyDamageBuf], this.simulationTime);
                     // source.addBuff(furyAccuracyBuf, this.simulationTime);
                     // source.addBuff(furyDamageBuf, this.simulationTime);
                 }
@@ -597,8 +597,14 @@ class CombatSimulator extends EventTarget {
                     source,
                     target,
                     attackType,
-                    attackResult.didHit ? attackResult.damageDone : "miss"
+                    attackResult.didHit ? attackResult.baseDamageDone : "miss"
                 );
+            }
+            if (attackResult.echoDamageDone > 0) {
+                this.simResult.addAttack(source, target, "echo", attackResult.echoDamageDone);
+            }
+            if (attackResult.overkillDamageDone > 0) {
+                this.simResult.addAttack(source, target, "overkill", attackResult.overkillDamageDone);
             }
 
             if (attackResult.lifeStealHeal > 0) {
@@ -618,7 +624,7 @@ class CombatSimulator extends EventTarget {
             }
 
             if (target.combatDetails.combatStats.retaliation > 0) {
-                this.simResult.addAttack(target, source, "retaliation", attackResult.retaliationDamageDone > 0?attackResult.retaliationDamageDone:"miss");
+                this.simResult.addAttack(target, source, "retaliation", attackResult.retaliationDamageDone > 0 ? attackResult.retaliationDamageDone : "miss");
             }
             if (this.zone?.isDungeon && attackResult.retaliationDamageDone > 0 && source.isPlayer) {
                 const log = this.buildCombatLog(target, "retaliation", source, attackResult.retaliationDamageDone);
@@ -635,7 +641,7 @@ class CombatSimulator extends EventTarget {
             }
 
             // Could die from reflect damage
-            if (source.combatDetails.currentHitpoints == 0 && 
+            if (source.combatDetails.currentHitpoints == 0 &&
                 (attackResult.thornDamageDone != 0 || attackResult.retaliationDamageDone != 0)
             ) {
                 this.eventQueue.clearEventsForUnit(source);
@@ -727,7 +733,7 @@ class CombatSimulator extends EventTarget {
         ) {
             if (this.zone) {
                 if (this.zone.isDungeon) {
-                    console.log("All Players died at wave #" + (this.zone.encountersKilled - 1) + " with ememies: " + this.enemies.map(enemy => (enemy.hrid+"("+(enemy.combatDetails.currentHitpoints*100/enemy.combatDetails.maxHitpoints).toFixed(2)+"%)")).join(", "));
+                    console.log("All Players died at wave #" + (this.zone.encountersKilled - 1) + " with ememies: " + this.enemies.map(enemy => (enemy.hrid + "(" + (enemy.combatDetails.currentHitpoints * 100 / enemy.combatDetails.maxHitpoints).toFixed(2) + "%)")).join(", "));
 
                     this.saveWipeLogsToSimResult(this.zone.encountersKilled - 1);
                     // console.log(this.simResult)
@@ -772,7 +778,7 @@ class CombatSimulator extends EventTarget {
     }
 
     addNextAttackEvent(source) {
-        if (this.eventQueue.getMatching((event) => (event.type == AbilityCastEndEvent.type || event.type == AutoAttackEvent.type)&& event.source == source)) {
+        if (this.eventQueue.getMatching((event) => (event.type == AbilityCastEndEvent.type || event.type == AutoAttackEvent.type) && event.source == source)) {
             return;
         }
 
@@ -790,7 +796,7 @@ class CombatSimulator extends EventTarget {
         }
 
         let usedAbility = false;
-        let skipNextAbility = false; 
+        let skipNextAbility = false;
 
         source.abilities
             .filter((ability) => ability != null)
@@ -890,13 +896,13 @@ class CombatSimulator extends EventTarget {
         let damage = Math.min(tickDamage, event.target.combatDetails.currentHitpoints);
 
         event.target.combatDetails.currentHitpoints -= damage;
-        this.simResult.addAttack(event.sourceRef, event.target, "damageOverTime", damage);
+        this.simResult.addAttack(event.sourceRef, event.target, event.isEcho ? "echo" : "damageOverTime", damage);
 
         if (this.zone?.isDungeon && event.target.isPlayer) {
             const log = this.buildCombatLog("", "damageOverTime", event.target, damage);
             this.addToWipeLogs(log);
         }
-        
+
 
         // console.log(event.target.hrid, "bleed for", damage);
 
@@ -908,7 +914,8 @@ class CombatSimulator extends EventTarget {
                 event.damage,
                 event.totalTicks,
                 event.currentTick + 1,
-                event.combatStyleHrid
+                event.combatStyleHrid,
+                event.isEcho
             );
             this.eventQueue.addEvent(damageOverTimeTickEvent);
         }
@@ -1006,29 +1013,29 @@ class CombatSimulator extends EventTarget {
             console.log(enemy.hrid, nowStack, " stack Enrage at ", (event.encounterTime / ONE_SECOND));
 
             const enrageDamageBuff = {
-                    "uniqueHrid": "/buff_uniques/enrage_damage",
-                    "typeHrid": "/buff_types/damage",
-                    "ratioBoost": nowStack * 0.1,
-                    "ratioBoostLevelBonus": 0,
-                    "flatBoost": 0,
-                    "flatBoostLevelBonus": 0,
-                    "startTime": "0001-01-01T00:00:00Z",
-                    "duration": ENRAGE_TICK_INTERVAL
+                "uniqueHrid": "/buff_uniques/enrage_damage",
+                "typeHrid": "/buff_types/damage",
+                "ratioBoost": nowStack * 0.1,
+                "ratioBoostLevelBonus": 0,
+                "flatBoost": 0,
+                "flatBoostLevelBonus": 0,
+                "startTime": "0001-01-01T00:00:00Z",
+                "duration": ENRAGE_TICK_INTERVAL
             };
             const enrageAccuracyBuff = {
-                    "uniqueHrid": "/buff_uniques/enrage_accuracy",
-                    "typeHrid": "/buff_types/accuracy",
-                    "ratioBoost": nowStack * 0.1,
-                    "ratioBoostLevelBonus": 0,
-                    "flatBoost": 0,
-                    "flatBoostLevelBonus": 0,
-                    "startTime": "0001-01-01T00:00:00Z",
-                    "duration": ENRAGE_TICK_INTERVAL
+                "uniqueHrid": "/buff_uniques/enrage_accuracy",
+                "typeHrid": "/buff_types/accuracy",
+                "ratioBoost": nowStack * 0.1,
+                "ratioBoostLevelBonus": 0,
+                "flatBoost": 0,
+                "flatBoostLevelBonus": 0,
+                "startTime": "0001-01-01T00:00:00Z",
+                "duration": ENRAGE_TICK_INTERVAL
             };
             enemy.addBuffs([enrageDamageBuff, enrageAccuracyBuff]);
             // enemy.addBuff(enrageDamageBuff);
             // enemy.addBuff(enrageAccuracyBuff);
-            
+
             this.simResult.maxEnrageStack = Math.max(this.simResult.maxEnrageStack, nowStack);
         });
 
@@ -1205,6 +1212,13 @@ class CombatSimulator extends EventTarget {
             cooldownDuration = cooldownDuration * 100 / (100 + haste);
         }
 
+        const hasEchoableEffect = ability.abilityEffects.some((effect) =>
+            effect.effectType == "/ability_effect_types/damage" ||
+            effect.effectType == "/ability_effect_types/heal"
+        );
+        const echoChance = source.combatDetails.combatStats.echo;
+        const echoMultiplier = hasEchoableEffect && echoChance > 0 && Math.random() < echoChance ? 1.5 : 1;
+
         /*-if (source.isPlayer) {
             let castDuration = ability.castDuration;
             castDuration /= (1 + source.combatDetails.combatStats.castSpeed)
@@ -1222,16 +1236,17 @@ class CombatSimulator extends EventTarget {
         }
 
         for (const todoAbility of todoAbilities) {
+            const todoEchoMultiplier = todoAbility === ability ? echoMultiplier : 1;
             for (const abilityEffect of todoAbility.abilityEffects) {
                 switch (abilityEffect.effectType) {
                     case "/ability_effect_types/buff":
                         this.processAbilityBuffEffect(source, todoAbility, abilityEffect);
                         break;
                     case "/ability_effect_types/damage":
-                        this.processAbilityDamageEffect(source, todoAbility, abilityEffect);
+                        this.processAbilityDamageEffect(source, todoAbility, abilityEffect, todoEchoMultiplier);
                         break;
                     case "/ability_effect_types/heal":
-                        this.processAbilityHealEffect(source, todoAbility, abilityEffect);
+                        this.processAbilityHealEffect(source, todoAbility, abilityEffect, todoEchoMultiplier);
                         break;
                     case "/ability_effect_types/spend_hp":
                         this.processAbilitySpendHpEffect(source, todoAbility, abilityEffect);
@@ -1312,7 +1327,7 @@ class CombatSimulator extends EventTarget {
         }
     }
 
-    processAbilityDamageEffect(source, ability, abilityEffect) {
+    processAbilityDamageEffect(source, ability, abilityEffect, echoMultiplier = 1) {
         let targets;
         switch (abilityEffect.targetType) {
             case "enemy":
@@ -1337,7 +1352,7 @@ class CombatSimulator extends EventTarget {
                 parryTarget = this.checkParry(targets);
                 isSkipParry = true; //  parry check only once on first target
             }
-            
+
             if (parryTarget) {
                 let tempTarget = source;
                 let tempSource = parryTarget;
@@ -1348,8 +1363,14 @@ class CombatSimulator extends EventTarget {
                     tempSource,
                     tempTarget,
                     "parry",
-                    attackResult.didHit ? attackResult.damageDone : "miss"
+                    attackResult.didHit ? attackResult.baseDamageDone : "miss"
                 );
+                if (attackResult.echoDamageDone > 0) {
+                    this.simResult.addAttack(tempSource, tempTarget, "echo", attackResult.echoDamageDone);
+                }
+                if (attackResult.overkillDamageDone > 0) {
+                    this.simResult.addAttack(tempSource, tempTarget, "overkill", attackResult.overkillDamageDone);
+                }
 
                 if (attackResult.lifeStealHeal > 0) {
                     this.simResult.addHitpointsGained(tempSource, "lifesteal", attackResult.lifeStealHeal);
@@ -1376,7 +1397,7 @@ class CombatSimulator extends EventTarget {
                 }
 
                 // Could die from reflect damage
-                if (tempSource.combatDetails.currentHitpoints == 0 && 
+                if (tempSource.combatDetails.currentHitpoints == 0 &&
                     (attackResult.thornDamageDone != 0 || attackResult.retaliationDamageDone != 0)
                 ) {
                     this.eventQueue.clearEventsForUnit(tempSource);
@@ -1407,7 +1428,7 @@ class CombatSimulator extends EventTarget {
                     break;
                 }
 
-                let attackResult = CombatUtilities.processAttack(source, target, abilityEffect);
+                let attackResult = CombatUtilities.processAttack(source, target, abilityEffect, echoMultiplier);
 
                 if (this.zone?.isDungeon && target.isPlayer && attackResult.didHit && attackResult.damageDone > 0) {
                     const log = this.generateCombatLog(source, ability.hrid, target, attackResult);
@@ -1429,16 +1450,32 @@ class CombatSimulator extends EventTarget {
                     }
                 }
 
-                if (abilityEffect.damageOverTimeRatio > 0 && attackResult.damageDone > 0) {
-                    let damageOverTimeEvent = new DamageOverTimeEvent(
-                        this.simulationTime + DOT_TICK_INTERVAL,
-                        source,
-                        target,
-                        attackResult.damageDone * abilityEffect.damageOverTimeRatio,
-                        abilityEffect.damageOverTimeDuration / DOT_TICK_INTERVAL,
-                        1, abilityEffect.combatStyleHrid
-                    );
-                    this.eventQueue.addEvent(damageOverTimeEvent);
+                if (abilityEffect.damageOverTimeRatio > 0 && attackResult.didHit) {
+                    if (attackResult.baseDamageDone > 0) {
+                        let damageOverTimeEvent = new DamageOverTimeEvent(
+                            this.simulationTime + DOT_TICK_INTERVAL,
+                            source,
+                            target,
+                            attackResult.baseDamageDone * abilityEffect.damageOverTimeRatio,
+                            abilityEffect.damageOverTimeDuration / DOT_TICK_INTERVAL,
+                            1,
+                            abilityEffect.combatStyleHrid
+                        );
+                        this.eventQueue.addEvent(damageOverTimeEvent);
+                    }
+                    if (attackResult.echoDamageDone > 0) {
+                        let echoDamageOverTimeEvent = new DamageOverTimeEvent(
+                            this.simulationTime + DOT_TICK_INTERVAL,
+                            source,
+                            target,
+                            attackResult.echoDamageDone * abilityEffect.damageOverTimeRatio,
+                            abilityEffect.damageOverTimeDuration / DOT_TICK_INTERVAL,
+                            1,
+                            abilityEffect.combatStyleHrid,
+                            true
+                        );
+                        this.eventQueue.addEvent(echoDamageOverTimeEvent);
+                    }
                 }
 
                 if (attackResult.didHit && abilityEffect.stunChance > 0 && Math.random() < (abilityEffect.stunChance * 100 / (100 + target.combatDetails.combatStats.tenacity))) {
@@ -1574,8 +1611,14 @@ class CombatSimulator extends EventTarget {
                     source,
                     target,
                     ability.hrid,
-                    attackResult.didHit ? attackResult.damageDone : "miss"
+                    attackResult.didHit ? attackResult.baseDamageDone : "miss"
                 );
+                if (attackResult.echoDamageDone > 0) {
+                    this.simResult.addAttack(source, target, "echo", attackResult.echoDamageDone);
+                }
+                if (attackResult.overkillDamageDone > 0) {
+                    this.simResult.addAttack(source, target, "overkill", attackResult.overkillDamageDone);
+                }
 
                 if (attackResult.thornDamageDone > 0) {
                     this.simResult.addAttack(target, source, attackResult.thornType, attackResult.thornDamageDone);
@@ -1607,9 +1650,8 @@ class CombatSimulator extends EventTarget {
                     continue;
                 }
             }
-            
-            if (parryTarget)
-            {
+
+            if (parryTarget) {
                 break;
             }
 
@@ -1619,12 +1661,12 @@ class CombatSimulator extends EventTarget {
         }
     }
 
-    processAbilityHealEffect(source, ability, abilityEffect) {
+    processAbilityHealEffect(source, ability, abilityEffect, echoMultiplier = 1) {
 
         if (abilityEffect.targetType == "allAllies") {
             let targets = source.isPlayer ? this.players : this.enemies;
             for (const target of targets.filter((unit) => unit && unit.combatDetails.currentHitpoints > 0)) {
-                let amountHealed = CombatUtilities.processHeal(source, abilityEffect, target);
+                let amountHealed = CombatUtilities.processHeal(source, abilityEffect, target, echoMultiplier);
 
                 this.simResult.addHitpointsGained(target, ability.hrid, amountHealed);
             }
@@ -1648,7 +1690,7 @@ class CombatSimulator extends EventTarget {
             }
 
             if (healTarget) {
-                let amountHealed = CombatUtilities.processHeal(source, abilityEffect, healTarget);
+                let amountHealed = CombatUtilities.processHeal(source, abilityEffect, healTarget, echoMultiplier);
 
                 this.simResult.addHitpointsGained(healTarget, ability.hrid, amountHealed);
             }
@@ -1659,7 +1701,7 @@ class CombatSimulator extends EventTarget {
             throw new Error("Unsupported target type for heal ability effect: " + ability.hrid);
         }
 
-        let amountHealed = CombatUtilities.processHeal(source, abilityEffect, source);
+        let amountHealed = CombatUtilities.processHeal(source, abilityEffect, source, echoMultiplier);
 
         this.simResult.addHitpointsGained(source, ability.hrid, amountHealed);
     }
@@ -1695,7 +1737,7 @@ class CombatSimulator extends EventTarget {
     processAbilityPromoteEffect(source, ability, abilityEffect) {
         const promotionHrids = ["/monsters/enchanted_rook", "/monsters/enchanted_knight", "/monsters/enchanted_bishop"];
         let randomPromotionIndex = Math.floor(Math.random() * promotionHrids.length);
-        return new Monster(promotionHrids[randomPromotionIndex], source.difficultyTier);
+        return new Monster(promotionHrids[randomPromotionIndex], source.difficultyTier, undefined, source.isBoss);
     }
 
     processAbilitySpendHpEffect(source, ability, abilityEffect) {
