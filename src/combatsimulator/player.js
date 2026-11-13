@@ -7,6 +7,12 @@ import Achievement from "./achievement";
 import talismanModifierDetailMap from "./data/talismanModifierDetailMap.json";
 
 class Player extends CombatUnit {
+    static singleStackTalismanModifiers = new Set([
+        "Echo",
+        "Shatter",
+        "Smite",
+        "Overkill",
+    ]);
     static combatEquipmentStats = [
         "stabAccuracy", "slashAccuracy", "smashAccuracy", "rangedAccuracy", "magicAccuracy",
         "stabDamage", "slashDamage", "smashDamage", "rangedDamage", "magicDamage", "defensiveDamage",
@@ -63,9 +69,9 @@ class Player extends CombatUnit {
         });
 
         const activeIndices = new Set();
-        groupedSelections.forEach((group) => {
+        groupedSelections.forEach((group, modifierName) => {
             group.sort((a, b) => b.gradeIndex - a.gradeIndex || a.index - b.index)
-                .slice(0, 3)
+                .slice(0, Player.singleStackTalismanModifiers.has(modifierName) ? 1 : 3)
                 .forEach(({ index }) => activeIndices.add(index));
         });
 

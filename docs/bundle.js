@@ -1166,6 +1166,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class Player extends _combatUnit__WEBPACK_IMPORTED_MODULE_1__["default"] {
+    static singleStackTalismanModifiers = new Set([
+        "Echo",
+        "Shatter",
+        "Smite",
+        "Overkill",
+    ]);
     static combatEquipmentStats = [
         "stabAccuracy", "slashAccuracy", "smashAccuracy", "rangedAccuracy", "magicAccuracy",
         "stabDamage", "slashDamage", "smashDamage", "rangedDamage", "magicDamage", "defensiveDamage",
@@ -1222,9 +1228,9 @@ class Player extends _combatUnit__WEBPACK_IMPORTED_MODULE_1__["default"] {
         });
 
         const activeIndices = new Set();
-        groupedSelections.forEach((group) => {
+        groupedSelections.forEach((group, modifierName) => {
             group.sort((a, b) => b.gradeIndex - a.gradeIndex || a.index - b.index)
-                .slice(0, 3)
+                .slice(0, Player.singleStackTalismanModifiers.has(modifierName) ? 1 : 3)
                 .forEach(({ index }) => activeIndices.add(index));
         });
 
