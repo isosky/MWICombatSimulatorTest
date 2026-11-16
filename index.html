@@ -819,6 +819,15 @@
                                 </button>
                             </div>
                         </div>
+                        <details id="consumablePresetPanel" class="border rounded p-2 mb-3">
+                            <summary class="fw-semibold" data-i18n="consumablePresets.title">食物与饮料配置</summary>
+                            <div class="mt-2">
+                                <div class="small mb-1" data-i18n="consumablePresets.targets">应用到角色（不选则为当前角色）</div>
+                                <div id="consumablePresetTargets" class="d-flex flex-wrap gap-2 align-items-center mb-2"></div>
+                                <div id="consumablePresetNotice" class="small mb-2" role="status" aria-live="polite"></div>
+                                <div id="consumablePresetRows"></div>
+                            </div>
+                        </details>
                         <div class="row mb-3">
                             <b data-i18n="guildShrineNames.name">name</b>
                         </div>

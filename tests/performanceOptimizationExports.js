@@ -5,6 +5,7 @@ export { default as EventQueue } from "../src/combatsimulator/events/eventQueue"
 export { default as Player } from "../src/combatsimulator/player";
 export { default as itemDetailMap } from "../src/combatsimulator/data/itemDetailMap.json";
 export { getPersonalBuffsForPlayer, mapPersonalBuffsByPlayer } from "../src/personalBuffs";
+export { applyConsumablePresetToPlayer, readConsumablePresetStorage } from "../src/consumablePresets";
 export {
     classifyDropCategory,
     comparisonTone,

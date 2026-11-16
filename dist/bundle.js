@@ -1651,6 +1651,83 @@ class Trigger {
 
 /***/ }),
 
+/***/ "./src/consumablePresets.js":
+/*!**********************************!*\
+  !*** ./src/consumablePresets.js ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   CONSUMABLE_PRESET_COUNT: () => (/* binding */ CONSUMABLE_PRESET_COUNT),
+/* harmony export */   CONSUMABLE_PRESET_STORAGE_KEY: () => (/* binding */ CONSUMABLE_PRESET_STORAGE_KEY),
+/* harmony export */   CONSUMABLE_SLOT_COUNT: () => (/* binding */ CONSUMABLE_SLOT_COUNT),
+/* harmony export */   LEGACY_CONSUMABLE_PRESET_STORAGE_KEY: () => (/* binding */ LEGACY_CONSUMABLE_PRESET_STORAGE_KEY),
+/* harmony export */   applyConsumablePresetToPlayer: () => (/* binding */ applyConsumablePresetToPlayer),
+/* harmony export */   readConsumablePresetStorage: () => (/* binding */ readConsumablePresetStorage)
+/* harmony export */ });
+const CONSUMABLE_PRESET_STORAGE_KEY = "mwicFoodConfigV7";
+const LEGACY_CONSUMABLE_PRESET_STORAGE_KEY = "mwicConfigV6";
+const CONSUMABLE_PRESET_COUNT = 10;
+const CONSUMABLE_SLOT_COUNT = 3;
+
+function normalizeSlot(source = {}) {
+    if (!source || typeof source !== "object" || Array.isArray(source)) {
+        throw new Error("Invalid consumable preset.");
+    }
+    const normalizeItems = (items) => {
+        if (items !== undefined && !Array.isArray(items)) throw new Error("Invalid consumable preset items.");
+        return Array.from({ length: CONSUMABLE_SLOT_COUNT }, (_, index) => {
+            const value = items?.[index] ?? "";
+            if (typeof value !== "string") throw new Error("Invalid consumable preset item.");
+            return value;
+        });
+    };
+    return { foods: normalizeItems(source.foods), drinks: normalizeItems(source.drinks) };
+}
+
+function readConsumablePresetStorage(storage) {
+    const saved = storage.getItem(CONSUMABLE_PRESET_STORAGE_KEY);
+    const legacy = saved === null ? storage.getItem(LEGACY_CONSUMABLE_PRESET_STORAGE_KEY) : null;
+    const parsed = JSON.parse(saved ?? legacy ?? "{}");
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)
+        || (parsed.food !== undefined && (!parsed.food || typeof parsed.food !== "object" || Array.isArray(parsed.food)))) {
+        throw new Error("Invalid consumable preset storage.");
+    }
+    const food = {};
+    for (let index = 1; index <= CONSUMABLE_PRESET_COUNT; index++) {
+        const key = legacy !== null ? String.fromCharCode(64 + index) : String(index);
+        food[String(index)] = normalizeSlot(parsed.food?.[key]);
+    }
+    return { ...parsed, food, panelState: { ...parsed.panelState, isOpen: Boolean(parsed.panelState?.isOpen) } };
+}
+
+function applyConsumablePresetToPlayer(playerData, preset, itemMap) {
+    const result = structuredClone(playerData);
+    const combatAction = "/action_types/combat";
+    if (!result.food || !result.drinks) {
+        throw new Error("Invalid player consumable configuration.");
+    }
+    if (result.triggerMap === undefined) result.triggerMap = {};
+    if (!result.triggerMap || typeof result.triggerMap !== "object" || Array.isArray(result.triggerMap)) {
+        throw new Error("Invalid player trigger configuration.");
+    }
+    const normalized = normalizeSlot(preset);
+    result.food[combatAction] = normalized.foods.map((itemHrid) => ({ itemHrid }));
+    result.drinks[combatAction] = normalized.drinks.map((itemHrid) => ({ itemHrid }));
+    for (const hrid of [...normalized.foods, ...normalized.drinks]) {
+        if (hrid && !result.triggerMap[hrid]) {
+            const triggers = itemMap[hrid]?.consumableDetail?.defaultCombatTriggers;
+            if (!triggers) throw new Error(`Unknown consumable: ${hrid}`);
+            result.triggerMap[hrid] = structuredClone(triggers);
+        }
+    }
+    return result;
+}
+
+
+/***/ }),
+
 /***/ "./src/simulationResultTools.js":
 /*!**************************************!*\
   !*** ./src/simulationResultTools.js ***!
@@ -1661,11 +1738,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   classifyDropCategory: () => (/* binding */ classifyDropCategory),
 /* harmony export */   comparisonTone: () => (/* binding */ comparisonTone),
+/* harmony export */   createRecordExport: () => (/* binding */ createRecordExport),
+/* harmony export */   formatHourlyQuantity: () => (/* binding */ formatHourlyQuantity),
+/* harmony export */   formatTwoDecimalQuantity: () => (/* binding */ formatTwoDecimalQuantity),
 /* harmony export */   getComparableItems: () => (/* binding */ getComparableItems),
 /* harmony export */   groupArchiveRecords: () => (/* binding */ groupArchiveRecords),
 /* harmony export */   initSimulationResultTools: () => (/* binding */ initSimulationResultTools),
 /* harmony export */   minimumPlayerShardDropCount: () => (/* binding */ minimumPlayerShardDropCount),
 /* harmony export */   normalizeTo24Hours: () => (/* binding */ normalizeTo24Hours),
+/* harmony export */   roundSavedResultValues: () => (/* binding */ roundSavedResultValues),
+/* harmony export */   roundToTwoDecimals: () => (/* binding */ roundToTwoDecimals),
 /* harmony export */   setCurrentSimulationResult: () => (/* binding */ setCurrentSimulationResult)
 /* harmony export */ });
 /* harmony import */ var _combatsimulator_data_itemDetailMap_json__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./combatsimulator/data/itemDetailMap.json */ "./src/combatsimulator/data/itemDetailMap.json");
@@ -1730,6 +1812,80 @@ function minimumPlayerShardDropCount(shardCounts) {
     return shardCounts.length ? Math.min(...shardCounts) : 0;
 }
 
+function roundToTwoDecimals(value) {
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) ? Number(numericValue.toFixed(2)) : 0;
+}
+
+function formatTwoDecimalQuantity(value) {
+    const numericValue = Number(value);
+    return (Number.isFinite(numericValue) ? numericValue : 0).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+}
+
+function sanitizeFileName(value) {
+    return String(value || "")
+        .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-")
+        .replace(/[. ]+$/g, "")
+        .trim() || "simulation-result";
+}
+
+function createRecordExport(record) {
+    const groupJson = record.configuration?.groupJson;
+    if (!groupJson) return null;
+
+    const groupData = typeof groupJson === "string" ? JSON.parse(groupJson) : groupJson;
+    if (!groupData || typeof groupData !== "object") {
+        throw new Error("Saved group configuration is not a JSON object.");
+    }
+
+    const metric = Number(record.metrics?.eph);
+    const metricValue = Number.isFinite(metric)
+        ? Number.isInteger(metric) ? String(metric) : metric.toFixed(2)
+        : "0";
+    const metricTag = sanitizeFileName(metricValue);
+    const fileName = [
+        sanitizeFileName(record.mapName || "Map"),
+        sanitizeFileName(record.difficulty || "Difficulty"),
+        metricTag,
+    ].join("-") + ".json";
+    return {
+        fileName,
+        content: JSON.stringify(groupData, null, 2),
+    };
+}
+
+function formatHourlyQuantity(value) {
+    return formatTwoDecimalQuantity(value);
+}
+
+function roundSavedResultValues(record) {
+    return {
+        ...record,
+        metrics: Object.fromEntries(
+            Object.entries(record.metrics).map(([key, value]) => [key, roundToTwoDecimals(value)])
+        ),
+        players: record.players.map((player) => ({
+            ...player,
+            deathsPerHour: roundToTwoDecimals(player.deathsPerHour),
+            deathsPerDay: roundToTwoDecimals(player.deathsPerDay),
+            shardsPerDay: roundToTwoDecimals(player.shardsPerDay),
+            experience: player.experience.map((item) => ({ ...item, value: roundToTwoDecimals(item.value) })),
+            consumables: player.consumables.map((item) => ({
+                ...item,
+                perHour: roundToTwoDecimals(item.perHour),
+                quantity: roundToTwoDecimals(item.quantity),
+            })),
+        })),
+        matchedDrops: record.matchedDrops.map((item) => ({
+            ...item,
+            quantity: roundToTwoDecimals(item.quantity),
+        })),
+    };
+}
+
 function comparisonTone(valueA, valueB) {
     if (valueB > valueA) return "text-success";
     if (valueB < valueA) return "text-danger";
@@ -1737,7 +1893,7 @@ function comparisonTone(valueA, valueB) {
 }
 
 function translate(key, fallback) {
-    return globalThis.i18next?.t
+    return globalThis.i18next?.isInitialized && globalThis.i18next.t
         ? globalThis.i18next.t(key, { defaultValue: fallback })
         : fallback;
 }
@@ -1996,7 +2152,7 @@ function setNotice(element, message, isError = false) {
 }
 
 function formatQuantity(value) {
-    return Number(value || 0).toLocaleString(undefined, { maximumSignificantDigits: 7 });
+    return formatTwoDecimalQuantity(value);
 }
 
 function recordTitle(record) {
@@ -2076,7 +2232,7 @@ function addItemsTable(card, items, { showPerHour = false, valueLabel = "perDay"
         const row = document.createElement("tr");
         row.append(makeCell(item.name || itemNameFor(item.hrid)));
         if (showPerHour) {
-            row.append(makeCell(formatQuantity(item.perHour), "text-end"));
+            row.append(makeCell(formatHourlyQuantity(item.perHour), "text-end"));
         }
         row.append(makeCell(formatQuantity(item.quantity), "text-end"));
         body.append(row);
@@ -2089,53 +2245,12 @@ function renderRecordDetails(record) {
     const root = document.createElement("div");
     root.className = "row g-2 mt-1";
 
-    const configCard = createDetailCard(toolText("configuration", "Configuration"));
-    const playerNames = getPlayerNames(record);
-    addDetailRow(configCard, toolText("date", "Saved At"), recordTitle(record) || "-");
-    addDetailRow(configCard, toolText("selectedPlayers", "Selected Players"), playerNames.join(" / ") || "-");
-    addDetailRow(configCard, toolText("mode", "Mode"), record.mode || record.configuration?.mapType || "-");
-    addDetailRow(
-        configCard,
-        toolText("simulationDuration", "Simulation Duration"),
-        `${formatQuantity(record.simulationHours || 24)} h`
-    );
-    const yes = translate("common:simulationResults.Yes", "Yes");
-    const no = translate("common:simulationResults.No", "No");
-    const configuration = record.configuration || {};
-    addDetailRow(
-        configCard,
-        toolText("simulationOptions", "Simulation Options"),
-        [
-            `${toolText("dungeon", "Dungeon")}: ${configuration.simDungeon ? yes : no}`,
-            `${toolText("allZones", "All Zones")}: ${configuration.simAllZone ? yes : no}`,
-            `${toolText("allSolo", "All Solo")}: ${configuration.simAllSolo ? yes : no}`,
-        ].join(" / ")
-    );
-    root.append(configCard);
-    configCard.classList.add("col-12", "col-lg-6");
-
     const coreCard = createDetailCard(toolText("coreResults", "Core Results"));
     addDetailRow(coreCard, toolText("eph", "EPH"), formatQuantity(record.metrics?.eph));
-    addDetailRow(coreCard, toolText("deathsPerDay", "Deaths / 24h"), formatQuantity(record.metrics?.deathsPerDay));
+    addDetailRow(coreCard, toolText("deathsPerDay", "Deaths / 24h"), formatTwoDecimalQuantity(record.metrics?.deathsPerDay));
     addDetailRow(coreCard, toolText("shardsPerDay", "Fragments / 24h"), formatQuantity(record.metrics?.shardsPerDay));
     root.append(coreCard);
     coreCard.classList.add("col-12", "col-lg-6");
-
-    const experienceCard = createDetailCard(toolText("experience", "Experience"));
-    const experience = record.experience?.length
-        ? record.experience
-        : (record.players || []).flatMap((player) =>
-            (player.experience || []).map((item) => ({
-                name: `${player.name}: ${item.name}`,
-                value: item.value,
-            }))
-        );
-    addItemsTable(experienceCard, experience.filter((item) => Number(item.value) !== 0).map((item) => ({
-        name: item.name,
-        quantity: item.value,
-    })), { valueLabel: "perHour" });
-    root.append(experienceCard);
-    experienceCard.classList.add("col-12", "col-lg-6");
 
     const matchedCard = createDetailCard(toolText("matchedDrops", "Fragments and Charms"));
     addItemsTable(matchedCard, (record.matchedDrops || []).map((drop) => ({
@@ -2144,6 +2259,45 @@ function renderRecordDetails(record) {
     })));
     root.append(matchedCard);
     matchedCard.classList.add("col-12", "col-lg-6");
+
+    const experienceCard = createDetailCard(toolText("experience", "Experience"));
+    const playerExperience = (record.players || [])
+        .slice(0, 5)
+        .map((player) => ({
+            name: player.name,
+            items: (player.experience || []).filter((item) => roundToTwoDecimals(item.value) !== 0),
+        }))
+        .filter((player) => player.items.length > 0);
+    if (playerExperience.length) {
+        const experienceGrid = document.createElement("div");
+        experienceGrid.className = `simulation-result-player-grid row row-cols-1 row-cols-md-2 row-cols-xl-${playerExperience.length} g-2`;
+        for (const player of playerExperience) {
+            const playerColumn = document.createElement("div");
+            playerColumn.className = "col";
+            const playerSection = document.createElement("section");
+            playerSection.className = "simulation-result-player-card border rounded p-2 h-100";
+            const playerHeading = document.createElement("h6");
+            playerHeading.className = "mb-2 text-truncate";
+            playerHeading.textContent = player.name;
+            playerHeading.title = player.name;
+            playerSection.append(playerHeading);
+            addItemsTable(playerSection, player.items.map((item) => ({
+                name: item.name,
+                quantity: item.value,
+            })), { valueLabel: "perHour" });
+            playerColumn.append(playerSection);
+            experienceGrid.append(playerColumn);
+        }
+        experienceCard.append(experienceGrid);
+    } else {
+        const experience = (record.experience || []).filter((item) => roundToTwoDecimals(item.value) !== 0);
+        addItemsTable(experienceCard, experience.map((item) => ({
+            name: item.name,
+            quantity: item.value,
+        })), { valueLabel: "perHour" });
+    }
+    root.append(experienceCard);
+    experienceCard.classList.add("col-12");
 
     const consumablesCard = createDetailCard(toolText("consumablesByPlayer", "Consumables by Player"));
     const players = record.players?.slice(0, 5) || [];
@@ -2154,20 +2308,21 @@ function renderRecordDetails(record) {
         consumablesCard.append(empty);
     } else {
         const playerGrid = document.createElement("div");
-        playerGrid.className = `row row-cols-1 row-cols-md-2 row-cols-xl-${players.length} g-2`;
+        playerGrid.className = `simulation-result-player-grid row row-cols-1 row-cols-md-2 row-cols-xl-${players.length} g-2`;
         for (const player of players) {
             const playerColumn = document.createElement("div");
             playerColumn.className = "col";
             const playerSection = document.createElement("section");
-            playerSection.className = "border rounded p-2 h-100";
-            const playerHeading = document.createElement("div");
-            playerHeading.className = "fw-semibold";
+            playerSection.className = "simulation-result-player-card border rounded p-2 h-100";
+            const playerHeading = document.createElement("h6");
+            playerHeading.className = "mb-2 text-truncate";
             playerHeading.textContent = player.name;
+            playerHeading.title = player.name;
             playerSection.append(playerHeading);
             addDetailRow(
                 playerSection,
                 toolText("deathsPerDay", "Deaths / 24h"),
-                formatQuantity(player.deathsPerDay)
+                formatTwoDecimalQuantity(player.deathsPerDay)
             );
             addItemsTable(playerSection, player.consumables || [], { showPerHour: true });
             playerColumn.append(playerSection);
@@ -2177,19 +2332,41 @@ function renderRecordDetails(record) {
     }
     root.append(consumablesCard);
     consumablesCard.classList.add("col-12");
-
-    const allDropsCard = createDetailCard(toolText("allDrops", "All Expected Drops"));
-    addItemsTable(allDropsCard, (record.drops || []).map((drop) => ({
-        name: drop.name || itemNameFor(drop.hrid),
-        quantity: drop.quantity,
-    })));
-    root.append(allDropsCard);
-    allDropsCard.classList.add("col-12");
     return root;
 }
 
 function getArchiveNotice() {
     return document.getElementById("simulationResultArchiveNotice");
+}
+
+function exportRecord(record) {
+    const notice = getArchiveNotice();
+    let exportData;
+    try {
+        exportData = createRecordExport(record);
+    } catch (error) {
+        console.error("Could not export saved player configuration.", error);
+        setNotice(notice, toolText("exportError", "Could not export this saved configuration."), true);
+        return;
+    }
+    if (!exportData) {
+        setNotice(notice, toolText("exportUnavailable", "No configuration is available to export."), true);
+        return;
+    }
+
+    const blob = new Blob([exportData.content], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = exportData.fileName;
+    try {
+        document.body.append(link);
+        link.click();
+    } finally {
+        link.remove();
+        URL.revokeObjectURL(url);
+    }
+    setNotice(notice, `${toolText("exported", "Exported")} ${exportData.fileName}`, false);
 }
 
 function renderArchive() {
@@ -2229,7 +2406,7 @@ function renderArchive() {
             stats.className = "d-flex flex-wrap gap-2";
             for (const labelAndValue of [
                 [`${toolText("eph", "EPH")} ${formatQuantity(record.metrics?.eph)}`, "text-bg-primary"],
-                [`${toolText("deathsPerDay", "Deaths / 24h")} ${formatQuantity(record.metrics?.deathsPerDay)}`, "text-bg-secondary"],
+                [`${toolText("deathsPerDay", "Deaths / 24h")} ${formatTwoDecimalQuantity(record.metrics?.deathsPerDay)}`, "text-bg-secondary"],
                 [`${toolText("shardsPerDay", "Fragments / 24h")} ${formatQuantity(record.metrics?.shardsPerDay)}`, "text-bg-warning"],
             ]) {
                 const badge = document.createElement("span");
@@ -2257,7 +2434,16 @@ function renderArchive() {
                 event.stopPropagation();
                 deleteRecord(record.id);
             });
-            recordSummary.append(identity, stats, compareButton, deleteButton);
+            const exportButton = document.createElement("button");
+            exportButton.type = "button";
+            exportButton.className = "btn btn-sm btn-outline-secondary me-1";
+            exportButton.textContent = toolText("export", "Export");
+            exportButton.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                exportRecord(record);
+            });
+            recordSummary.append(identity, stats, compareButton, exportButton, deleteButton);
             recordDetails.append(recordSummary, renderRecordDetails(record));
             details.append(recordDetails);
         }
@@ -2364,7 +2550,7 @@ function saveCurrentResult() {
             hrid: playerHrid,
             name: getPlayerLabel(playerHrid),
             deathsPerHour: deaths / durationHours,
-            deathsPerDay: normalizeTo24Hours(deaths, durationHours),
+            deathsPerDay: roundToTwoDecimals(normalizeTo24Hours(deaths, durationHours)),
             shardsPerDay: shardsPerPlayer[index] || 0,
             experience: [
                 { name: toolText("total", "Total"), value: totalExperience / durationHours },
@@ -2386,7 +2572,7 @@ function saveCurrentResult() {
             ? `T${simResult.difficultyTier}`
             : "?";
     const shardsPerDay = minimumPlayerShardDropCount(shardsPerPlayer);
-    const savedRecord = {
+    const savedRecord = roundSavedResultValues({
         id: `result-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         schemaVersion: 2,
         savedAt: Date.now(),
@@ -2405,6 +2591,7 @@ function saveCurrentResult() {
             simDungeon: isDungeon,
             simAllZone: Boolean(document.getElementById("simAllZoneToggle")?.checked),
             simAllSolo: Boolean(document.getElementById("simAllSoloToggle")?.checked),
+            groupJson: latestResultContext.getGroupConfigJson?.() || "",
         },
         metrics: {
             eph: effectiveDuration > 0 ? encounters / effectiveDuration : 0,
@@ -2412,11 +2599,10 @@ function saveCurrentResult() {
             deathsPerHour: players.reduce((total, player) => total + player.deathsPerHour, 0),
             shardsPerDay,
         },
-        drops: expectedDrops,
         matchedDrops: expectedDrops.filter((drop) =>
             ["fragments", "charms"].includes(classifyDropCategory(drop.hrid))
         ),
-    };
+    });
 
     const previousRecords = records;
     try {
@@ -2486,7 +2672,8 @@ function renderCompareOptions(selectA = "", selectB = "") {
 
 function getComparableItems(record) {
     const items = [];
-    for (const drop of record.drops || []) {
+    const drops = record.drops?.length ? record.drops : record.matchedDrops || [];
+    for (const drop of drops) {
         const hrid = drop.hrid || "";
         items.push({
             key: `drop:${hrid || drop.name}`,
@@ -2582,11 +2769,12 @@ function openCompareWithRecord(id) {
     bootstrap.Modal.getOrCreateInstance(archiveModal).hide();
 }
 
-function setCurrentSimulationResult(simResult, playerHrids, getExpectedDropsForPlayer) {
+function setCurrentSimulationResult(simResult, playerHrids, getExpectedDropsForPlayer, getGroupConfigJson) {
     latestResultContext = {
         simResult,
         playerHrids,
         getExpectedDropsForPlayer,
+        getGroupConfigJson,
     };
 }
 
@@ -2947,7 +3135,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _combatsimulator_data_achievementDetailMap_json__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./combatsimulator/data/achievementDetailMap.json */ "./src/combatsimulator/data/achievementDetailMap.json");
 /* harmony import */ var _combatsimulator_data_talismanModifierDetailMap_json__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./combatsimulator/data/talismanModifierDetailMap.json */ "./src/combatsimulator/data/talismanModifierDetailMap.json");
 /* harmony import */ var _simulationResultTools__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./simulationResultTools */ "./src/simulationResultTools.js");
-/* harmony import */ var _patchNote_json__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ../patchNote.json */ "./patchNote.json");
+/* harmony import */ var _consumablePresets__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ./consumablePresets */ "./src/consumablePresets.js");
+/* harmony import */ var _patchNote_json__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! ../patchNote.json */ "./patchNote.json");
+
 
 
 
@@ -3961,6 +4151,176 @@ function updateDrinksUI() {
     }
 }
 
+function initConsumablePresets() {
+    const panel = document.getElementById("consumablePresetPanel");
+    const targets = document.getElementById("consumablePresetTargets");
+    const rows = document.getElementById("consumablePresetRows");
+    const notice = document.getElementById("consumablePresetNotice");
+    const text = (key, fallback) => i18next.isInitialized
+        ? i18next.t(`consumablePresets.${key}`, { defaultValue: fallback })
+        : fallback;
+    const setNotice = (message, isError = false) => {
+        notice.textContent = message;
+        notice.classList.toggle("text-danger", isError);
+    };
+    const reportError = (error) => {
+        console.error("Could not use consumable presets.", error);
+        setNotice(text("error", "Could not read, save, or apply the preset."), true);
+    };
+    const writeStorage = (storage) => localStorage.setItem(_consumablePresets__WEBPACK_IMPORTED_MODULE_22__.CONSUMABLE_PRESET_STORAGE_KEY, JSON.stringify(storage));
+    const targetChecks = [];
+    for (let index = 1; index <= 5; index++) {
+        const label = document.createElement("label");
+        label.className = "form-check form-check-inline m-0";
+        const checkbox = document.createElement("input");
+        checkbox.className = "form-check-input";
+        checkbox.type = "checkbox";
+        checkbox.value = String(index);
+        const caption = document.createElement("span");
+        caption.className = "form-check-label";
+        const tab = document.getElementById(`player${index}-tab`);
+        const updateCaption = () => { caption.textContent = tab.textContent.trim() || `Player ${index}`; };
+        updateCaption();
+        tab.addEventListener("input", updateCaption);
+        label.append(checkbox, caption);
+        targets.append(label);
+        targetChecks.push(checkbox);
+    }
+    for (const [key, fallback, checked] of [
+        ["all", "All", true],
+        ["clearTargets", "Clear selection", false],
+    ]) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "btn btn-sm btn-outline-secondary";
+        button.setAttribute("data-i18n", `consumablePresets.${key}`);
+        button.textContent = text(key, fallback);
+        button.addEventListener("click", () => targetChecks.forEach((checkbox) => { checkbox.checked = checked; }));
+        targets.append(button);
+    }
+
+    const renderRows = (storage) => {
+        rows.replaceChildren();
+        const itemLabel = (hrid) => {
+            if (!hrid) return i18next.isInitialized ? i18next.t("characterSelectPage.slots.empty") : "Empty";
+            return i18next.isInitialized
+                ? i18next.t(`itemNames.${hrid}`, { defaultValue: _combatsimulator_data_itemDetailMap_json__WEBPACK_IMPORTED_MODULE_3__[hrid]?.name || hrid })
+                : _combatsimulator_data_itemDetailMap_json__WEBPACK_IMPORTED_MODULE_3__[hrid]?.name || hrid;
+        };
+        for (let index = 1; index <= _consumablePresets__WEBPACK_IMPORTED_MODULE_22__.CONSUMABLE_PRESET_COUNT; index++) {
+            const group = String(index);
+            const preset = storage.food[group];
+            const row = document.createElement("div");
+            row.className = "border-top py-2";
+            const header = document.createElement("div");
+            header.className = "d-flex align-items-center gap-2 mb-1";
+            const title = document.createElement("strong");
+            title.className = "me-auto";
+            title.textContent = `#${group}`;
+            const save = document.createElement("button");
+            save.type = "button";
+            save.className = "btn btn-sm btn-primary";
+            save.textContent = text("save", "Save");
+            save.setAttribute("aria-label", `${text("save", "Save")} #${group}`);
+            save.addEventListener("click", () => {
+                try {
+                    const latest = (0,_consumablePresets__WEBPACK_IMPORTED_MODULE_22__.readConsumablePresetStorage)(localStorage);
+                    latest.food[group] = {
+                        foods: Array.from({ length: _consumablePresets__WEBPACK_IMPORTED_MODULE_22__.CONSUMABLE_SLOT_COUNT }, (_, i) => document.getElementById(`selectFood_${i}`).value),
+                        drinks: Array.from({ length: _consumablePresets__WEBPACK_IMPORTED_MODULE_22__.CONSUMABLE_SLOT_COUNT }, (_, i) => document.getElementById(`selectDrink_${i}`).value),
+                    };
+                    writeStorage(latest);
+                    renderRows(latest);
+                    setNotice(text("saved", "Preset saved."));
+                } catch (error) {
+                    reportError(error);
+                }
+            });
+            const load = document.createElement("button");
+            load.type = "button";
+            load.className = "btn btn-sm btn-outline-primary";
+            load.textContent = text("load", "Load");
+            load.setAttribute("aria-label", `${text("load", "Load")} #${group}`);
+            load.addEventListener("click", () => {
+                try {
+                    const selected = (0,_consumablePresets__WEBPACK_IMPORTED_MODULE_22__.readConsumablePresetStorage)(localStorage).food[group];
+                    for (const [type, values] of [["Food", selected.foods], ["Drink", selected.drinks]]) {
+                        for (let i = 0; i < _consumablePresets__WEBPACK_IMPORTED_MODULE_22__.CONSUMABLE_SLOT_COUNT; i++) {
+                            const select = document.getElementById(`select${type}_${i}`);
+                            if (![...select.options].some((option) => option.value === values[i])) {
+                                setNotice(text("unavailable", "This preset contains an unavailable food or drink."), true);
+                                return;
+                            }
+                        }
+                    }
+                    const playerIds = targetChecks.filter((checkbox) => checkbox.checked).map((checkbox) => checkbox.value);
+                    if (!playerIds.length) playerIds.push(currentPlayerTabId);
+                    const updates = new Map();
+                    for (const id of playerIds) {
+                        if (id !== currentPlayerTabId) {
+                            const data = JSON.parse(playerDataMap[id]);
+                            updates.set(id, JSON.stringify((0,_consumablePresets__WEBPACK_IMPORTED_MODULE_22__.applyConsumablePresetToPlayer)(data, selected, _combatsimulator_data_itemDetailMap_json__WEBPACK_IMPORTED_MODULE_3__)));
+                        }
+                    }
+                    if (playerIds.includes(currentPlayerTabId)) {
+                        for (let i = 0; i < _consumablePresets__WEBPACK_IMPORTED_MODULE_22__.CONSUMABLE_SLOT_COUNT; i++) {
+                            document.getElementById(`selectFood_${i}`).value = selected.foods[i];
+                            document.getElementById(`selectDrink_${i}`).value = selected.drinks[i];
+                        }
+                        updateFoodState();
+                        updateDrinksState();
+                        updateUI();
+                        savePreviousPlayer(currentPlayerTabId);
+                    }
+                    for (const [id, data] of updates) playerDataMap[id] = data;
+                    setNotice(text("loaded", "Preset applied."));
+                } catch (error) {
+                    reportError(error);
+                }
+            });
+            header.append(title, save, load);
+            const preview = document.createElement("div");
+            preview.className = "small";
+            for (const [key, values] of [["consumableSlot.food", preset.foods], ["consumableSlot.drink", preset.drinks]]) {
+                const line = document.createElement("div");
+                const label = i18next.isInitialized ? i18next.t(key) : key === "consumableSlot.food" ? "Food" : "Drinks";
+                line.textContent = `${label}: ${values.map(itemLabel).join(" / ")}`;
+                preview.append(line);
+            }
+            row.append(header, preview);
+            rows.append(row);
+        }
+    };
+
+    try {
+        const storage = (0,_consumablePresets__WEBPACK_IMPORTED_MODULE_22__.readConsumablePresetStorage)(localStorage);
+        panel.open = storage.panelState.isOpen;
+        renderRows(storage);
+    } catch (error) {
+        reportError(error);
+    }
+    let lastOpen = panel.open;
+    panel.addEventListener("toggle", () => {
+        if (panel.open === lastOpen) return;
+        lastOpen = panel.open;
+        try {
+            const storage = (0,_consumablePresets__WEBPACK_IMPORTED_MODULE_22__.readConsumablePresetStorage)(localStorage);
+            storage.panelState.isOpen = panel.open;
+            writeStorage(storage);
+            if (panel.open) renderRows(storage);
+        } catch (error) {
+            reportError(error);
+        }
+    });
+    i18next.on("languageChanged", () => {
+        try {
+            renderRows((0,_consumablePresets__WEBPACK_IMPORTED_MODULE_22__.readConsumablePresetStorage)(localStorage));
+        } catch (error) {
+            reportError(error);
+        }
+    });
+}
+
 // #endregion
 
 // #region Abilities
@@ -4646,7 +5006,8 @@ function showSimulationResult(simResult) {
         playerHrids.length ? playerHrids : [playerToDisplay],
         (playerHrid) => simResult.isDungeon
             ? new Map()
-            : calcDropMaps(simResult, playerHrid, false).noRngTotalDropMap
+            : calcDropMaps(simResult, playerHrid, false).noRngTotalDropMap,
+        () => JSON.stringify(playerDataMap)
     );
 }
 
@@ -8250,14 +8611,14 @@ function updateTable(tableId, item, price) {
 
 function initPatchNotes() {
     const patchNotesRows = document.getElementById("patchNotes");
-    for (const pn in _patchNote_json__WEBPACK_IMPORTED_MODULE_22__) {
+    for (const pn in _patchNote_json__WEBPACK_IMPORTED_MODULE_23__) {
         const patchNoteContainer = document.createElement("div");
         patchNotesRows.setAttribute('class', 'col-12 mb-4');
 
         const patchNoteElement = document.createElement("h6");
         patchNoteElement.innerHTML = pn;
         const patchNoteList = document.createElement("ul");
-        for (const note of _patchNote_json__WEBPACK_IMPORTED_MODULE_22__[pn]) {
+        for (const note of _patchNote_json__WEBPACK_IMPORTED_MODULE_23__[pn]) {
             const noteElement = document.createElement("li");
             noteElement.innerHTML = note;
             patchNoteList.appendChild(noteElement);
@@ -8465,6 +8826,7 @@ initAchievementsModal();
 initLevelSection();
 initFoodSection();
 initDrinksSection();
+initConsumablePresets();
 initAbilitiesSection();
 initZones();
 initDungeons();

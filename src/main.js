@@ -20,6 +20,13 @@ import achievementTierMap from "./combatsimulator/data/achievementTierDetailMap.
 import achievementDetailMap from "./combatsimulator/data/achievementDetailMap.json"
 import talismanModifierDetailMap from "./combatsimulator/data/talismanModifierDetailMap.json";
 import { initSimulationResultTools, setCurrentSimulationResult } from "./simulationResultTools";
+import {
+    applyConsumablePresetToPlayer,
+    CONSUMABLE_PRESET_COUNT,
+    CONSUMABLE_PRESET_STORAGE_KEY,
+    CONSUMABLE_SLOT_COUNT,
+    readConsumablePresetStorage,
+} from "./consumablePresets";
 
 import patchNote from "../patchNote.json";
 
@@ -1009,6 +1016,176 @@ function updateDrinksUI() {
         selectElement.disabled = i >= player.combatDetails.combatStats.drinkSlots;
         triggerButton.disabled = i >= player.combatDetails.combatStats.drinkSlots || !drinks[i];
     }
+}
+
+function initConsumablePresets() {
+    const panel = document.getElementById("consumablePresetPanel");
+    const targets = document.getElementById("consumablePresetTargets");
+    const rows = document.getElementById("consumablePresetRows");
+    const notice = document.getElementById("consumablePresetNotice");
+    const text = (key, fallback) => i18next.isInitialized
+        ? i18next.t(`consumablePresets.${key}`, { defaultValue: fallback })
+        : fallback;
+    const setNotice = (message, isError = false) => {
+        notice.textContent = message;
+        notice.classList.toggle("text-danger", isError);
+    };
+    const reportError = (error) => {
+        console.error("Could not use consumable presets.", error);
+        setNotice(text("error", "Could not read, save, or apply the preset."), true);
+    };
+    const writeStorage = (storage) => localStorage.setItem(CONSUMABLE_PRESET_STORAGE_KEY, JSON.stringify(storage));
+    const targetChecks = [];
+    for (let index = 1; index <= 5; index++) {
+        const label = document.createElement("label");
+        label.className = "form-check form-check-inline m-0";
+        const checkbox = document.createElement("input");
+        checkbox.className = "form-check-input";
+        checkbox.type = "checkbox";
+        checkbox.value = String(index);
+        const caption = document.createElement("span");
+        caption.className = "form-check-label";
+        const tab = document.getElementById(`player${index}-tab`);
+        const updateCaption = () => { caption.textContent = tab.textContent.trim() || `Player ${index}`; };
+        updateCaption();
+        tab.addEventListener("input", updateCaption);
+        label.append(checkbox, caption);
+        targets.append(label);
+        targetChecks.push(checkbox);
+    }
+    for (const [key, fallback, checked] of [
+        ["all", "All", true],
+        ["clearTargets", "Clear selection", false],
+    ]) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "btn btn-sm btn-outline-secondary";
+        button.setAttribute("data-i18n", `consumablePresets.${key}`);
+        button.textContent = text(key, fallback);
+        button.addEventListener("click", () => targetChecks.forEach((checkbox) => { checkbox.checked = checked; }));
+        targets.append(button);
+    }
+
+    const renderRows = (storage) => {
+        rows.replaceChildren();
+        const itemLabel = (hrid) => {
+            if (!hrid) return i18next.isInitialized ? i18next.t("characterSelectPage.slots.empty") : "Empty";
+            return i18next.isInitialized
+                ? i18next.t(`itemNames.${hrid}`, { defaultValue: itemDetailMap[hrid]?.name || hrid })
+                : itemDetailMap[hrid]?.name || hrid;
+        };
+        for (let index = 1; index <= CONSUMABLE_PRESET_COUNT; index++) {
+            const group = String(index);
+            const preset = storage.food[group];
+            const row = document.createElement("div");
+            row.className = "border-top py-2";
+            const header = document.createElement("div");
+            header.className = "d-flex align-items-center gap-2 mb-1";
+            const title = document.createElement("strong");
+            title.className = "me-auto";
+            title.textContent = `#${group}`;
+            const save = document.createElement("button");
+            save.type = "button";
+            save.className = "btn btn-sm btn-primary";
+            save.textContent = text("save", "Save");
+            save.setAttribute("aria-label", `${text("save", "Save")} #${group}`);
+            save.addEventListener("click", () => {
+                try {
+                    const latest = readConsumablePresetStorage(localStorage);
+                    latest.food[group] = {
+                        foods: Array.from({ length: CONSUMABLE_SLOT_COUNT }, (_, i) => document.getElementById(`selectFood_${i}`).value),
+                        drinks: Array.from({ length: CONSUMABLE_SLOT_COUNT }, (_, i) => document.getElementById(`selectDrink_${i}`).value),
+                    };
+                    writeStorage(latest);
+                    renderRows(latest);
+                    setNotice(text("saved", "Preset saved."));
+                } catch (error) {
+                    reportError(error);
+                }
+            });
+            const load = document.createElement("button");
+            load.type = "button";
+            load.className = "btn btn-sm btn-outline-primary";
+            load.textContent = text("load", "Load");
+            load.setAttribute("aria-label", `${text("load", "Load")} #${group}`);
+            load.addEventListener("click", () => {
+                try {
+                    const selected = readConsumablePresetStorage(localStorage).food[group];
+                    for (const [type, values] of [["Food", selected.foods], ["Drink", selected.drinks]]) {
+                        for (let i = 0; i < CONSUMABLE_SLOT_COUNT; i++) {
+                            const select = document.getElementById(`select${type}_${i}`);
+                            if (![...select.options].some((option) => option.value === values[i])) {
+                                setNotice(text("unavailable", "This preset contains an unavailable food or drink."), true);
+                                return;
+                            }
+                        }
+                    }
+                    const playerIds = targetChecks.filter((checkbox) => checkbox.checked).map((checkbox) => checkbox.value);
+                    if (!playerIds.length) playerIds.push(currentPlayerTabId);
+                    const updates = new Map();
+                    for (const id of playerIds) {
+                        if (id !== currentPlayerTabId) {
+                            const data = JSON.parse(playerDataMap[id]);
+                            updates.set(id, JSON.stringify(applyConsumablePresetToPlayer(data, selected, itemDetailMap)));
+                        }
+                    }
+                    if (playerIds.includes(currentPlayerTabId)) {
+                        for (let i = 0; i < CONSUMABLE_SLOT_COUNT; i++) {
+                            document.getElementById(`selectFood_${i}`).value = selected.foods[i];
+                            document.getElementById(`selectDrink_${i}`).value = selected.drinks[i];
+                        }
+                        updateFoodState();
+                        updateDrinksState();
+                        updateUI();
+                        savePreviousPlayer(currentPlayerTabId);
+                    }
+                    for (const [id, data] of updates) playerDataMap[id] = data;
+                    setNotice(text("loaded", "Preset applied."));
+                } catch (error) {
+                    reportError(error);
+                }
+            });
+            header.append(title, save, load);
+            const preview = document.createElement("div");
+            preview.className = "small";
+            for (const [key, values] of [["consumableSlot.food", preset.foods], ["consumableSlot.drink", preset.drinks]]) {
+                const line = document.createElement("div");
+                const label = i18next.isInitialized ? i18next.t(key) : key === "consumableSlot.food" ? "Food" : "Drinks";
+                line.textContent = `${label}: ${values.map(itemLabel).join(" / ")}`;
+                preview.append(line);
+            }
+            row.append(header, preview);
+            rows.append(row);
+        }
+    };
+
+    try {
+        const storage = readConsumablePresetStorage(localStorage);
+        panel.open = storage.panelState.isOpen;
+        renderRows(storage);
+    } catch (error) {
+        reportError(error);
+    }
+    let lastOpen = panel.open;
+    panel.addEventListener("toggle", () => {
+        if (panel.open === lastOpen) return;
+        lastOpen = panel.open;
+        try {
+            const storage = readConsumablePresetStorage(localStorage);
+            storage.panelState.isOpen = panel.open;
+            writeStorage(storage);
+            if (panel.open) renderRows(storage);
+        } catch (error) {
+            reportError(error);
+        }
+    });
+    i18next.on("languageChanged", () => {
+        try {
+            renderRows(readConsumablePresetStorage(localStorage));
+        } catch (error) {
+            reportError(error);
+        }
+    });
 }
 
 // #endregion
@@ -5516,6 +5693,7 @@ initAchievementsModal();
 initLevelSection();
 initFoodSection();
 initDrinksSection();
+initConsumablePresets();
 initAbilitiesSection();
 initZones();
 initDungeons();

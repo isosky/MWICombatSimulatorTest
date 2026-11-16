@@ -215,6 +215,53 @@ test("personal buffs stay assigned to character HRIDs when a later character is 
     assert.deepEqual(simulator.getPersonalBuffsForPlayer(mappedBuffs, "player3"), []);
 });
 
+test("consumable presets read the plugin's ten groups and migrate its legacy groups", () => {
+    const stored = {
+        mwicFoodConfigV7: JSON.stringify({
+            food: { "10": { foods: ["/items/apple_yogurt"], drinks: ["/items/attack_coffee"] } },
+            panelState: { isOpen: true },
+        }),
+    };
+    const storage = { getItem: (key) => stored[key] ?? null };
+    const presets = simulator.readConsumablePresetStorage(storage);
+    assert.deepEqual(presets.food["10"], {
+        foods: ["/items/apple_yogurt", "", ""],
+        drinks: ["/items/attack_coffee", "", ""],
+    });
+    assert.equal(presets.panelState.isOpen, true);
+    assert.equal(Object.keys(presets.food).length, 10);
+
+    delete stored.mwicFoodConfigV7;
+    stored.mwicConfigV6 = JSON.stringify({ food: { A: { foods: ["/items/apple_yogurt"] } } });
+    assert.equal(simulator.readConsumablePresetStorage(storage).food["1"].foods[0], "/items/apple_yogurt");
+    stored.mwicFoodConfigV7 = "{";
+    assert.throws(() => simulator.readConsumablePresetStorage(storage), SyntaxError);
+});
+
+test("applying a consumable preset preserves each player's other settings and existing triggers", () => {
+    const existingTriggers = [{ condition: "custom" }];
+    const playerData = {
+        player: { attackLevel: 42 },
+        food: { "/action_types/combat": [{ itemHrid: "/items/old" }], other: "preserved" },
+        drinks: { "/action_types/combat": [] },
+        triggerMap: { "/items/apple_yogurt": existingTriggers },
+    };
+    const preset = { foods: ["/items/apple_yogurt"], drinks: ["/items/attack_coffee"] };
+    const itemMap = {
+        "/items/attack_coffee": { consumableDetail: { defaultCombatTriggers: [{ condition: "default" }] } },
+    };
+    const updated = simulator.applyConsumablePresetToPlayer(playerData, preset, itemMap);
+    assert.deepEqual(updated.food["/action_types/combat"], [
+        { itemHrid: "/items/apple_yogurt" }, { itemHrid: "" }, { itemHrid: "" },
+    ]);
+    assert.equal(updated.food.other, "preserved");
+    assert.equal(updated.player.attackLevel, 42);
+    assert.deepEqual(updated.triggerMap["/items/apple_yogurt"], existingTriggers);
+    assert.deepEqual(updated.triggerMap["/items/attack_coffee"], [{ condition: "default" }]);
+    assert.equal(playerData.food["/action_types/combat"][0].itemHrid, "/items/old");
+    assert.throws(() => simulator.applyConsumablePresetToPlayer(playerData, preset, {}), /Unknown consumable/);
+});
+
 test("drop archive categories identify key fragments and charms by item HRID", () => {
     assert.equal(simulator.classifyDropCategory("/items/blue_key_fragment"), "fragments");
     assert.equal(simulator.classifyDropCategory("/items/advanced_attack_charm"), "charms");

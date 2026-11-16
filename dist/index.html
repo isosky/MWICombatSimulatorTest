@@ -256,6 +256,37 @@
             text-align: right;
             white-space: nowrap;
         }
+
+        #simulationResultArchiveModal .simulation-result-archive-dialog {
+            max-width: min(98vw, 1800px);
+        }
+
+        #simulationResultArchiveModal .modal-body {
+            font-size: 0.875rem;
+        }
+
+        #simulationResultArchiveModal .simulation-result-player-grid {
+            font-size: 0.75rem;
+            line-height: 1.35;
+        }
+
+        #simulationResultArchiveModal .simulation-result-player-card {
+            min-width: 0;
+        }
+
+        #simulationResultArchiveModal .simulation-result-player-card h6 {
+            font-size: 0.8rem;
+        }
+
+        #simulationResultArchiveModal .simulation-result-player-card th,
+        #simulationResultArchiveModal .simulation-result-player-card td {
+            padding: 0.25rem;
+        }
+
+        #simulationResultArchiveModal .simulation-result-player-card th:not(:first-child),
+        #simulationResultArchiveModal .simulation-result-player-card td:not(:first-child) {
+            white-space: nowrap;
+        }
     </style>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -788,6 +819,15 @@
                                 </button>
                             </div>
                         </div>
+                        <details id="consumablePresetPanel" class="border rounded p-2 mb-3">
+                            <summary class="fw-semibold" data-i18n="consumablePresets.title">食物与饮料配置</summary>
+                            <div class="mt-2">
+                                <div class="small mb-1" data-i18n="consumablePresets.targets">应用到角色（不选则为当前角色）</div>
+                                <div id="consumablePresetTargets" class="d-flex flex-wrap gap-2 align-items-center mb-2"></div>
+                                <div id="consumablePresetNotice" class="small mb-2" role="status" aria-live="polite"></div>
+                                <div id="consumablePresetRows"></div>
+                            </div>
+                        </details>
                         <div class="row mb-3">
                             <b data-i18n="guildShrineNames.name">name</b>
                         </div>
@@ -2385,7 +2425,7 @@
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="bundle.js" type="module"></script>
     <div class="modal fade" id="simulationResultArchiveModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable simulation-result-archive-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" data-i18n="common:simulationResultTools.archive">Simulation Result Archive</h5>
