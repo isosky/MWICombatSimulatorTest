@@ -12,6 +12,7 @@ class Player extends CombatUnit {
         "Shatter",
         "Smite",
         "Overkill",
+        "Fortify",
     ]);
     static combatEquipmentStats = [
         "stabAccuracy", "slashAccuracy", "smashAccuracy", "rangedAccuracy", "magicAccuracy",
@@ -26,7 +27,7 @@ class Player extends CombatUnit {
         "curse", "fury", "weaken", "ripple", "bloom", "blaze", "attackSpeed", "foodHaste",
         "drinkConcentration", "autoAttackDamage", "abilityDamage", "staminaExperience", "intelligenceExperience",
         "attackExperience", "defenseExperience", "meleeExperience", "rangedExperience", "magicExperience",
-        "retaliation",
+        "retaliation", "fortify",
     ];
     talismanModifiers = [];
     equipment = {

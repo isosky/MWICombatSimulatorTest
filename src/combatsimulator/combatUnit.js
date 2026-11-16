@@ -80,6 +80,7 @@ class CombatUnit {
             echo: 0,
             smite: 0,
             overkill: 0,
+            fortify: 0,
             stabAccuracy: 0,
             slashAccuracy: 0,
             smashAccuracy: 0,

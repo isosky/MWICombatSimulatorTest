@@ -1,5 +1,6 @@
 export { default as CombatUnit } from "../src/combatsimulator/combatUnit";
 export { default as CombatSimulator } from "../src/combatsimulator/combatSimulator";
+export { default as CombatUtilities } from "../src/combatsimulator/combatUtilities";
 export { default as Equipment } from "../src/combatsimulator/equipment";
 export { default as EventQueue } from "../src/combatsimulator/events/eventQueue";
 export { default as Player } from "../src/combatsimulator/player";
@@ -9,9 +10,11 @@ export { applyConsumablePresetToPlayer, readConsumablePresetStorage } from "../s
 export {
     countTalismanCombinations,
     countTalismanPoolCombinations,
+    createTalismanLeaderboard,
     createTalismanOptimizer,
     generateTalismanCombinations,
     generateTalismanPoolCombinations,
+    selectRankedCandidates,
 } from "../src/talismanOptimizer";
 export {
     CANDIDATE_PRESETS_KEY, TEAM_PRESETS_KEY, readNamedPoolPresets, writeNamedPoolPreset,

@@ -266,12 +266,14 @@ class CombatUtilities {
         }
 
         let retaliationDamageDone = 0;
+        let retaliationDidHit = false;
         if (target.combatDetails.combatStats.retaliation > 0) {
             let retaliationHitChance =
                 Math.pow(target.combatDetails.smashAccuracyRating, 1.4) /
                 (Math.pow(target.combatDetails.smashAccuracyRating, 1.4) + Math.pow(source.combatDetails.smashEvasionRating, 1.4));
 
             if (retaliationHitChance > Math.random()) {
+                retaliationDidHit = true;
                 let sourceEffectiveArmor = source.combatDetails.totalArmor;
                 if (sourceEffectiveArmor > 0) {
                     sourceEffectiveArmor = sourceEffectiveArmor / (1.0 + target.combatDetails.combatStats.armorPenetration);
@@ -315,7 +317,7 @@ class CombatUtilities {
             manaLeechMana = source.addManapoints(Math.floor(source.combatDetails.combatStats.manaLeech * damageDone));
         }
 
-        return { damageDone, baseDamageDone, echoDamageDone, overkillDamageDone, didHit, thornDamageDone, thornType, retaliationDamageDone, lifeStealHeal, hpDrain, manaLeechMana, isCrit };
+        return { damageDone, baseDamageDone, echoDamageDone, overkillDamageDone, didHit, thornDamageDone, thornType, retaliationDamageDone, retaliationDidHit, lifeStealHeal, hpDrain, manaLeechMana, isCrit };
     }
 
     static processHeal(source, abilityEffect, target, echoMultiplier = 1) {

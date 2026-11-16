@@ -424,7 +424,7 @@ function updateTalismanModifierDisplays() {
             row.cells[2].textContent = "未生效";
             row.cells[2].title = beltSlots === 0
                 ? "未装备腰带，符石属性不生效"
-                : `腰带最多生效${beltSlots * 4}条属性；同名属性只生效等级最高的3条`;
+                : `腰带最多生效${beltSlots * 4}条属性；同名属性只生效等级最高的${Player.singleStackTalismanModifiers.has(modifier.keys.join("|")) ? 1 : 3}条`;
             return;
         }
 
@@ -4000,9 +4000,6 @@ function getSimulationExtra() {
 
 function getTalismanPoolSnapshot() {
     const duration = Number(document.getElementById("inputSimulationTime").value);
-    if (!Number.isFinite(duration) || duration <= 0) {
-        throw new Error(i18next.t("common:talismanPool.invalidNumbers"));
-    }
     savePreviousPlayer(currentPlayerTabId);
     const previousHrid = player.hrid;
     let players;

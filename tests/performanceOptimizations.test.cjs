@@ -109,6 +109,156 @@ test("equipment and talisman caches match a fresh recalculation after input edit
     assert.deepEqual(player.combatDetails, uncached.combatDetails);
 });
 
+test("fortify uses the highest active grade and refreshes up to four defense stacks", () => {
+    const player = new simulator.Player();
+    player.defenseLevel = 100;
+    player.talismanModifiers = [
+        { modifierHrid: "/talisman_modifiers/fortify", gradeIndex: 0 },
+        { modifierHrid: "/talisman_modifiers/fortify", gradeIndex: 5 },
+    ];
+    player.updateCombatDetails();
+    assert.equal(player.combatDetails.combatStats.fortify, 0);
+
+    player.equipment["/equipment_types/belt"] = new simulator.Equipment("/items/large_talisman_belt", 0);
+    player.updateCombatDetails();
+    const power = player.equipment["/equipment_types/belt"].getCombatStat("talismanPower");
+    const perStack = 0.04 * (1 + power);
+    assert.equal(player.combatDetails.combatStats.fortify, perStack);
+    const stats = ["totalArmor", "totalWaterResistance", "totalNatureResistance", "totalFireResistance"];
+    const base = stats.map((stat) => player.combatDetails[stat]);
+    const combat = new simulator.CombatSimulator([player], null, null);
+    for (let second = 0; second <= 4; second++) {
+        combat.simulationTime = second * 1e9;
+        combat.applyFortifyOnHit(player);
+        const stacks = Math.min(second + 1, 4);
+        for (let i = 0; i < stats.length; i++) {
+            assert.ok(Math.abs(player.combatDetails[stats[i]] - base[i] * (1 + perStack * stacks)) < 1e-10);
+        }
+    }
+
+    for (let second = 5; second <= 9; second++) {
+        combat.simulationTime = second * 1e9;
+        combat.processCheckBuffExpirationEvent(combat.eventQueue.getNextEvent());
+        const stacks = second < 9 ? 4 : 0;
+        for (let i = 0; i < stats.length; i++) {
+            assert.ok(Math.abs(player.combatDetails[stats[i]] - base[i] * (1 + perStack * stacks)) < 1e-10);
+        }
+    }
+    combat.simulationTime = 10e9;
+    combat.applyFortifyOnHit(player);
+    player.clearBuffs();
+    assert.equal(player.combatBuffs["/buff_uniques/fortify_armor"], undefined);
+    assert.equal(player.combatDetails.totalArmor, base[0]);
+});
+
+test("fortify triggers on actual auto, ability, parry and retaliation hits, but not misses or lethal hits", () => {
+    const player = new simulator.Player();
+    player.hrid = "player1";
+    player.equipment["/equipment_types/belt"] = new simulator.Equipment("/items/large_talisman_belt", 0);
+    player.talismanModifiers = [{ modifierHrid: "/talisman_modifiers/fortify", gradeIndex: 5 }];
+    player.updateCombatDetails();
+    const enemy = new simulator.CombatUnit();
+    enemy.hrid = "enemy";
+    enemy.isPlayer = false;
+    enemy.updateCombatDetails();
+    const combat = new simulator.CombatSimulator([player], null, null);
+    combat.enemies = [enemy];
+    combat.simulationTime = 0;
+    combat.checkEncounterEnd = () => true;
+    combat.checkParry = () => undefined;
+    const ability = { hrid: "test_ability" };
+    const effect = { targetType: "enemy", pierceChance: 0 };
+    const originalAttack = simulator.CombatUtilities.processAttack;
+    let result = {
+        didHit: false, retaliationDidHit: false, damageDone: 0, baseDamageDone: 0,
+        echoDamageDone: 0, overkillDamageDone: 0, thornDamageDone: 0,
+        retaliationDamageDone: 0, lifeStealHeal: 0, manaLeechMana: 0, hpDrain: 0,
+    };
+    simulator.CombatUtilities.processAttack = () => result;
+    const stacks = () => player.combatBuffs["/buff_uniques/fortify_armor"]?.stacks || 0;
+    try {
+        combat.processAutoAttackEvent({ source: enemy });
+        assert.equal(stacks(), 0);
+        result = { ...result, didHit: true };
+        combat.processAutoAttackEvent({ source: enemy });
+        assert.equal(stacks(), 1);
+        combat.processAbilityDamageEffect(enemy, ability, effect);
+        assert.equal(stacks(), 2);
+        combat.checkParry = () => enemy;
+        combat.processAbilityDamageEffect(player, ability, effect);
+        assert.equal(stacks(), 3);
+        combat.checkParry = () => undefined;
+        result = { ...result, didHit: false, retaliationDidHit: true };
+        combat.processAutoAttackEvent({ source: player });
+        assert.equal(stacks(), 4);
+        player.clearBuffs();
+        player.combatDetails.currentHitpoints = 0;
+        combat.applyFortifyFromAttack(enemy, player, { didHit: true, retaliationDidHit: false });
+        assert.equal(stacks(), 0);
+    } finally {
+        simulator.CombatUtilities.processAttack = originalAttack;
+    }
+});
+
+test("fortify reduces actual hit damage and expires after death and revival or restart", () => {
+    const player = new simulator.Player();
+    player.hrid = "player1";
+    player.defenseLevel = 100;
+    player.equipment["/equipment_types/belt"] = new simulator.Equipment("/items/large_talisman_belt", 0);
+    player.talismanModifiers = [{ modifierHrid: "/talisman_modifiers/fortify", gradeIndex: 5 }];
+    player.updateCombatDetails();
+    const enemy = new simulator.CombatUnit();
+    enemy.isPlayer = false;
+    enemy.hrid = "enemy";
+    enemy.updateCombatDetails();
+    enemy.combatDetails.smashAccuracyRating = 100000;
+    enemy.combatDetails.smashMaxDamage = 1000;
+    const combat = new simulator.CombatSimulator([player], null, null);
+    combat.simulationTime = 0;
+    const random = Math.random;
+    try {
+        Math.random = () => 0.5;
+        player.combatDetails.currentHitpoints = 10000;
+        const unprotected = simulator.CombatUtilities.processAttack(enemy, player);
+        assert.ok(unprotected.didHit);
+        for (let i = 0; i < 4; i++) combat.applyFortifyOnHit(player);
+        player.combatDetails.currentHitpoints = 10000;
+        const protectedHit = simulator.CombatUtilities.processAttack(enemy, player);
+        assert.ok(protectedHit.didHit);
+        assert.ok(protectedHit.damageDone < unprotected.damageDone);
+    } finally {
+        Math.random = random;
+    }
+
+    combat.eventQueue.clearEventsForUnit(player);
+    player.combatDetails.currentHitpoints = 0;
+    combat.simulationTime = 3e9;
+    combat.startNewEncounter = () => {};
+    combat.processCombatStartEvent({ time: 3e9 });
+    assert.ok(player.combatBuffs["/buff_uniques/fortify_armor"]);
+    const expiry = combat.eventQueue.getNextEvent();
+    assert.equal(expiry.time, 5e9);
+    combat.simulationTime = expiry.time;
+    combat.processCheckBuffExpirationEvent(expiry);
+    assert.equal(player.combatBuffs["/buff_uniques/fortify_armor"], undefined);
+
+    combat.simulationTime = 10e9;
+    combat.applyFortifyOnHit(player);
+    combat.eventQueue.clearEventsForUnit(player);
+    player.combatDetails.currentHitpoints = 0;
+    combat.simulationTime = 12e9;
+    combat.addNextAttackEvent = () => {};
+    combat.processAbilityReviveEffect(player, { hrid: "revive" }, {
+        targetType: "deadAlly", combatStyleHrid: "/combat_styles/magic", damageFlat: 10, damageRatio: 1,
+    });
+    assert.ok(player.combatDetails.currentHitpoints > 0);
+    const revivedExpiry = combat.eventQueue.getMatching((event) => event.type === "checkBuffExpiration" && event.source === player);
+    assert.equal(revivedExpiry.time, 15e9);
+    combat.simulationTime = revivedExpiry.time;
+    combat.processCheckBuffExpirationEvent(revivedExpiry);
+    assert.equal(player.combatBuffs["/buff_uniques/fortify_armor"], undefined);
+});
+
 test("buff index preserves order and is cleared after recalculation", () => {
     const player = new simulator.Player();
     player.combatBuffs = {
@@ -372,10 +522,96 @@ test("talisman pool preset validation rejects unavailable entries, invalid grade
     }, ordinary));
 });
 
+test("leaderboard ranks each player against their own empty baseline with current teammates", async () => {
+    const players = ["old0", "old1", "old2"].map((modifierHrid) => ({
+        talismanModifiers: [{ modifierHrid, gradeIndex: 1 }],
+    }));
+    const candidates = [
+        { ordinary: ["a"], special: ["s"], slots: 3, ordinaryGrade: 2, specialGrade: 5 },
+        { ordinary: [], special: ["t"], slots: 1, ordinaryGrade: 2, specialGrade: 4 },
+        { ordinary: ["b"], special: [], slots: 3, ordinaryGrade: 1, specialGrade: 5 },
+    ];
+    const weights = { old0: 10, old1: 20, old2: 30, a: 4, s: 7, t: 9, b: 2 };
+    const received = [];
+    const seenTeams = new Map();
+    const baselines = new Map();
+    const updates = [];
+    const progress = [];
+    let active = 0;
+    let peak = 0;
+    const leaderboard = simulator.createTalismanLeaderboard({
+        players, candidateSets: candidates, repeats: 2, threads: 3,
+        message: { simulationTimeLimit: 4 * 3600e9 },
+        createWorker: () => ({
+            postMessage(message) {
+                received.push(message);
+                active++;
+                peak = Math.max(peak, active);
+                const score = 50 + message.players.flatMap((player) => player.talismanModifiers)
+                    .reduce((sum, entry) => sum + weights[entry.modifierHrid], 0);
+                const key = JSON.stringify(message.players.map((player) => player.talismanModifiers));
+                const runNumber = seenTeams.get(key) || 0;
+                seenTeams.set(key, runNumber + 1);
+                setImmediate(() => {
+                    active--;
+                    this.onmessage({ data: {
+                        type: "simulation_result", simResult: { simulatedTime: 3600e9, encounters: score + 2 * (runNumber % 2) },
+                    } });
+                });
+            },
+            terminate() {},
+        }),
+        onBaseline: (record) => { if (record.completed === 2) baselines.set(record.playerIndex, record.eph); },
+        onResult: (record) => updates.push(record),
+        onProgress: (record) => progress.push(record),
+    });
+    const results = await leaderboard.run();
+    assert.equal(baselines.get(0), 101);
+    assert.equal(baselines.get(1), 91);
+    assert.equal(baselines.get(2), 81);
+    assert.equal(received.length, 14);
+    assert.equal(peak, 3);
+    assert.ok(received.every((message) => message.simulationTimeLimit === 4 * 3600e9));
+    assert.deepEqual(progress.at(-1), { completed: 14, total: 14 });
+    for (const result of results) {
+        const weight = weights[result.candidate.modifierHrid];
+        assert.equal(result.delta, weight * result.candidate.count);
+    }
+    assert.equal(updates.filter((record) => record.completed === 2).length, 4);
+    const aRun = received.find((message) => message.players[0].talismanModifiers[0]?.modifierHrid === "a");
+    assert.deepEqual(aRun.players.map((player) => player.talismanModifiers), [
+        Array.from({ length: 3 }, () => ({ modifierHrid: "a", gradeIndex: 2 })),
+        [{ modifierHrid: "old1", gradeIndex: 1 }], [{ modifierHrid: "old2", gradeIndex: 1 }],
+    ]);
+    const specialRun = received.find((message) => message.players[0].talismanModifiers[0]?.modifierHrid === "s");
+    assert.deepEqual(specialRun.players[0].talismanModifiers, [{ modifierHrid: "s", gradeIndex: 5 }]);
+    assert.deepEqual(players.map((player) => player.talismanModifiers[0].modifierHrid), ["old0", "old1", "old2"]);
+});
+
+test("leaderboard rejects insufficient slots and stops pending workers", async () => {
+    const options = {
+        players: [{ talismanModifiers: [] }],
+        candidateSets: [{ ordinary: ["a"], special: [], slots: 2, ordinaryGrade: 2, specialGrade: 5 }],
+        repeats: 2, threads: 2, message: {},
+        createWorker: () => ({ postMessage() {}, terminate() {} }),
+        onBaseline: () => {}, onResult: () => {}, onProgress: () => {},
+    };
+    assert.throws(() => simulator.createTalismanLeaderboard(options), /insufficient talisman slots/);
+    let terminated = 0;
+    options.candidateSets[0].slots = 3;
+    options.createWorker = () => ({ postMessage() {}, terminate() { terminated++; } });
+    const leaderboard = simulator.createTalismanLeaderboard(options);
+    const run = leaderboard.run();
+    leaderboard.stop();
+    await assert.rejects(run, /Simulation stopped/);
+    assert.equal(terminated, 2);
+});
+
 test("talisman optimizer screens once and independently reviews only the top five", async () => {
     let active = 0;
     let maximumActive = 0;
     let calls = 0;
+    const durations = [];
     const updates = [];
     let reviewing = false;
     const reviewCounts = new Map();
@@ -386,6 +622,7 @@ test("talisman optimizer screens once and independently reviews only the top fiv
     }));
     const createWorker = () => ({
         postMessage(message) {
+            durations.push(message.simulationTimeLimit);
             active++;
             maximumActive = Math.max(maximumActive, active);
             calls++;
@@ -408,7 +645,7 @@ test("talisman optimizer screens once and independently reviews only the top fiv
     });
     const optimizer = simulator.createTalismanOptimizer({
         players: [{}, {}, {}], candidateSets: sets, repeats: 3, threads: 2,
-        message: { type: "start_simulation" }, createWorker,
+        message: { type: "start_simulation", simulationTimeLimit: 24 * 3600e9 }, createWorker,
         onResult: (result) => updates.push(result), onProgress: () => {},
         onReviewStart: () => { reviewing = true; },
     });
@@ -416,6 +653,7 @@ test("talisman optimizer screens once and independently reviews only the top fiv
     assert.equal(best.eph, 13);
     assert.deepEqual(best.team.map((candidate) => candidate[0].modifierHrid), ["a0", "b1", "c1"]);
     assert.equal(calls, 21);
+    assert.ok(durations.every((duration) => duration === 24 * 3600e9));
     assert.equal(maximumActive, 2);
     const screened = updates.filter((result) => result.phase === "screen");
     const reviewed = updates.filter((result) => result.phase === "review" && result.completed === 3);
@@ -424,6 +662,184 @@ test("talisman optimizer screens once and independently reviews only the top fiv
     assert.ok(screened.every((result) => result.completed === 1 && result.repeats === 1));
     assert.deepEqual(new Set(reviewed.map((result) => result.key)),
         new Set([...screened].sort((a, b) => b.eph - a.eph).slice(0, 5).map((result) => result.key)));
+});
+
+test("ranking keeps the top five and preserves feasible optional-special combinations", () => {
+    const ordinary = ["a", "b", "c", "d", "e", "f", "g", "h"];
+    const scores = ordinary.map((modifierHrid, index) => ({ candidate: { modifierHrid }, delta: 8 - index }));
+    const set = { ordinary, groupKeys: ordinary, special: ["s1", "s2", "s3", "s4"], slots: 12 };
+    const top = simulator.selectRankedCandidates(set, scores);
+    assert.deepEqual(top, ["a", "b", "c", "d", "e"]);
+    assert.equal(simulator.countTalismanPoolCombinations(5, 4, 12), 275);
+    const combinations = [...simulator.generateTalismanPoolCombinations(top, set.special, 12, 2, 5)];
+    assert.ok(combinations.some((combination) => !combination.some((entry) => set.special.includes(entry.modifierHrid))));
+    assert.ok(combinations.some((combination) => {
+        const counts = combination.reduce((map, entry) =>
+            map.set(entry.modifierHrid, (map.get(entry.modifierHrid) || 0) + 1), new Map());
+        return [...counts].filter(([hrid]) => set.special.includes(hrid)).length === 1
+            && [...counts.values()].filter((count) => count === 3).length === 3
+            && [...counts.values()].filter((count) => count === 2).length === 1;
+    }));
+    assert.throws(() => simulator.selectRankedCandidates(set, scores.slice(1)), /Incomplete/);
+    const aliases = { ...set, groupKeys: ["x", "x", "x", "x", "x", "y", "z", "w"] };
+    const retained = simulator.selectRankedCandidates(aliases, scores);
+    assert.ok(retained.includes("f") && retained.includes("g") && retained.includes("h"));
+    const keys = aliases.groupKeys.filter((_, index) => retained.includes(ordinary[index]));
+    assert.ok(simulator.countTalismanCombinations(keys.length, 0, 12, keys), "all feasible special sizes remain feasible");
+});
+
+test("adaptive optimization ranks once, screens optional specials, and reviews the top five", async () => {
+    const ordinary = Array.from({ length: 9 }, (_, index) => `o${index}`);
+    const special = ["s0", "s1", "s2", "s3"];
+    const set = { ordinary, special, groupKeys: ordinary, slots: 12, ordinaryGrade: 2, specialGrade: 5 };
+    set.count = simulator.countTalismanPoolCombinations(9, 4, 12);
+    set.create = () => simulator.generateTalismanPoolCombinations(ordinary, special, 12, 2, 5);
+    const fixed = { count: 1, ordinary: [], special: [], slots: 0, create: function* () { yield []; } };
+    const players = ["old0", "old1", "old2"].map((modifierHrid) => ({
+        talismanModifiers: [{ modifierHrid, gradeIndex: 0 }],
+    }));
+    let active = 0;
+    let maximumActive = 0;
+    let phase = "ranking";
+    let reviews = 0;
+    const retainedByPlayer = new Map();
+    const screenKeys = new Set();
+    const screenedTeams = [];
+    const rankingMessages = [];
+    const durations = { ranking: [], screen: [], review: [] };
+    const optimizer = simulator.createTalismanOptimizer({
+        players, candidateSets: [set, fixed, fixed], repeats: 2, threads: 5,
+        message: { simulationTimeLimit: 24 * 3600e9 },
+        fastMode: true,
+        createWorker: () => ({
+            postMessage(message) {
+                active++;
+                maximumActive = Math.max(maximumActive, active);
+                durations[phase].push(message.simulationTimeLimit);
+                if (phase === "ranking") rankingMessages.push(message);
+                const modifiers = message.players[0].talismanModifiers;
+                const score = 100 + modifiers.reduce((sum, entry) =>
+                    sum + (entry.modifierHrid.startsWith("o") ? Number(entry.modifierHrid.slice(1)) * 10 : 0), 0);
+                setImmediate(() => {
+                    active--;
+                    this.onmessage({ data: { type: "simulation_result", simResult: {
+                        simulatedTime: 3600e9, encounters: score,
+                    } } });
+                });
+            },
+            terminate() {},
+        }),
+        onResult: (record) => {
+            if (record.phase === "screen") {
+                assert.ok(!screenKeys.has(record.key), "each team is screened only once");
+                screenKeys.add(record.key);
+                screenedTeams.push(record.team);
+            } else if (record.completed === 2) {
+                reviews++;
+            }
+        },
+        onProgress: () => {},
+        onPruned: (result) => {
+            retainedByPlayer.set(result.playerIndex, result.retained);
+            phase = "screen";
+        },
+        onReviewStart: () => { phase = "review"; },
+    });
+    await optimizer.run();
+    const retained = retainedByPlayer.get(0);
+    assert.deepEqual(retained, ["o8", "o7", "o6", "o5", "o4"]);
+    assert.deepEqual(retainedByPlayer.get(1), []);
+    assert.equal(rankingMessages.length, 20);
+    assert.ok(rankingMessages.every((message) =>
+        message.players[1].talismanModifiers[0].modifierHrid === "old1"
+        && message.players[2].talismanModifiers[0].modifierHrid === "old2"));
+    assert.ok(screenedTeams.every((team) => team[0].every((entry) =>
+        !ordinary.includes(entry.modifierHrid) || retained.includes(entry.modifierHrid))));
+    assert.equal(screenKeys.size, 275);
+    assert.ok(screenedTeams.some((team) => !team[0].some((entry) => special.includes(entry.modifierHrid))));
+    assert.ok(screenedTeams.some((team) => team[0].filter((entry) => special.includes(entry.modifierHrid)).length === 1
+        && Object.values(team[0].reduce((counts, entry) => {
+            counts[entry.modifierHrid] = (counts[entry.modifierHrid] || 0) + 1;
+            return counts;
+        }, {})).includes(2)));
+    assert.equal(maximumActive, 5);
+    assert.equal(reviews, 5);
+    assert.ok(durations.ranking.every((duration) => duration === 24 * 3600e9));
+    assert.ok(durations.screen.every((duration) => duration === 6 * 3600e9));
+    assert.ok(durations.review.every((duration) => duration === 24 * 3600e9));
+});
+
+test("adaptive ranking selects each player's own top five from the original team", async () => {
+    const players = Array.from({ length: 3 }, (_, index) => ({
+        talismanModifiers: [{ modifierHrid: `old${index}`, gradeIndex: 0 }],
+    }));
+    const sets = players.map((_, playerIndex) => {
+        const ordinary = Array.from({ length: 6 }, (_, index) => `p${playerIndex}o${index}`);
+        return {
+            ordinary, special: [], groupKeys: ordinary, slots: 12, ordinaryGrade: 2, specialGrade: 5,
+            count: simulator.countTalismanPoolCombinations(6, 0, 12),
+            create: () => simulator.generateTalismanPoolCombinations(ordinary, [], 12, 2, 5),
+        };
+    });
+    const selected = new Map();
+    const rankingMessages = [];
+    let ranking = true;
+    const optimizer = simulator.createTalismanOptimizer({
+        players, candidateSets: sets, repeats: 1, threads: 3, message: {}, fastMode: true,
+        createWorker: () => ({
+            postMessage(message) {
+                if (ranking) rankingMessages.push(message);
+                const candidate = message.players.flatMap((player) => player.talismanModifiers)
+                    .find((entry) => /^p\d+o\d+$/.test(entry.modifierHrid));
+                const index = candidate ? Number(candidate.modifierHrid.slice(-1)) : 0;
+                const owner = candidate ? Number(candidate.modifierHrid[1]) : 0;
+                const score = ranking && candidate ? 100 + (owner === 1 ? 5 - index : index) : 100;
+                setImmediate(() => this.onmessage({ data: {
+                    type: "simulation_result", simResult: { simulatedTime: 3600e9, encounters: score },
+                } }));
+            },
+            terminate() {},
+        }),
+        onResult: () => {}, onProgress: () => {},
+        onPruned: (result) => { selected.set(result.playerIndex, result.retained); ranking = false; },
+    });
+    await optimizer.run();
+    assert.equal(rankingMessages.length, 21);
+    for (const message of rankingMessages) {
+        const changed = message.players.filter((player, index) =>
+            player.talismanModifiers[0]?.modifierHrid !== `old${index}`);
+        assert.equal(changed.length, 1, "ranking changes only the tested player");
+    }
+    assert.deepEqual(selected.get(0), ["p0o5", "p0o4", "p0o3", "p0o2", "p0o1"]);
+    assert.deepEqual(selected.get(1), ["p1o0", "p1o1", "p1o2", "p1o3", "p1o4"]);
+    assert.deepEqual(selected.get(2), ["p2o5", "p2o4", "p2o3", "p2o2", "p2o1"]);
+});
+
+test("stopping during adaptive ranking terminates the worker pool", async () => {
+    const ordinary = Array.from({ length: 8 }, (_, index) => `o${index}`);
+    const special = ["s0", "s1", "s2", "s3"];
+    const set = { ordinary, special, groupKeys: ordinary, slots: 12, ordinaryGrade: 2, specialGrade: 5 };
+    set.count = simulator.countTalismanPoolCombinations(8, 4, 12);
+    set.create = () => simulator.generateTalismanPoolCombinations(ordinary, special, 12, 2, 5);
+    let terminated = 0;
+    let optimizer;
+    optimizer = simulator.createTalismanOptimizer({
+        players: [{ talismanModifiers: [] }, { talismanModifiers: [] }, { talismanModifiers: [] }],
+        candidateSets: [set, set, set], repeats: 1, threads: 3,
+        message: {}, fastMode: true,
+        createWorker: () => ({
+            postMessage() {
+                setImmediate(() => this.onmessage({ data: {
+                    type: "simulation_result", simResult: { simulatedTime: 3600e9, encounters: 1 },
+                } }));
+            },
+            terminate() { terminated++; },
+        }),
+        onResult: () => {}, onProgress: () => {},
+        onRankingProgress: ({ completed }) => { if (completed === 1) optimizer.stop(); },
+    });
+    await assert.rejects(optimizer.run(), /Simulation stopped/);
+    assert.equal(terminated, 3);
 });
 
 test("talisman review handles fewer than five screened teams", async () => {

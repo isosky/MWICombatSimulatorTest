@@ -372,6 +372,7 @@ const ENEMY_RESPAWN_INTERVAL = 3 * ONE_SECOND;
 const PLAYER_RESPAWN_INTERVAL = 150 * ONE_SECOND;
 const RESTART_INTERVAL = 3 * ONE_SECOND;
 const ENRAGE_TICK_INTERVAL = 60 * ONE_SECOND;
+const FORTIFY_DURATION = 5 * ONE_SECOND;
 
 class CombatSimulator extends EventTarget {
     constructor(players, zone, labyrinth, options = {}) {
@@ -699,6 +700,7 @@ class CombatSimulator extends EventTarget {
             } else {
                 this.players[i].reset(this.simulationTime);
             }
+            this.scheduleFortifyExpiration(this.players[i]);
         }
         let regenTickEvent = new _events_regenTickEvent__WEBPACK_IMPORTED_MODULE_10__["default"](this.simulationTime + REGEN_TICK_INTERVAL);
         this.eventQueue.addEvent(regenTickEvent);
@@ -806,6 +808,37 @@ class CombatSimulator extends EventTarget {
         return undefined;
     }
 
+    scheduleFortifyExpiration(unit) {
+        const buff = unit.combatBuffs["/buff_uniques/fortify_armor"];
+        if (buff && buff.startTime + buff.duration > this.simulationTime) {
+            this.eventQueue.addEvent(new _events_checkBuffExpirationEvent__WEBPACK_IMPORTED_MODULE_3__["default"](buff.startTime + buff.duration, unit));
+        }
+    }
+
+    applyFortifyOnHit(unit) {
+        const fortify = unit.combatDetails.combatStats.fortify;
+        if (!(fortify > 0) || unit.combatDetails.currentHitpoints <= 0) return;
+
+        const existing = unit.combatBuffs["/buff_uniques/fortify_armor"];
+        const stacks = existing && existing.startTime + existing.duration > this.simulationTime
+            ? Math.min(existing.stacks + 1, 4) : 1;
+        const buffs = ["armor", "water_resistance", "nature_resistance", "fire_resistance"].map((type) => ({
+            uniqueHrid: `/buff_uniques/fortify_${type}`,
+            typeHrid: `/buff_types/${type}`,
+            ratioBoost: fortify * stacks,
+            flatBoost: 0,
+            duration: FORTIFY_DURATION,
+            stacks,
+        }));
+        unit.addBuffs(buffs, this.simulationTime);
+        this.scheduleFortifyExpiration(unit);
+    }
+
+    applyFortifyFromAttack(source, target, attackResult) {
+        if (attackResult.didHit) this.applyFortifyOnHit(target);
+        if (attackResult.retaliationDidHit) this.applyFortifyOnHit(source);
+    }
+
     processAutoAttackEvent(event) {
         // console.log("source:", event.source.hrid);
         // console.log("aa " + (this.simulationTime / 1000000000));
@@ -844,6 +877,7 @@ class CombatSimulator extends EventTarget {
             }
 
             let attackResult = _combatUtilities__WEBPACK_IMPORTED_MODULE_0__["default"].processAttack(source, target);
+            this.applyFortifyFromAttack(source, target, attackResult);
             if (this.zone?.isDungeon && target.isPlayer && attackResult.didHit && attackResult.damageDone > 0) {
                 const log = this.generateCombatLog(source, "autoAttack", target, attackResult);
                 this.addToWipeLogs(log);
@@ -1715,6 +1749,7 @@ class CombatSimulator extends EventTarget {
                 let tempSource = parryTarget;
 
                 let attackResult = _combatUtilities__WEBPACK_IMPORTED_MODULE_0__["default"].processAttack(tempSource, tempTarget);
+                this.applyFortifyFromAttack(tempSource, tempTarget, attackResult);
 
                 this.simResult.addAttack(
                     tempSource,
@@ -1786,6 +1821,7 @@ class CombatSimulator extends EventTarget {
                 }
 
                 let attackResult = _combatUtilities__WEBPACK_IMPORTED_MODULE_0__["default"].processAttack(source, target, abilityEffect, echoMultiplier);
+                this.applyFortifyFromAttack(source, target, attackResult);
 
                 if (this.zone?.isDungeon && target.isPlayer && attackResult.didHit && attackResult.damageDone > 0) {
                     const log = this.generateCombatLog(source, ability.hrid, target, attackResult);
@@ -2075,6 +2111,7 @@ class CombatSimulator extends EventTarget {
             this.eventQueue.clearMatching((event) => event.type == _events_playerRespawnEvent__WEBPACK_IMPORTED_MODULE_9__["default"].type && event.hrid == reviveTarget.hrid);
 
             reviveTarget.removeExpiredBuffs(this.simulationTime);
+            this.scheduleFortifyExpiration(reviveTarget);
 
             let amountHealed = _combatUtilities__WEBPACK_IMPORTED_MODULE_0__["default"].processRevive(source, abilityEffect, reviveTarget);
 
@@ -2205,6 +2242,7 @@ class CombatUnit {
             echo: 0,
             smite: 0,
             overkill: 0,
+            fortify: 0,
             stabAccuracy: 0,
             slashAccuracy: 0,
             smashAccuracy: 0,
@@ -3034,12 +3072,14 @@ class CombatUtilities {
         }
 
         let retaliationDamageDone = 0;
+        let retaliationDidHit = false;
         if (target.combatDetails.combatStats.retaliation > 0) {
             let retaliationHitChance =
                 Math.pow(target.combatDetails.smashAccuracyRating, 1.4) /
                 (Math.pow(target.combatDetails.smashAccuracyRating, 1.4) + Math.pow(source.combatDetails.smashEvasionRating, 1.4));
 
             if (retaliationHitChance > Math.random()) {
+                retaliationDidHit = true;
                 let sourceEffectiveArmor = source.combatDetails.totalArmor;
                 if (sourceEffectiveArmor > 0) {
                     sourceEffectiveArmor = sourceEffectiveArmor / (1.0 + target.combatDetails.combatStats.armorPenetration);
@@ -3083,7 +3123,7 @@ class CombatUtilities {
             manaLeechMana = source.addManapoints(Math.floor(source.combatDetails.combatStats.manaLeech * damageDone));
         }
 
-        return { damageDone, baseDamageDone, echoDamageDone, overkillDamageDone, didHit, thornDamageDone, thornType, retaliationDamageDone, lifeStealHeal, hpDrain, manaLeechMana, isCrit };
+        return { damageDone, baseDamageDone, echoDamageDone, overkillDamageDone, didHit, thornDamageDone, thornType, retaliationDamageDone, retaliationDidHit, lifeStealHeal, hpDrain, manaLeechMana, isCrit };
     }
 
     static processHeal(source, abilityEffect, target, echoMultiplier = 1) {
@@ -4260,6 +4300,7 @@ class Player extends _combatUnit__WEBPACK_IMPORTED_MODULE_1__["default"] {
         "Shatter",
         "Smite",
         "Overkill",
+        "Fortify",
     ]);
     static combatEquipmentStats = [
         "stabAccuracy", "slashAccuracy", "smashAccuracy", "rangedAccuracy", "magicAccuracy",
@@ -4274,7 +4315,7 @@ class Player extends _combatUnit__WEBPACK_IMPORTED_MODULE_1__["default"] {
         "curse", "fury", "weaken", "ripple", "bloom", "blaze", "attackSpeed", "foodHaste",
         "drinkConcentration", "autoAttackDamage", "abilityDamage", "staminaExperience", "intelligenceExperience",
         "attackExperience", "defenseExperience", "meleeExperience", "rangedExperience", "magicExperience",
-        "retaliation",
+        "retaliation", "fortify",
     ];
     talismanModifiers = [];
     equipment = {

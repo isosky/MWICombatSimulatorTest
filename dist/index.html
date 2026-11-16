@@ -19,7 +19,8 @@
         }
 
         .talisman-pool-controls > div {
-            min-width: 9rem;
+            flex: 1 0 8rem;
+            min-width: 8rem;
         }
 
         .talisman-pool-controls label {
@@ -2487,11 +2488,18 @@
                                 <input id="talismanPoolThreads" class="form-control" type="text" inputmode="numeric" value="5">
                             </div>
                             <div class="col-6 col-md-2">
-                                <label for="talismanPoolRepeats" class="form-label" data-i18n="common:talismanPool.repeats">Repeats</label>
+                                <label id="talismanPoolRepeatsLabel" for="talismanPoolRepeats" class="form-label" data-i18n="common:talismanPool.repeats">Repeats</label>
                                 <input id="talismanPoolRepeats" class="form-control" type="text" inputmode="numeric" value="5">
                             </div>
+                            <div class="col-6 col-md-2">
+                                <label for="talismanPoolDuration" class="form-label" data-i18n="common:talismanPool.duration">Duration (hours)</label>
+                                <input id="talismanPoolDuration" class="form-control" type="number" min="0" step="any">
+                            </div>
                         </div>
-                        <div class="small text-muted mb-2" data-i18n="common:talismanPool.instructions">Select three players. Selected special modifiers are optional candidates; ordinary modifiers are grouped in threes.</div>
+                        <div id="talismanPoolInstructions" class="small text-muted mb-2" data-i18n="common:talismanPool.instructions">Select three players. Selected special modifiers are optional candidates; ordinary modifiers are grouped in threes.</div>
+                        <button id="buttonTalismanPoolMode" class="btn btn-sm btn-outline-secondary mb-2" type="button" aria-pressed="false" data-i18n="common:talismanPool.modeFull">Mode: full screening</button>
+                        <button id="buttonTalismanLeaderboard" class="btn btn-sm btn-outline-secondary mb-2" type="button" aria-pressed="false" data-i18n="common:talismanPool.leaderboardMode">Leaderboard mode</button>
+                        <div id="talismanPoolModeDescription" class="small text-muted mb-2" data-i18n="common:talismanPool.modeFullDescription">Screen all combinations for each player in turn.</div>
                         <div id="talismanPoolPlayers" class="row g-2 mb-3"></div>
                         <div id="talismanPoolEstimate" class="small mb-2" aria-live="polite"></div>
                     </fieldset>
@@ -2500,18 +2508,22 @@
                         <button id="buttonStopTalismanPool" class="btn btn-danger" type="button" disabled data-i18n="common:talismanPool.stop">Stop</button>
                     </div>
                     <div id="talismanPoolStatus" class="small mb-2" role="status" aria-live="polite"></div>
-                    <div class="mb-2">
-                        <label for="talismanPoolResultName" class="form-label small" data-i18n="common:talismanPool.playerResultName">Player preset name</label>
-                        <input id="talismanPoolResultName" class="form-control form-control-sm" type="text" maxlength="40"
-                            data-i18n-placeholder="common:talismanPool.playerResultName" placeholder="Player preset name">
+                    <div id="talismanPoolPruning" class="small text-muted mb-2"></div>
+                    <div id="talismanPoolCombinationResults">
+                        <div class="mb-2">
+                            <label for="talismanPoolResultName" class="form-label small" data-i18n="common:talismanPool.playerResultName">Player preset name</label>
+                            <input id="talismanPoolResultName" class="form-control form-control-sm" type="text" maxlength="40"
+                                data-i18n-placeholder="common:talismanPool.playerResultName" placeholder="Player preset name">
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle">
+                                <thead><tr id="talismanPoolResultHeaders"></tr></thead>
+                                <tbody id="talismanPoolCompleted"></tbody>
+                                <tbody id="talismanPoolPartial"></tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-sm align-middle">
-                            <thead><tr id="talismanPoolResultHeaders"></tr></thead>
-                            <tbody id="talismanPoolCompleted"></tbody>
-                            <tbody id="talismanPoolPartial"></tbody>
-                        </table>
-                    </div>
+                    <div id="talismanLeaderboardResults" class="row g-2 d-none"></div>
                 </div>
             </div>
         </div>

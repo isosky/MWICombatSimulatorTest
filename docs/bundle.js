@@ -400,6 +400,7 @@ class CombatUnit {
             echo: 0,
             smite: 0,
             overkill: 0,
+            fortify: 0,
             stabAccuracy: 0,
             slashAccuracy: 0,
             smashAccuracy: 0,
@@ -1195,6 +1196,7 @@ class Player extends _combatUnit__WEBPACK_IMPORTED_MODULE_1__["default"] {
         "Shatter",
         "Smite",
         "Overkill",
+        "Fortify",
     ]);
     static combatEquipmentStats = [
         "stabAccuracy", "slashAccuracy", "smashAccuracy", "rangedAccuracy", "magicAccuracy",
@@ -1209,7 +1211,7 @@ class Player extends _combatUnit__WEBPACK_IMPORTED_MODULE_1__["default"] {
         "curse", "fury", "weaken", "ripple", "bloom", "blaze", "attackSpeed", "foodHaste",
         "drinkConcentration", "autoAttackDamage", "abilityDamage", "staminaExperience", "intelligenceExperience",
         "attackExperience", "defenseExperience", "meleeExperience", "rangedExperience", "magicExperience",
-        "retaliation",
+        "retaliation", "fortify",
     ];
     talismanModifiers = [];
     equipment = {
@@ -2814,12 +2816,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   countTalismanCombinations: () => (/* binding */ countTalismanCombinations),
 /* harmony export */   countTalismanPoolCombinations: () => (/* binding */ countTalismanPoolCombinations),
+/* harmony export */   createTalismanLeaderboard: () => (/* binding */ createTalismanLeaderboard),
 /* harmony export */   createTalismanOptimizer: () => (/* binding */ createTalismanOptimizer),
 /* harmony export */   generateTalismanCombinations: () => (/* binding */ generateTalismanCombinations),
-/* harmony export */   generateTalismanPoolCombinations: () => (/* binding */ generateTalismanPoolCombinations)
+/* harmony export */   generateTalismanPoolCombinations: () => (/* binding */ generateTalismanPoolCombinations),
+/* harmony export */   selectRankedCandidates: () => (/* binding */ selectRankedCandidates)
 /* harmony export */ });
 /* harmony import */ var _simulationResultTools__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./simulationResultTools */ "./src/simulationResultTools.js");
 
+
+const PRUNED_SCREENING_TIME = 6 * 60 * 60 * 1e9;
 
 function countTalismanCombinations(ordinaryCount, specialCount, slots, groupKeys = null) {
     const remaining = slots - specialCount;
@@ -2894,11 +2900,11 @@ function countTalismanPoolCombinations(ordinaryCount, specialCount, slots, group
     return count;
 }
 
-function* generateTalismanPoolCombinations(ordinary, special, slots, ordinaryGrade, specialGrade, groupKeys = ordinary) {
+function* generateSpecialSubsets(special, slots) {
     const subset = [];
     function* chooseSpecial(start, size) {
         if (subset.length === size) {
-            yield* generateTalismanCombinations(ordinary, subset, slots, ordinaryGrade, specialGrade, groupKeys);
+            yield subset.slice();
             return;
         }
         for (let i = start; i <= special.length - (size - subset.length); i++) {
@@ -2910,6 +2916,33 @@ function* generateTalismanPoolCombinations(ordinary, special, slots, ordinaryGra
     for (let size = Math.min(special.length, slots); size >= 0; size--) {
         yield* chooseSpecial(0, size);
     }
+}
+
+function* generateTalismanPoolCombinations(ordinary, special, slots, ordinaryGrade, specialGrade, groupKeys = ordinary) {
+    for (const subset of generateSpecialSubsets(special, slots)) {
+        yield* generateTalismanCombinations(ordinary, subset, slots, ordinaryGrade, specialGrade, groupKeys);
+    }
+}
+
+function selectRankedCandidates(set, results) {
+    const scores = new Map(results.map((result) => [result.candidate.modifierHrid, result.delta]));
+    if (set.ordinary.some((hrid) => !scores.has(hrid))) throw new Error("Incomplete ordinary modifier leaderboard.");
+    const ranked = set.ordinary.map((hrid, index) => ({ hrid, index, score: scores.get(hrid) }))
+        .sort((a, b) => b.score - a.score || a.index - b.index);
+    const retained = new Set(ranked.slice(0, 5).map((entry) => entry.hrid));
+    const preservesSpecialSizes = () => {
+        const keys = set.groupKeys.filter((_, index) => retained.has(set.ordinary[index]));
+        for (let size = 0; size <= Math.min(set.special.length, set.slots); size++) {
+            if (countTalismanCombinations(set.ordinary.length, size, set.slots, set.groupKeys)
+                && !countTalismanCombinations(keys.length, size, set.slots, keys)) return false;
+        }
+        return true;
+    };
+    for (const entry of ranked.slice(5)) {
+        if (preservesSpecialSizes()) break;
+        retained.add(entry.hrid);
+    }
+    return ranked.filter((entry) => retained.has(entry.hrid)).map((entry) => entry.hrid);
 }
 
 class SimulationWorkerPool {
@@ -2983,34 +3016,167 @@ class SimulationWorkerPool {
     }
 }
 
-function createTalismanOptimizer({ players, candidateSets, repeats, threads, message, createWorker, onResult, onProgress, onReviewStart = () => {}, onReviewProgress = () => {} }) {
+function createTalismanLeaderboard({
+    players, candidateSets, repeats, threads, message, createWorker, onBaseline, onResult, onProgress,
+    pool: sharedPool = null, allowEmpty = false,
+}) {
+    const candidates = candidateSets.map((set) => [
+        ...set.ordinary.map((modifierHrid) => ({ modifierHrid, gradeIndex: set.ordinaryGrade, count: 3 })),
+        ...set.special.map((modifierHrid) => ({ modifierHrid, gradeIndex: set.specialGrade, count: 1 })),
+    ]);
+    for (let i = 0; i < candidates.length; i++) {
+        if ((!allowEmpty && !candidates[i].length) || candidates[i].some((candidate) => candidate.count > candidateSets[i].slots)) {
+            throw new Error(`Player ${i + 1} has invalid leaderboard candidates or insufficient talisman slots.`);
+        }
+    }
+    const pool = sharedPool || new SimulationWorkerPool(threads, createWorker);
+    let stopped = false;
+    let completed = 0;
+    const total = candidates.reduce((sum, entries) => sum + entries.length + Number(entries.length > 0), 0) * repeats;
+
+    const evaluate = async (playerIndex, candidate, onUpdate) => {
+        const simPlayers = players.map((player, index) => ({
+            ...player,
+            talismanModifiers: index === playerIndex
+                ? Array.from({ length: candidate?.count || 0 }, () => ({
+                    modifierHrid: candidate.modifierHrid, gradeIndex: candidate.gradeIndex,
+                }))
+                : player.talismanModifiers,
+        }));
+        let sum = 0;
+        let runs = 0;
+        await Promise.all(Array.from({ length: repeats }, async () => {
+            const result = await pool.run({ ...message, players: simPlayers });
+            const eph = (0,_simulationResultTools__WEBPACK_IMPORTED_MODULE_0__.calculateSimulationEph)(result);
+            if (!Number.isFinite(eph)) throw new Error("Invalid EPH returned by simulation.");
+            sum += eph;
+            runs++;
+            completed++;
+            onUpdate({ eph: sum / runs, completed: runs, repeats });
+            onProgress({ completed, total });
+        }));
+        return sum / runs;
+    };
+
+    const run = async () => {
+        try {
+            onProgress({ completed, total });
+            const baselines = await Promise.all(players.map((_, playerIndex) => candidates[playerIndex].length
+                ? evaluate(playerIndex, null, (record) => onBaseline({ playerIndex, ...record }))
+                : Promise.resolve(null)));
+            const tasks = [];
+            for (let index = 0; index < Math.max(...candidates.map((entries) => entries.length)); index++) {
+                for (let playerIndex = 0; playerIndex < candidates.length; playerIndex++) {
+                    if (candidates[playerIndex][index]) tasks.push({ playerIndex, candidate: candidates[playerIndex][index] });
+                }
+            }
+            let next = 0;
+            const results = [];
+            const runner = async () => {
+                while (!stopped && next < tasks.length) {
+                    const { playerIndex, candidate } = tasks[next++];
+                    const baselineEph = baselines[playerIndex];
+                    const eph = await evaluate(playerIndex, candidate, (record) => onResult({
+                        playerIndex, candidate, baselineEph, ...record, delta: record.eph - baselineEph,
+                    }));
+                    results.push({ playerIndex, candidate, baselineEph, eph, delta: eph - baselineEph });
+                }
+            };
+            await Promise.all(Array.from({ length: Math.min(threads, tasks.length) }, () => runner()));
+            if (stopped) throw new Error("Simulation stopped.");
+            return results;
+        } finally {
+            if (!sharedPool) pool.stop();
+        }
+    };
+    return {
+        run,
+        stop() {
+            stopped = true;
+            pool.stop();
+        },
+    };
+}
+
+function createTalismanOptimizer({
+    players, candidateSets, repeats, threads, message, createWorker, onResult, onProgress,
+    fastMode = false, onPruned = () => {}, onRankingProgress = () => {}, onRankingResult = () => {},
+    onReviewStart = () => {}, onReviewProgress = () => {},
+}) {
     const pool = new SimulationWorkerPool(threads, createWorker);
     const cache = new Map();
+    const pending = new Map();
     let stopped = false;
     const keyOf = (team) => JSON.stringify(team);
 
     const evaluate = async (team, phase, runs) => {
         const key = keyOf(team);
         if (phase === "screen" && cache.has(key)) return cache.get(key);
-        const record = { key, team, phase, completed: 0, repeats: runs, eph: 0 };
-        let total = 0;
-        const simPlayers = players.map((player, index) => ({ ...player, talismanModifiers: team[index] }));
-        await Promise.all(Array.from({ length: runs }, async () => {
-            const result = await pool.run({ ...message, players: simPlayers });
-            const eph = (0,_simulationResultTools__WEBPACK_IMPORTED_MODULE_0__.calculateSimulationEph)(result);
-            if (!Number.isFinite(eph)) throw new Error("Invalid EPH returned by simulation.");
-            total += eph;
-            record.completed++;
-            record.eph = total / record.completed;
-            onResult({ ...record });
-        }));
-        if (phase === "screen") cache.set(key, record);
-        return record;
+        if (phase === "screen" && pending.has(key)) return pending.get(key);
+        const run = (async () => {
+            const record = { key, team, phase, completed: 0, repeats: runs, eph: 0 };
+            let total = 0;
+            const simPlayers = players.map((player, index) => ({ ...player, talismanModifiers: team[index] }));
+            await Promise.all(Array.from({ length: runs }, async () => {
+                const simulationTimeLimit = fastMode && phase === "screen"
+                    ? PRUNED_SCREENING_TIME : message.simulationTimeLimit;
+                const result = await pool.run({ ...message, simulationTimeLimit, players: simPlayers });
+                const eph = (0,_simulationResultTools__WEBPACK_IMPORTED_MODULE_0__.calculateSimulationEph)(result);
+                if (!Number.isFinite(eph)) throw new Error("Invalid EPH returned by simulation.");
+                total += eph;
+                record.completed++;
+                record.eph = total / record.completed;
+                onResult({ ...record });
+            }));
+            if (phase === "screen") cache.set(key, record);
+            return record;
+        })();
+        if (phase === "screen") pending.set(key, run);
+        try {
+            return await run;
+        } finally {
+            if (phase === "screen") pending.delete(key);
+        }
     };
 
     const run = async () => {
         try {
-            let team = candidateSets.map((set) => set.create().next().value);
+            let activeSets = candidateSets;
+            if (fastMode) {
+                const rankingSets = candidateSets.map((set) => ({
+                    ...set,
+                    ordinary: set.ordinary.length > 5 && set.slots >= 3 ? set.ordinary : [],
+                    special: [],
+                }));
+                let ranking = [];
+                if (rankingSets.some((set) => set.ordinary.length)) {
+                    ranking = await createTalismanLeaderboard({
+                        players, candidateSets: rankingSets, repeats, threads, message, createWorker,
+                        pool, allowEmpty: true, onBaseline: () => {}, onResult: onRankingResult,
+                        onProgress: onRankingProgress,
+                    }).run();
+                    if (stopped) throw new Error("Simulation stopped.");
+                }
+                activeSets = candidateSets.map((set, playerIndex) => {
+                    const ranked = rankingSets[playerIndex].ordinary.length > 0;
+                    const retained = ranked
+                        ? selectRankedCandidates(set, ranking.filter((entry) => entry.playerIndex === playerIndex))
+                        : set.ordinary;
+                    onPruned({ playerIndex, retained, total: set.ordinary.length, ranked });
+                    if (!ranked) return set;
+                    const retainedSet = new Set(retained);
+                    const ordinary = set.ordinary.filter((hrid) => retainedSet.has(hrid));
+                    const groupKeys = set.groupKeys.filter((_, index) => retainedSet.has(set.ordinary[index]));
+                    return {
+                        ...set, ordinary, groupKeys,
+                        count: countTalismanPoolCombinations(ordinary.length, set.special.length, set.slots, groupKeys),
+                        create: () => generateTalismanPoolCombinations(
+                            ordinary, set.special, set.slots, set.ordinaryGrade, set.specialGrade, groupKeys
+                        ),
+                    };
+                });
+            }
+            let team = activeSets.map((set) => set.create().next().value);
             if (team.some((candidate) => !candidate)) throw new Error("A player has no valid talisman combinations.");
             let incumbent = await evaluate(team, "screen", 1);
             let round = 0;
@@ -3019,11 +3185,11 @@ function createTalismanOptimizer({ players, candidateSets, repeats, threads, mes
                 improved = false;
                 round++;
                 for (let playerIndex = 0; playerIndex < players.length; playerIndex++) {
-                    const set = candidateSets[playerIndex];
-                    const iterator = set.create();
+                    const set = activeSets[playerIndex];
                     let completed = 0;
                     let best = incumbent;
-                    onProgress({ round, playerIndex, completed, total: set.count, evaluated: cache.size });
+                    const iterator = set.create();
+                    onProgress({ phase: "screen", fastMode, round, playerIndex, completed, total: set.count, evaluated: cache.size });
                     const runner = async () => {
                         while (!stopped) {
                             const next = iterator.next();
@@ -3033,7 +3199,7 @@ function createTalismanOptimizer({ players, candidateSets, repeats, threads, mes
                             const result = await evaluate(candidateTeam, "screen", 1);
                             if (result.eph > best.eph) best = result;
                             completed++;
-                            onProgress({ round, playerIndex, completed, total: set.count, evaluated: cache.size });
+                            onProgress({ phase: "screen", fastMode, round, playerIndex, completed, total: set.count, evaluated: cache.size });
                         }
                     };
                     await Promise.all(Array.from({ length: Math.min(threads, set.count) }, () => runner()));
@@ -3176,6 +3342,14 @@ function initTalismanPool({ getSnapshot, modifierMap, supportedStats, planetHrid
     const status = document.getElementById("talismanPoolStatus");
     const start = document.getElementById("buttonStartTalismanPool");
     const stop = document.getElementById("buttonStopTalismanPool");
+    const modeButton = document.getElementById("buttonTalismanPoolMode");
+    const leaderboardButton = document.getElementById("buttonTalismanLeaderboard");
+    const modeDescription = document.getElementById("talismanPoolModeDescription");
+    const instructions = document.getElementById("talismanPoolInstructions");
+    const repeatsLabel = document.getElementById("talismanPoolRepeatsLabel");
+    const pruningDetails = document.getElementById("talismanPoolPruning");
+    const combinationResults = document.getElementById("talismanPoolCombinationResults");
+    const leaderboardResults = document.getElementById("talismanLeaderboardResults");
     const headers = document.getElementById("talismanPoolResultHeaders");
     const completedBody = document.getElementById("talismanPoolCompleted");
     const partialBody = document.getElementById("talismanPoolPartial");
@@ -3183,6 +3357,7 @@ function initTalismanPool({ getSnapshot, modifierMap, supportedStats, planetHrid
     const specialGrade = document.getElementById("talismanPoolSpecialGrade");
     const threadsInput = document.getElementById("talismanPoolThreads");
     const repeatsInput = document.getElementById("talismanPoolRepeats");
+    const durationInput = document.getElementById("talismanPoolDuration");
     const resultName = document.getElementById("talismanPoolResultName");
     const zoneSelect = document.getElementById("talismanPoolZone");
     const difficultySelect = document.getElementById("talismanPoolDifficulty");
@@ -3201,6 +3376,8 @@ function initTalismanPool({ getSnapshot, modifierMap, supportedStats, planetHrid
     let cards = [];
     let optimizer = null;
     let cancelled = false;
+    let fastMode = false;
+    let leaderboardMode = false;
 
     for (const select of [ordinaryGrade, specialGrade]) {
         for (let grade = 1; grade <= 6; grade++) select.add(new Option(`G${grade}`, grade - 1));
@@ -3225,26 +3402,48 @@ function initTalismanPool({ getSnapshot, modifierMap, supportedStats, planetHrid
             regular.length, selectedValues(card.special).length, card.slots, groupKeysFor(regular)
         );
     };
+    const candidateCountFor = (card) => selectedValues(card.ordinary).length + selectedValues(card.special).length;
+    const leaderboardError = (card) => {
+        if (!candidateCountFor(card)) return text("leaderboardNoCandidates", { player: card.name });
+        if ((selectedValues(card.ordinary).length && card.slots < 3)
+            || (selectedValues(card.special).length && card.slots < 1)) {
+            return text("leaderboardSlots", { player: card.name });
+        }
+        return "";
+    };
     const renderEstimate = () => {
         const selected = selectedCards();
         for (const card of cards) {
             card.body.hidden = !card.enabled.checked;
-            card.count.textContent = `${text("slots")}: ${card.slots} · ${text("combinations")}: ${countFor(card).toLocaleString()}`;
+            const count = leaderboardMode ? candidateCountFor(card) : countFor(card);
+            card.count.textContent = `${text("slots")}: ${card.slots} · ${text(leaderboardMode ? "leaderboardCandidates" : "combinations")}: ${count.toLocaleString()}`;
         }
         if (selected.length !== 3) {
             estimate.textContent = text("invalidPlayers");
             return;
         }
-        const invalid = selected.find((card) => countFor(card) === 0);
+        const invalid = selected.find((card) => leaderboardMode ? leaderboardError(card) : countFor(card) === 0);
         if (invalid) {
-            estimate.textContent = text("invalidCombination", { player: invalid.name });
+            estimate.textContent = leaderboardMode ? leaderboardError(invalid) : text("invalidCombination", { player: invalid.name });
+            return;
+        }
+        const repeats = Number(repeatsInput.value);
+        if (leaderboardMode) {
+            const candidates = selected.reduce((total, card) => total + candidateCountFor(card), 0);
+            estimate.textContent = text("leaderboardEstimate", {
+                candidates, runs: Number.isInteger(repeats) && repeats > 0 ? (candidates + selected.length) * repeats : 0,
+            });
             return;
         }
         const groups = selected.reduce((total, card) => total + countFor(card), 0);
-        const repeats = Number(repeatsInput.value);
-        estimate.textContent = text("estimate", {
+        const rankingRuns = selected.reduce((total, card) => {
+            const count = selectedValues(card.ordinary).length;
+            return total + (count > 5 && card.slots >= 3 ? count + 1 : 0);
+        }, 0) * (Number.isInteger(repeats) && repeats > 0 ? repeats : 0);
+        estimate.textContent = text(fastMode ? "fastEstimate" : "estimate", {
             groups: groups.toLocaleString(),
             runs: Number.isInteger(repeats) && repeats > 0 ? repeats : 0,
+            rankingRuns: rankingRuns.toLocaleString(),
         });
     };
 
@@ -3431,6 +3630,38 @@ function initTalismanPool({ getSnapshot, modifierMap, supportedStats, planetHrid
 
     playerContainer.addEventListener("change", renderEstimate);
     repeatsInput.addEventListener("input", renderEstimate);
+    leaderboardButton.addEventListener("click", () => {
+        leaderboardMode = !leaderboardMode;
+        leaderboardButton.setAttribute("aria-pressed", String(leaderboardMode));
+        leaderboardButton.classList.toggle("active", leaderboardMode);
+        modeButton.disabled = leaderboardMode;
+        combinationResults.hidden = leaderboardMode;
+        leaderboardResults.classList.toggle("d-none", !leaderboardMode);
+        pruningDetails.hidden = leaderboardMode;
+        const instructionKey = leaderboardMode ? "leaderboardInstructions" : "instructions";
+        const descriptionKey = leaderboardMode ? "leaderboardDescription" : fastMode ? "modeFastDescription" : "modeFullDescription";
+        const repeatsKey = leaderboardMode ? "leaderboardRepeats" : fastMode ? "fastRepeats" : "repeats";
+        for (const [element, key] of [[instructions, instructionKey], [modeDescription, descriptionKey], [repeatsLabel, repeatsKey]]) {
+            element.setAttribute("data-i18n", `common:talismanPool.${key}`);
+            element.textContent = text(key);
+        }
+        setStatus("");
+        renderEstimate();
+    });
+    modeButton.addEventListener("click", () => {
+        fastMode = !fastMode;
+        const modeKey = fastMode ? "modeFast" : "modeFull";
+        const descriptionKey = fastMode ? "modeFastDescription" : "modeFullDescription";
+        modeButton.setAttribute("aria-pressed", String(fastMode));
+        modeButton.setAttribute("data-i18n", `common:talismanPool.${modeKey}`);
+        modeDescription.setAttribute("data-i18n", `common:talismanPool.${descriptionKey}`);
+        modeButton.textContent = text(modeKey);
+        modeDescription.textContent = text(descriptionKey);
+        const repeatsKey = fastMode ? "fastRepeats" : "repeats";
+        repeatsLabel.setAttribute("data-i18n", `common:talismanPool.${repeatsKey}`);
+        repeatsLabel.textContent = text(repeatsKey);
+        renderEstimate();
+    });
     modal.addEventListener("show.bs.modal", () => {
         if (optimizer) return;
         try {
@@ -3448,8 +3679,12 @@ function initTalismanPool({ getSnapshot, modifierMap, supportedStats, planetHrid
                     ? value : target.options[0]?.value || "";
             }
             snapshot = getSnapshot();
+            const mainDuration = snapshot.message.simulationTimeLimit / (60 * 60 * 1e9);
+            if (!durationInput.value && Number.isFinite(mainDuration) && mainDuration > 0) {
+                durationInput.value = String(mainDuration);
+            }
             renderPlayers();
-            setStatus("");
+            setStatus(durationInput.value ? "" : text("invalidNumbers"), !durationInput.value);
             start.disabled = false;
         } catch (error) {
             console.error("Could not prepare talisman pool simulation.", error);
@@ -3468,14 +3703,16 @@ function initTalismanPool({ getSnapshot, modifierMap, supportedStats, planetHrid
         }
         const threads = Number(threadsInput.value);
         const repeats = Number(repeatsInput.value);
+        const duration = Number(durationInput.value);
         if (!Number.isInteger(threads) || threads < 1 || threads > 32
-            || !Number.isInteger(repeats) || repeats < 1 || repeats > 100) {
+            || !Number.isInteger(repeats) || repeats < 1 || repeats > 100
+            || !Number.isFinite(duration) || duration <= 0 || !Number.isFinite(duration * 60 * 60 * 1e9)) {
             setStatus(text("invalidNumbers"), true);
             return;
         }
-        const invalid = selected.find((card) => countFor(card) === 0);
+        const invalid = selected.find((card) => leaderboardMode ? leaderboardError(card) : countFor(card) === 0);
         if (invalid) {
-            setStatus(text("invalidCombination", { player: invalid.name }), true);
+            setStatus(leaderboardMode ? leaderboardError(invalid) : text("invalidCombination", { player: invalid.name }), true);
             return;
         }
         const grade = Number(ordinaryGrade.value);
@@ -3487,9 +3724,12 @@ function initTalismanPool({ getSnapshot, modifierMap, supportedStats, planetHrid
         const sets = selected.map((card) => {
             const regular = selectedValues(card.ordinary);
             const specialCandidates = selectedValues(card.special);
+            const groupKeys = groupKeysFor(regular);
             return {
                 count: countFor(card),
-                create: () => (0,_talismanOptimizer__WEBPACK_IMPORTED_MODULE_1__.generateTalismanPoolCombinations)(regular, specialCandidates, card.slots, grade, specialLevel, groupKeysFor(regular)),
+                ordinary: regular, special: specialCandidates, groupKeys, slots: card.slots,
+                ordinaryGrade: grade, specialGrade: specialLevel,
+                create: () => (0,_talismanOptimizer__WEBPACK_IMPORTED_MODULE_1__.generateTalismanPoolCombinations)(regular, specialCandidates, card.slots, grade, specialLevel, groupKeys),
             };
         });
         headers.replaceChildren();
@@ -3501,6 +3741,19 @@ function initTalismanPool({ getSnapshot, modifierMap, supportedStats, planetHrid
         }
         completedBody.replaceChildren();
         partialBody.replaceChildren();
+        pruningDetails.replaceChildren();
+        if (leaderboardMode) leaderboardResults.replaceChildren();
+        const pruningLines = new Map();
+        const rankingScores = new Map();
+        const pruningLineFor = (playerIndex) => {
+            let line = pruningLines.get(playerIndex);
+            if (!line) {
+                line = document.createElement("div");
+                pruningLines.set(playerIndex, line);
+                pruningDetails.append(line);
+            }
+            return line;
+        };
         const rows = new Map();
         const sorted = [];
         const formatTeam = (selections) => {
@@ -3567,21 +3820,100 @@ function initTalismanPool({ getSnapshot, modifierMap, supportedStats, planetHrid
         stop.disabled = false;
         setStatus(text("baseline"));
         try {
+            const players = preparePlayers(selected.map((card) => card.player));
+            const message = {
+                ...snapshot.message, simulationTimeLimit: duration * 60 * 60 * 1e9,
+                zone: { zoneHrid: zoneSelect.value, difficultyTier: Number(difficultySelect.value) },
+            };
+            if (leaderboardMode) {
+                const tables = selected.map((card) => {
+                    const column = document.createElement("div");
+                    column.className = "col-12 col-lg-4";
+                    const title = document.createElement("h6");
+                    title.textContent = card.name;
+                    const baseline = document.createElement("div");
+                    baseline.className = "small text-muted mb-2";
+                    baseline.textContent = text("leaderboardBaselinePending");
+                    const table = document.createElement("table");
+                    table.className = "table table-sm";
+                    const heading = document.createElement("thead");
+                    const headingRow = document.createElement("tr");
+                    for (const label of [text("leaderboardModifier"), text("eph"), text("leaderboardDelta")]) {
+                        const th = document.createElement("th");
+                        th.scope = "col";
+                        th.textContent = label;
+                        headingRow.append(th);
+                    }
+                    heading.append(headingRow);
+                    const body = document.createElement("tbody");
+                    table.append(heading, body);
+                    column.append(title, baseline, table);
+                    leaderboardResults.append(column);
+                    return { baseline, body, rows: new Map() };
+                });
+                optimizer = (0,_talismanOptimizer__WEBPACK_IMPORTED_MODULE_1__.createTalismanLeaderboard)({
+                    players, candidateSets: sets, repeats, threads, message, createWorker,
+                    onBaseline: ({ playerIndex, eph, completed, repeats: runs }) => {
+                        tables[playerIndex].baseline.textContent = text("leaderboardBaseline", {
+                            eph: eph.toFixed(4), done: completed, total: runs,
+                        });
+                    },
+                    onResult: ({ playerIndex, candidate, eph, delta, completed, repeats: runs }) => {
+                        const table = tables[playerIndex];
+                        let entry = table.rows.get(candidate.modifierHrid);
+                        if (!entry) {
+                            const row = document.createElement("tr");
+                            for (let i = 0; i < 3; i++) row.append(document.createElement("td"));
+                            row.cells[0].textContent = `${nameOf(modifierMap[candidate.modifierHrid])} G${candidate.gradeIndex + 1} ×${candidate.count}`;
+                            entry = { row, delta };
+                            table.rows.set(candidate.modifierHrid, entry);
+                        }
+                        entry.delta = delta;
+                        entry.row.cells[1].textContent = `${eph.toFixed(4)}${completed < runs ? ` (${completed}/${runs})` : ""}`;
+                        entry.row.cells[2].textContent = `${delta >= 0 ? "+" : ""}${delta.toFixed(4)}`;
+                        for (const item of [...table.rows.values()].sort((a, b) => b.delta - a.delta)) table.body.append(item.row);
+                    },
+                    onProgress: ({ completed, total }) => setStatus(text("leaderboardProgress", { done: completed, total })),
+                });
+                await optimizer.run();
+                setStatus(text("leaderboardFinished"));
+                return;
+            }
             optimizer = (0,_talismanOptimizer__WEBPACK_IMPORTED_MODULE_1__.createTalismanOptimizer)({
-                players: preparePlayers(selected.map((card) => card.player)),
+                players,
                 candidateSets: sets,
                 repeats,
                 threads,
-                message: { ...snapshot.message, zone: { zoneHrid: zoneSelect.value, difficultyTier: Number(difficultySelect.value) } },
+                fastMode,
+                message,
                 createWorker,
                 onResult: updateResult,
-                onProgress: (progress) => setStatus(text("progress", {
+                onProgress: (progress) => setStatus(text(
+                    progress.fastMode ? "fastProgress" : "progress", {
                     round: progress.round,
                     player: selected[progress.playerIndex].name,
                     done: progress.completed.toLocaleString(),
                     total: progress.total.toLocaleString(),
-                    evaluated: progress.evaluated.toLocaleString(),
+                    evaluated: (progress.evaluated || 0).toLocaleString(),
                 })),
+                onRankingProgress: ({ completed, total }) => setStatus(text("fastRankingProgress", { done: completed, total })),
+                onRankingResult: ({ playerIndex, candidate, delta, completed, repeats: runs }) => {
+                    if (completed !== runs) return;
+                    if (!rankingScores.has(playerIndex)) rankingScores.set(playerIndex, new Map());
+                    rankingScores.get(playerIndex).set(candidate.modifierHrid, delta);
+                    const ranked = [...rankingScores.get(playerIndex)].sort((a, b) => b[1] - a[1]);
+                    pruningLineFor(playerIndex).textContent = text("fastRankingResults", {
+                        player: selected[playerIndex].name,
+                        names: ranked.map(([hrid, score]) =>
+                            `${nameOf(modifierMap[hrid])} (${score >= 0 ? "+" : ""}${score.toFixed(4)})`).join("、"),
+                    });
+                },
+                onPruned: ({ playerIndex, retained, total }) => {
+                    pruningLineFor(playerIndex).textContent = text("pruned", {
+                        player: selected[playerIndex].name, kept: retained.length, total,
+                        names: retained.map((hrid) => nameOf(modifierMap[hrid])).join("、") || "—",
+                    });
+                },
                 onReviewStart: ({ total }) => {
                     rows.clear();
                     sorted.length = 0;
@@ -4376,7 +4708,7 @@ function updateTalismanModifierDisplays() {
             row.cells[2].textContent = "未生效";
             row.cells[2].title = beltSlots === 0
                 ? "未装备腰带，符石属性不生效"
-                : `腰带最多生效${beltSlots * 4}条属性；同名属性只生效等级最高的3条`;
+                : `腰带最多生效${beltSlots * 4}条属性；同名属性只生效等级最高的${_combatsimulator_player_js__WEBPACK_IMPORTED_MODULE_1__["default"].singleStackTalismanModifiers.has(modifier.keys.join("|")) ? 1 : 3}条`;
             return;
         }
 
@@ -7952,9 +8284,6 @@ function getSimulationExtra() {
 
 function getTalismanPoolSnapshot() {
     const duration = Number(document.getElementById("inputSimulationTime").value);
-    if (!Number.isFinite(duration) || duration <= 0) {
-        throw new Error(i18next.t("common:talismanPool.invalidNumbers"));
-    }
     savePreviousPlayer(currentPlayerTabId);
     const previousHrid = player.hrid;
     let players;

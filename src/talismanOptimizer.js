@@ -1,5 +1,7 @@
 import { calculateSimulationEph } from "./simulationResultTools";
 
+const PRUNED_SCREENING_TIME = 6 * 60 * 60 * 1e9;
+
 export function countTalismanCombinations(ordinaryCount, specialCount, slots, groupKeys = null) {
     const remaining = slots - specialCount;
     if (!Number.isInteger(remaining) || remaining < 0) return 0;
@@ -73,11 +75,11 @@ export function countTalismanPoolCombinations(ordinaryCount, specialCount, slots
     return count;
 }
 
-export function* generateTalismanPoolCombinations(ordinary, special, slots, ordinaryGrade, specialGrade, groupKeys = ordinary) {
+function* generateSpecialSubsets(special, slots) {
     const subset = [];
     function* chooseSpecial(start, size) {
         if (subset.length === size) {
-            yield* generateTalismanCombinations(ordinary, subset, slots, ordinaryGrade, specialGrade, groupKeys);
+            yield subset.slice();
             return;
         }
         for (let i = start; i <= special.length - (size - subset.length); i++) {
@@ -89,6 +91,33 @@ export function* generateTalismanPoolCombinations(ordinary, special, slots, ordi
     for (let size = Math.min(special.length, slots); size >= 0; size--) {
         yield* chooseSpecial(0, size);
     }
+}
+
+export function* generateTalismanPoolCombinations(ordinary, special, slots, ordinaryGrade, specialGrade, groupKeys = ordinary) {
+    for (const subset of generateSpecialSubsets(special, slots)) {
+        yield* generateTalismanCombinations(ordinary, subset, slots, ordinaryGrade, specialGrade, groupKeys);
+    }
+}
+
+export function selectRankedCandidates(set, results) {
+    const scores = new Map(results.map((result) => [result.candidate.modifierHrid, result.delta]));
+    if (set.ordinary.some((hrid) => !scores.has(hrid))) throw new Error("Incomplete ordinary modifier leaderboard.");
+    const ranked = set.ordinary.map((hrid, index) => ({ hrid, index, score: scores.get(hrid) }))
+        .sort((a, b) => b.score - a.score || a.index - b.index);
+    const retained = new Set(ranked.slice(0, 5).map((entry) => entry.hrid));
+    const preservesSpecialSizes = () => {
+        const keys = set.groupKeys.filter((_, index) => retained.has(set.ordinary[index]));
+        for (let size = 0; size <= Math.min(set.special.length, set.slots); size++) {
+            if (countTalismanCombinations(set.ordinary.length, size, set.slots, set.groupKeys)
+                && !countTalismanCombinations(keys.length, size, set.slots, keys)) return false;
+        }
+        return true;
+    };
+    for (const entry of ranked.slice(5)) {
+        if (preservesSpecialSizes()) break;
+        retained.add(entry.hrid);
+    }
+    return ranked.filter((entry) => retained.has(entry.hrid)).map((entry) => entry.hrid);
 }
 
 class SimulationWorkerPool {
@@ -162,34 +191,167 @@ class SimulationWorkerPool {
     }
 }
 
-export function createTalismanOptimizer({ players, candidateSets, repeats, threads, message, createWorker, onResult, onProgress, onReviewStart = () => {}, onReviewProgress = () => {} }) {
+export function createTalismanLeaderboard({
+    players, candidateSets, repeats, threads, message, createWorker, onBaseline, onResult, onProgress,
+    pool: sharedPool = null, allowEmpty = false,
+}) {
+    const candidates = candidateSets.map((set) => [
+        ...set.ordinary.map((modifierHrid) => ({ modifierHrid, gradeIndex: set.ordinaryGrade, count: 3 })),
+        ...set.special.map((modifierHrid) => ({ modifierHrid, gradeIndex: set.specialGrade, count: 1 })),
+    ]);
+    for (let i = 0; i < candidates.length; i++) {
+        if ((!allowEmpty && !candidates[i].length) || candidates[i].some((candidate) => candidate.count > candidateSets[i].slots)) {
+            throw new Error(`Player ${i + 1} has invalid leaderboard candidates or insufficient talisman slots.`);
+        }
+    }
+    const pool = sharedPool || new SimulationWorkerPool(threads, createWorker);
+    let stopped = false;
+    let completed = 0;
+    const total = candidates.reduce((sum, entries) => sum + entries.length + Number(entries.length > 0), 0) * repeats;
+
+    const evaluate = async (playerIndex, candidate, onUpdate) => {
+        const simPlayers = players.map((player, index) => ({
+            ...player,
+            talismanModifiers: index === playerIndex
+                ? Array.from({ length: candidate?.count || 0 }, () => ({
+                    modifierHrid: candidate.modifierHrid, gradeIndex: candidate.gradeIndex,
+                }))
+                : player.talismanModifiers,
+        }));
+        let sum = 0;
+        let runs = 0;
+        await Promise.all(Array.from({ length: repeats }, async () => {
+            const result = await pool.run({ ...message, players: simPlayers });
+            const eph = calculateSimulationEph(result);
+            if (!Number.isFinite(eph)) throw new Error("Invalid EPH returned by simulation.");
+            sum += eph;
+            runs++;
+            completed++;
+            onUpdate({ eph: sum / runs, completed: runs, repeats });
+            onProgress({ completed, total });
+        }));
+        return sum / runs;
+    };
+
+    const run = async () => {
+        try {
+            onProgress({ completed, total });
+            const baselines = await Promise.all(players.map((_, playerIndex) => candidates[playerIndex].length
+                ? evaluate(playerIndex, null, (record) => onBaseline({ playerIndex, ...record }))
+                : Promise.resolve(null)));
+            const tasks = [];
+            for (let index = 0; index < Math.max(...candidates.map((entries) => entries.length)); index++) {
+                for (let playerIndex = 0; playerIndex < candidates.length; playerIndex++) {
+                    if (candidates[playerIndex][index]) tasks.push({ playerIndex, candidate: candidates[playerIndex][index] });
+                }
+            }
+            let next = 0;
+            const results = [];
+            const runner = async () => {
+                while (!stopped && next < tasks.length) {
+                    const { playerIndex, candidate } = tasks[next++];
+                    const baselineEph = baselines[playerIndex];
+                    const eph = await evaluate(playerIndex, candidate, (record) => onResult({
+                        playerIndex, candidate, baselineEph, ...record, delta: record.eph - baselineEph,
+                    }));
+                    results.push({ playerIndex, candidate, baselineEph, eph, delta: eph - baselineEph });
+                }
+            };
+            await Promise.all(Array.from({ length: Math.min(threads, tasks.length) }, () => runner()));
+            if (stopped) throw new Error("Simulation stopped.");
+            return results;
+        } finally {
+            if (!sharedPool) pool.stop();
+        }
+    };
+    return {
+        run,
+        stop() {
+            stopped = true;
+            pool.stop();
+        },
+    };
+}
+
+export function createTalismanOptimizer({
+    players, candidateSets, repeats, threads, message, createWorker, onResult, onProgress,
+    fastMode = false, onPruned = () => {}, onRankingProgress = () => {}, onRankingResult = () => {},
+    onReviewStart = () => {}, onReviewProgress = () => {},
+}) {
     const pool = new SimulationWorkerPool(threads, createWorker);
     const cache = new Map();
+    const pending = new Map();
     let stopped = false;
     const keyOf = (team) => JSON.stringify(team);
 
     const evaluate = async (team, phase, runs) => {
         const key = keyOf(team);
         if (phase === "screen" && cache.has(key)) return cache.get(key);
-        const record = { key, team, phase, completed: 0, repeats: runs, eph: 0 };
-        let total = 0;
-        const simPlayers = players.map((player, index) => ({ ...player, talismanModifiers: team[index] }));
-        await Promise.all(Array.from({ length: runs }, async () => {
-            const result = await pool.run({ ...message, players: simPlayers });
-            const eph = calculateSimulationEph(result);
-            if (!Number.isFinite(eph)) throw new Error("Invalid EPH returned by simulation.");
-            total += eph;
-            record.completed++;
-            record.eph = total / record.completed;
-            onResult({ ...record });
-        }));
-        if (phase === "screen") cache.set(key, record);
-        return record;
+        if (phase === "screen" && pending.has(key)) return pending.get(key);
+        const run = (async () => {
+            const record = { key, team, phase, completed: 0, repeats: runs, eph: 0 };
+            let total = 0;
+            const simPlayers = players.map((player, index) => ({ ...player, talismanModifiers: team[index] }));
+            await Promise.all(Array.from({ length: runs }, async () => {
+                const simulationTimeLimit = fastMode && phase === "screen"
+                    ? PRUNED_SCREENING_TIME : message.simulationTimeLimit;
+                const result = await pool.run({ ...message, simulationTimeLimit, players: simPlayers });
+                const eph = calculateSimulationEph(result);
+                if (!Number.isFinite(eph)) throw new Error("Invalid EPH returned by simulation.");
+                total += eph;
+                record.completed++;
+                record.eph = total / record.completed;
+                onResult({ ...record });
+            }));
+            if (phase === "screen") cache.set(key, record);
+            return record;
+        })();
+        if (phase === "screen") pending.set(key, run);
+        try {
+            return await run;
+        } finally {
+            if (phase === "screen") pending.delete(key);
+        }
     };
 
     const run = async () => {
         try {
-            let team = candidateSets.map((set) => set.create().next().value);
+            let activeSets = candidateSets;
+            if (fastMode) {
+                const rankingSets = candidateSets.map((set) => ({
+                    ...set,
+                    ordinary: set.ordinary.length > 5 && set.slots >= 3 ? set.ordinary : [],
+                    special: [],
+                }));
+                let ranking = [];
+                if (rankingSets.some((set) => set.ordinary.length)) {
+                    ranking = await createTalismanLeaderboard({
+                        players, candidateSets: rankingSets, repeats, threads, message, createWorker,
+                        pool, allowEmpty: true, onBaseline: () => {}, onResult: onRankingResult,
+                        onProgress: onRankingProgress,
+                    }).run();
+                    if (stopped) throw new Error("Simulation stopped.");
+                }
+                activeSets = candidateSets.map((set, playerIndex) => {
+                    const ranked = rankingSets[playerIndex].ordinary.length > 0;
+                    const retained = ranked
+                        ? selectRankedCandidates(set, ranking.filter((entry) => entry.playerIndex === playerIndex))
+                        : set.ordinary;
+                    onPruned({ playerIndex, retained, total: set.ordinary.length, ranked });
+                    if (!ranked) return set;
+                    const retainedSet = new Set(retained);
+                    const ordinary = set.ordinary.filter((hrid) => retainedSet.has(hrid));
+                    const groupKeys = set.groupKeys.filter((_, index) => retainedSet.has(set.ordinary[index]));
+                    return {
+                        ...set, ordinary, groupKeys,
+                        count: countTalismanPoolCombinations(ordinary.length, set.special.length, set.slots, groupKeys),
+                        create: () => generateTalismanPoolCombinations(
+                            ordinary, set.special, set.slots, set.ordinaryGrade, set.specialGrade, groupKeys
+                        ),
+                    };
+                });
+            }
+            let team = activeSets.map((set) => set.create().next().value);
             if (team.some((candidate) => !candidate)) throw new Error("A player has no valid talisman combinations.");
             let incumbent = await evaluate(team, "screen", 1);
             let round = 0;
@@ -198,11 +360,11 @@ export function createTalismanOptimizer({ players, candidateSets, repeats, threa
                 improved = false;
                 round++;
                 for (let playerIndex = 0; playerIndex < players.length; playerIndex++) {
-                    const set = candidateSets[playerIndex];
-                    const iterator = set.create();
+                    const set = activeSets[playerIndex];
                     let completed = 0;
                     let best = incumbent;
-                    onProgress({ round, playerIndex, completed, total: set.count, evaluated: cache.size });
+                    const iterator = set.create();
+                    onProgress({ phase: "screen", fastMode, round, playerIndex, completed, total: set.count, evaluated: cache.size });
                     const runner = async () => {
                         while (!stopped) {
                             const next = iterator.next();
@@ -212,7 +374,7 @@ export function createTalismanOptimizer({ players, candidateSets, repeats, threa
                             const result = await evaluate(candidateTeam, "screen", 1);
                             if (result.eph > best.eph) best = result;
                             completed++;
-                            onProgress({ round, playerIndex, completed, total: set.count, evaluated: cache.size });
+                            onProgress({ phase: "screen", fastMode, round, playerIndex, completed, total: set.count, evaluated: cache.size });
                         }
                     };
                     await Promise.all(Array.from({ length: Math.min(threads, set.count) }, () => runner()));
