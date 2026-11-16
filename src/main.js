@@ -27,6 +27,10 @@ import {
     CONSUMABLE_SLOT_COUNT,
     readConsumablePresetStorage,
 } from "./consumablePresets";
+import { initTalismanPool } from "./talismanPoolUI";
+import {
+    TEAM_PRESETS_KEY, deleteNamedPoolPreset, readNamedPoolPresets, validateTeamPreset, writeNamedPoolPreset,
+} from "./talismanPoolPresets";
 
 import patchNote from "../patchNote.json";
 
@@ -188,7 +192,7 @@ function initTalismanModifierSection() {
 }
 
 const TALISMAN_PRESETS_STORAGE_KEY = "talismanPresets";
-const MAX_TALISMAN_PRESETS = 10;
+const MAX_TALISMAN_PRESETS = 30;
 
 function loadTalismanPresets() {
     try {
@@ -202,6 +206,32 @@ function loadTalismanPresets() {
     }
 }
 
+function renderTalismanPresetOptions(selectedName) {
+    const presetSelect = document.getElementById("selectTalismanPreset");
+    const presets = loadTalismanPresets();
+    const value = selectedName ?? presetSelect.value;
+    presetSelect.replaceChildren(presetSelect.options[0]);
+    presets.forEach((preset) => presetSelect.add(new Option(preset.name, preset.name)));
+    presetSelect.value = presets.some((preset) => preset.name === value) ? value : "";
+    document.getElementById("talismanPresetCount").textContent = `${presets.length}/${MAX_TALISMAN_PRESETS}`;
+    document.getElementById("buttonDeleteTalismanPreset").disabled = !presetSelect.value;
+}
+
+function saveTalismanPoolResult(name, selections) {
+    const presets = readNamedPoolPresets(localStorage, TALISMAN_PRESETS_STORAGE_KEY);
+    if (presets.some((preset) => !Array.isArray(preset.selections))) {
+        throw new Error("Invalid saved talisman presets.");
+    }
+    const exists = presets.some((preset) => preset.name === name);
+    if (exists && !window.confirm(i18next.t("common:talismanPool.confirmOverwrite", { name }))) return false;
+    if (!exists && presets.length >= MAX_TALISMAN_PRESETS) {
+        throw new Error(i18next.t("talismanPresets.limitReached"));
+    }
+    writeNamedPoolPreset(localStorage, TALISMAN_PRESETS_STORAGE_KEY, { name, selections });
+    renderTalismanPresetOptions(name);
+    return true;
+}
+
 function initTalismanPresetControls() {
     const nameInput = document.getElementById("talismanPresetName");
     const presetSelect = document.getElementById("selectTalismanPreset");
@@ -210,17 +240,6 @@ function initTalismanPresetControls() {
     const clearButton = document.getElementById("buttonClearTalismans");
     const loadButton = document.getElementById("buttonLoadTalismanPreset");
     const deleteButton = document.getElementById("buttonDeleteTalismanPreset");
-    const placeholderOption = presetSelect.options[0];
-
-    const renderPresets = (selectedName = presetSelect.value) => {
-        const presets = loadTalismanPresets();
-        presetSelect.replaceChildren(placeholderOption);
-        presets.forEach((preset) => presetSelect.add(new Option(preset.name, preset.name)));
-        presetSelect.value = presets.some((preset) => preset.name === selectedName) ? selectedName : "";
-        countLabel.textContent = `${presets.length}/${MAX_TALISMAN_PRESETS}`;
-        deleteButton.disabled = !presetSelect.value;
-    };
-
     saveButton.addEventListener("click", () => {
         const name = nameInput.value.trim();
         if (!name) {
@@ -243,7 +262,7 @@ function initTalismanPresetControls() {
         }
 
         localStorage.setItem(TALISMAN_PRESETS_STORAGE_KEY, JSON.stringify(presets));
-        renderPresets(name);
+        renderTalismanPresetOptions(name);
     });
 
     clearButton.addEventListener("click", () => {
@@ -262,14 +281,93 @@ function initTalismanPresetControls() {
     deleteButton.addEventListener("click", () => {
         const remainingPresets = loadTalismanPresets().filter((preset) => preset.name !== presetSelect.value);
         localStorage.setItem(TALISMAN_PRESETS_STORAGE_KEY, JSON.stringify(remainingPresets));
-        renderPresets();
+        renderTalismanPresetOptions();
     });
 
     presetSelect.addEventListener("change", () => {
         deleteButton.disabled = !presetSelect.value;
     });
 
-    renderPresets("");
+    renderTalismanPresetOptions("");
+}
+
+function renderTalismanTeamPresetOptions(selectedName = "") {
+    const select = document.getElementById("selectTalismanTeamPreset");
+    const notice = document.getElementById("talismanTeamPresetNotice");
+    try {
+        const presets = readNamedPoolPresets(localStorage, TEAM_PRESETS_KEY);
+        document.getElementById("talismanLegacyTeamPresetPanel").hidden = presets.length === 0;
+        const value = selectedName || select.value;
+        select.replaceChildren(select.options[0]);
+        for (const preset of presets) select.add(new Option(preset.name, preset.name));
+        select.value = presets.some((preset) => preset.name === value) ? value : "";
+        document.getElementById("buttonLoadTalismanTeamPreset").disabled = !select.value;
+        document.getElementById("buttonDeleteTalismanTeamPreset").disabled = !select.value;
+    } catch (error) {
+        document.getElementById("talismanLegacyTeamPresetPanel").hidden = false;
+        console.error("Could not read team talisman presets.", error);
+        notice.textContent = i18next.t("common:talismanPool.presetError", { error: error.message });
+        notice.classList.add("text-danger");
+    }
+}
+
+function initTalismanTeamPresetControls() {
+    const select = document.getElementById("selectTalismanTeamPreset");
+    const notice = document.getElementById("talismanTeamPresetNotice");
+    const showNotice = (message, isError = false) => {
+        notice.textContent = message;
+        notice.classList.toggle("text-danger", isError);
+    };
+    const reportError = (error) => {
+        console.error("Could not use team talisman preset.", error);
+        showNotice(i18next.t("common:talismanPool.presetError", { error: error.message }), true);
+    };
+    select.addEventListener("change", () => {
+        document.getElementById("buttonLoadTalismanTeamPreset").disabled = !select.value;
+        document.getElementById("buttonDeleteTalismanTeamPreset").disabled = !select.value;
+    });
+    document.getElementById("buttonLoadTalismanTeamPreset").addEventListener("click", () => {
+        try {
+            const preset = readNamedPoolPresets(localStorage, TEAM_PRESETS_KEY)
+                .find((entry) => entry.name === select.value);
+            if (!preset) throw new Error("Saved team talisman preset not found.");
+            const modifierSelect = document.querySelector("#talismanModifierRows select");
+            validateTeamPreset(preset, new Set([...modifierSelect.options].map((option) => option.value).filter(Boolean)));
+            const updates = new Map();
+            for (const entry of preset.players) {
+                const id = entry.hrid.substring(6);
+                if (id !== currentPlayerTabId) {
+                    const data = JSON.parse(playerDataMap[id]);
+                    if (!data || typeof data !== "object" || Array.isArray(data)) {
+                        throw new Error(`Invalid player configuration: ${entry.hrid}`);
+                    }
+                    data.talismanModifiers = entry.selections;
+                    updates.set(id, JSON.stringify(data));
+                }
+            }
+            const current = preset.players.find((entry) => entry.hrid === `player${currentPlayerTabId}`);
+            if (current) {
+                setTalismanModifierSelections(current.selections);
+                updateUI();
+                savePreviousPlayer(currentPlayerTabId);
+            }
+            for (const [id, value] of updates) playerDataMap[id] = value;
+            showNotice(i18next.t("common:talismanPool.teamLoaded"));
+        } catch (error) {
+            reportError(error);
+        }
+    });
+    document.getElementById("buttonDeleteTalismanTeamPreset").addEventListener("click", () => {
+        try {
+            deleteNamedPoolPreset(localStorage, TEAM_PRESETS_KEY, select.value);
+            select.value = "";
+            renderTalismanTeamPresetOptions();
+            showNotice(i18next.t("common:talismanPool.presetDeleted"));
+        } catch (error) {
+            reportError(error);
+        }
+    });
+    renderTalismanTeamPresetOptions();
 }
 
 function getTalismanModifierSelections() {
@@ -3789,7 +3887,7 @@ function initSimulationControls() {
     });
 }
 
-function startSimulation(selectedPlayers) {
+function collectSimulationPlayers(selectedPlayers, isLabyrinthMode = null) {
     let simLabyrinthToggle = document.getElementById("simLabyrinthToggle");
     let simAllLabyrinthsToggle = document.getElementById("simAllLabyrinthsToggle");
 
@@ -3800,7 +3898,7 @@ function startSimulation(selectedPlayers) {
             updateState();
             updateUI();
             player.hrid = "player" + j.toString();
-            if (!simLabyrinthToggle.checked && !simAllLabyrinthsToggle.checked) {
+            if (!(isLabyrinthMode ?? (simLabyrinthToggle.checked || simAllLabyrinthsToggle.checked))) {
                 for (let i = 0; i < 3; i++) {
                     if (food[i] && i < player.combatDetails.combatStats.foodSlots) {
                         let consumable = new Consumable(food[i], triggerMap[food[i]]);
@@ -3843,6 +3941,11 @@ function startSimulation(selectedPlayers) {
     updateState();
     updateUI();
 
+    setPlayerLevelGapDebuffs(playersToSim);
+    return playersToSim;
+}
+
+function setPlayerLevelGapDebuffs(playersToSim) {
     let maxPlayerCombatLevel = 1;
     for (let player of playersToSim) {
         player.combatLevel = calcCombatLevel(player.staminaLevel, player.intelligenceLevel, player.defenseLevel, player.attackLevel, player.meleeLevel, player.rangedLevel, player.magicLevel);
@@ -3863,6 +3966,9 @@ function startSimulation(selectedPlayers) {
         }
     }
 
+}
+
+function getSimulationExtra() {
     let extra = {};
     extra.mooPass = document.getElementById("mooPassToggle").checked;
     extra.comExp = 0;
@@ -3889,6 +3995,36 @@ function startSimulation(selectedPlayers) {
         console.log("extra.personalBuffs:", extra.personalBuffs);
     }
 
+    return extra;
+}
+
+function getTalismanPoolSnapshot() {
+    const duration = Number(document.getElementById("inputSimulationTime").value);
+    if (!Number.isFinite(duration) || duration <= 0) {
+        throw new Error(i18next.t("common:talismanPool.invalidNumbers"));
+    }
+    savePreviousPlayer(currentPlayerTabId);
+    const previousHrid = player.hrid;
+    let players;
+    try {
+        players = collectSimulationPlayers([1, 2, 3, 4, 5], false);
+    } finally {
+        player.hrid = previousHrid;
+    }
+    const extra = getSimulationExtra();
+    extra.enableHpMpVisualization = false;
+    return {
+        players,
+        names: players.map((entry) => document.getElementById(`${entry.hrid}-tab`).textContent.trim()),
+        message: { type: "start_simulation", labyrinth: null, simulationTimeLimit: duration * ONE_HOUR, extra, quiet: true },
+    };
+}
+
+function startSimulation(selectedPlayers) {
+    const playersToSim = collectSimulationPlayers(selectedPlayers);
+    const extra = getSimulationExtra();
+    let simLabyrinthToggle = document.getElementById("simLabyrinthToggle");
+    let simAllLabyrinthsToggle = document.getElementById("simAllLabyrinthsToggle");
     let simAllZonesToggle = document.getElementById("simAllZoneToggle");
     let simAllSoloToggle = document.getElementById("simAllSoloToggle");
     let simDungeonToggle = document.getElementById("simDungeonToggle");
@@ -5688,6 +5824,7 @@ function updateContent() {
 
 initEquipmentSection();
 initTalismanModifierSection();
+initTalismanTeamPresetControls();
 initHouseRoomsModal();
 initAchievementsModal();
 initLevelSection();
@@ -5708,6 +5845,23 @@ initPatchNotes();
 initExtraBuffSection();
 initHpMpVisualization();
 initSimulationResultTools();
+initTalismanPool({
+    getSnapshot: getTalismanPoolSnapshot,
+    modifierMap: talismanModifierDetailMap,
+    supportedStats: Player.combatEquipmentStats,
+    planetHrids: Object.values(actionDetailMap)
+        .filter((action) => action.type === "/action_types/combat"
+            && action.category !== "/action_categories/combat/dungeons"
+            && action.combatZoneInfo.fightInfo.randomSpawnInfo.maxSpawnCount > 1)
+        .map((action) => action.hrid),
+    createWorker: () => new Worker(new URL("worker.js", import.meta.url)),
+    preparePlayers: (players) => {
+        const copies = structuredClone(players);
+        setPlayerLevelGapDebuffs(copies);
+        return copies;
+    },
+    savePlayerResult: saveTalismanPoolResult,
+});
 
 updateState();
 updateUI();

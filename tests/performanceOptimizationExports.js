@@ -7,6 +7,18 @@ export { default as itemDetailMap } from "../src/combatsimulator/data/itemDetail
 export { getPersonalBuffsForPlayer, mapPersonalBuffsByPlayer } from "../src/personalBuffs";
 export { applyConsumablePresetToPlayer, readConsumablePresetStorage } from "../src/consumablePresets";
 export {
+    countTalismanCombinations,
+    countTalismanPoolCombinations,
+    createTalismanOptimizer,
+    generateTalismanCombinations,
+    generateTalismanPoolCombinations,
+} from "../src/talismanOptimizer";
+export {
+    CANDIDATE_PRESETS_KEY, TEAM_PRESETS_KEY, readNamedPoolPresets, writeNamedPoolPreset,
+    deleteNamedPoolPreset, validateCandidatePreset, validateTeamPreset,
+} from "../src/talismanPoolPresets";
+export {
+    calculateSimulationEph,
     classifyDropCategory,
     comparisonTone,
     createRecordExport,

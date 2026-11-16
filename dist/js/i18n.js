@@ -138,7 +138,7 @@ const Wa = {
                     selectPlaceholder: "Select a saved preset",
                     load: "Load",
                     delete: "Delete",
-                    limitReached: "You can save up to 10 presets",
+                    limitReached: "You can save up to 30 presets",
                 },
                 consumablePresets: {
                     title: "Food and Drink Presets",
@@ -6156,7 +6156,7 @@ const Wa = {
                 "selectPlaceholder": "选择已保存配置",
                 "load": "加载",
                 "delete": "删除",
-                "limitReached": "最多保存10套配置",
+                "limitReached": "最多保存30套配置",
             },
             "consumablePresets": {
                 "title": "食物与饮料配置",

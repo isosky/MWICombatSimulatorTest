@@ -13,6 +13,19 @@
             max-width: 100%;
         }
 
+        .row.talisman-pool-controls {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+        }
+
+        .talisman-pool-controls > div {
+            min-width: 9rem;
+        }
+
+        .talisman-pool-controls label {
+            white-space: nowrap;
+        }
+
         .simulation-quick-button-group {
             display: flex;
             flex-wrap: wrap;
@@ -718,8 +731,22 @@
                                         type="button" data-i18n="talismanPresets.delete" disabled>删除</button>
                                 </div>
                                 <div class="col-4 text-end">
-                                    <small id="talismanPresetCount" aria-live="polite">0/10</small>
+                                    <small id="talismanPresetCount" aria-live="polite">0/30</small>
                                 </div>
+                            </div>
+                            <div id="talismanLegacyTeamPresetPanel" class="border-top mt-2 pt-2" hidden>
+                                <label for="selectTalismanTeamPreset" class="form-label small"
+                                    data-i18n="common:talismanPool.teamPresets">Saved team combinations (by player slot)</label>
+                                <div class="d-flex gap-2">
+                                    <select id="selectTalismanTeamPreset" class="form-select form-select-sm">
+                                        <option value="" data-i18n="common:talismanPool.selectPreset">Select a saved preset</option>
+                                    </select>
+                                    <button id="buttonLoadTalismanTeamPreset" class="btn btn-sm btn-outline-primary" type="button"
+                                        data-i18n="common:talismanPool.load">Load</button>
+                                    <button id="buttonDeleteTalismanTeamPreset" class="btn btn-sm btn-outline-danger" type="button"
+                                        data-i18n="common:talismanPool.delete">Delete</button>
+                                </div>
+                                <div id="talismanTeamPresetNotice" class="small mt-1" role="status" aria-live="polite"></div>
                             </div>
                         </div>
                     </div>
@@ -1081,6 +1108,11 @@
                                     data-i18n="common:simulationResultTools.archive">
                                     Simulation Result Archive
                                 </button>
+                            </div>
+                            <div class="col-md-auto">
+                                <button id="buttonTalismanPool" class="btn btn-outline-primary" type="button"
+                                    data-bs-toggle="modal" data-bs-target="#talismanPoolModal"
+                                    data-i18n="common:talismanPool.title">Talisman Pool Simulation</button>
                             </div>
                             <div class="col-md-auto">
                                 <button id="buttonSimulationResultCompare" class="btn btn-outline-primary" type="button"
@@ -2424,6 +2456,66 @@
         integrity="sha512-Y51n9mtKTVBh3Jbx5pZSJNDDMyY+yGe77DGtBPzRlgsf/YLCh13kSZ3JmfHGzYFCmOndraf0sQgfM654b7dJ3w=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="bundle.js" type="module"></script>
+    <div class="modal fade" id="talismanPoolModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" data-i18n="common:talismanPool.title">Talisman Pool Simulation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <fieldset id="talismanPoolSettings">
+                        <div class="row g-2 align-items-end mb-3 talisman-pool-controls">
+                            <div class="col-6 col-md-2">
+                                <label for="talismanPoolZone" class="form-label" data-i18n="party.selectZone">Zone</label>
+                                <select id="talismanPoolZone" class="form-select"></select>
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label for="talismanPoolDifficulty" class="form-label" data-i18n="party.difficulty">Difficulty</label>
+                                <select id="talismanPoolDifficulty" class="form-select"></select>
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label for="talismanPoolOrdinaryGrade" class="form-label" data-i18n="common:talismanPool.ordinaryGrade">Ordinary grade</label>
+                                <select id="talismanPoolOrdinaryGrade" class="form-select"></select>
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label for="talismanPoolSpecialGrade" class="form-label" data-i18n="common:talismanPool.specialGrade">Special grade</label>
+                                <select id="talismanPoolSpecialGrade" class="form-select"></select>
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label for="talismanPoolThreads" class="form-label" data-i18n="common:talismanPool.threads">Threads</label>
+                                <input id="talismanPoolThreads" class="form-control" type="text" inputmode="numeric" value="5">
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label for="talismanPoolRepeats" class="form-label" data-i18n="common:talismanPool.repeats">Repeats</label>
+                                <input id="talismanPoolRepeats" class="form-control" type="text" inputmode="numeric" value="5">
+                            </div>
+                        </div>
+                        <div class="small text-muted mb-2" data-i18n="common:talismanPool.instructions">Select three players. Selected special modifiers are optional candidates; ordinary modifiers are grouped in threes.</div>
+                        <div id="talismanPoolPlayers" class="row g-2 mb-3"></div>
+                        <div id="talismanPoolEstimate" class="small mb-2" aria-live="polite"></div>
+                    </fieldset>
+                    <div class="d-flex gap-2 mb-2">
+                        <button id="buttonStartTalismanPool" class="btn btn-primary" type="button" data-i18n="common:talismanPool.start">Start</button>
+                        <button id="buttonStopTalismanPool" class="btn btn-danger" type="button" disabled data-i18n="common:talismanPool.stop">Stop</button>
+                    </div>
+                    <div id="talismanPoolStatus" class="small mb-2" role="status" aria-live="polite"></div>
+                    <div class="mb-2">
+                        <label for="talismanPoolResultName" class="form-label small" data-i18n="common:talismanPool.playerResultName">Player preset name</label>
+                        <input id="talismanPoolResultName" class="form-control form-control-sm" type="text" maxlength="40"
+                            data-i18n-placeholder="common:talismanPool.playerResultName" placeholder="Player preset name">
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead><tr id="talismanPoolResultHeaders"></tr></thead>
+                            <tbody id="talismanPoolCompleted"></tbody>
+                            <tbody id="talismanPoolPartial"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="modal fade" id="simulationResultArchiveModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable simulation-result-archive-dialog">
             <div class="modal-content">

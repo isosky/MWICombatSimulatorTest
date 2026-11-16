@@ -5335,7 +5335,7 @@ onmessage = async function (event) {
             }
 
             let playersData = event.data.players;
-            console.log("Received players data:", playersData);
+            if (!event.data.quiet) console.log("Received players data:", playersData);
             let players = [];
             let zone = null;
             if (event.data.zone) {
@@ -5391,10 +5391,10 @@ onmessage = async function (event) {
                 // 精神神龛
                 currentPlayer.combatDetails.combatStats.maxHitpointsRatio = 0.01 * playersData[i].guildShrine.spirit;
                 currentPlayer.combatDetails.combatStats.maxManapointsRatio = 0.01 * playersData[i].guildShrine.spirit;
-                console.log(currentPlayer);
+                if (!event.data.quiet) console.log(currentPlayer);
                 players.push(currentPlayer);
             }
-            console.log("Starting simulation with players:", players);
+            if (!event.data.quiet) console.log("Starting simulation with players:", players);
             let simulationTimeLimit = event.data.simulationTimeLimit;
             let enableHpMpVisualization = event.data.extra.enableHpMpVisualization || false;
             let combatSimulator = new _combatsimulator_combatSimulator__WEBPACK_IMPORTED_MODULE_0__["default"](players, zone, labyrinth, { enableHpMpVisualization });

@@ -1736,6 +1736,7 @@ function applyConsumablePresetToPlayer(playerData, preset, itemMap) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   calculateSimulationEph: () => (/* binding */ calculateSimulationEph),
 /* harmony export */   classifyDropCategory: () => (/* binding */ classifyDropCategory),
 /* harmony export */   comparisonTone: () => (/* binding */ comparisonTone),
 /* harmony export */   createRecordExport: () => (/* binding */ createRecordExport),
@@ -1806,6 +1807,16 @@ function normalizeTo24Hours(value, durationHours) {
     const hours = Number(durationHours);
     if (!Number.isFinite(numericValue) || !Number.isFinite(hours) || hours <= 0) return 0;
     return numericValue * 24 / hours;
+}
+
+function calculateSimulationEph(simResult) {
+    const duration = simResult.isDungeon && simResult.lastDungeonFinishTime > 0
+        ? simResult.lastDungeonFinishTime
+        : simResult.lastEncounterFinishTime > 0
+            ? simResult.lastEncounterFinishTime
+            : simResult.simulatedTime;
+    const encounters = simResult.isDungeon ? simResult.dungeonsCompleted : simResult.encounters;
+    return duration > 0 ? encounters * ONE_HOUR / duration : 0;
 }
 
 function minimumPlayerShardDropCount(shardCounts) {
@@ -2517,12 +2528,6 @@ function saveCurrentResult() {
         return;
     }
     const isDungeon = Boolean(simResult.isDungeon);
-    const effectiveDuration = isDungeon && simResult.lastDungeonFinishTime > 0
-        ? simResult.lastDungeonFinishTime / ONE_HOUR
-        : simResult.lastEncounterFinishTime > 0
-            ? simResult.lastEncounterFinishTime / ONE_HOUR
-            : durationHours;
-    const encounters = isDungeon ? simResult.dungeonsCompleted : simResult.encounters;
     const playerExpectedDrops = getExpectedDropsByPlayer(latestResultContext, playerHrids, durationHours);
     const expectedDrops = getTeamExpectedDrops(playerExpectedDrops);
     const shardsPerPlayer = playerExpectedDrops.map(({ drops }) =>
@@ -2594,7 +2599,7 @@ function saveCurrentResult() {
             groupJson: latestResultContext.getGroupConfigJson?.() || "",
         },
         metrics: {
-            eph: effectiveDuration > 0 ? encounters / effectiveDuration : 0,
+            eph: calculateSimulationEph(simResult),
             deathsPerDay: players.reduce((total, player) => total + player.deathsPerDay, 0),
             deathsPerHour: players.reduce((total, player) => total + player.deathsPerHour, 0),
             shardsPerDay,
@@ -2794,6 +2799,820 @@ function initSimulationResultTools() {
     document.getElementById("simulationResultCompareCategories").addEventListener("change", renderComparison);
     renderArchive();
     renderCompareOptions();
+}
+
+
+/***/ }),
+
+/***/ "./src/talismanOptimizer.js":
+/*!**********************************!*\
+  !*** ./src/talismanOptimizer.js ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   countTalismanCombinations: () => (/* binding */ countTalismanCombinations),
+/* harmony export */   countTalismanPoolCombinations: () => (/* binding */ countTalismanPoolCombinations),
+/* harmony export */   createTalismanOptimizer: () => (/* binding */ createTalismanOptimizer),
+/* harmony export */   generateTalismanCombinations: () => (/* binding */ generateTalismanCombinations),
+/* harmony export */   generateTalismanPoolCombinations: () => (/* binding */ generateTalismanPoolCombinations)
+/* harmony export */ });
+/* harmony import */ var _simulationResultTools__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./simulationResultTools */ "./src/simulationResultTools.js");
+
+
+function countTalismanCombinations(ordinaryCount, specialCount, slots, groupKeys = null) {
+    const remaining = slots - specialCount;
+    if (!Number.isInteger(remaining) || remaining < 0) return 0;
+    const remainder = remaining % 3;
+    const groups = Math.floor(remaining / 3);
+    if (groups > ordinaryCount) return 0;
+    const alternatives = new Map();
+    const keys = groupKeys ?? Array.from({ length: ordinaryCount }, (_, index) => index);
+    for (const key of keys) alternatives.set(key, (alternatives.get(key) || 0) + 1);
+    const counts = Array(groups + 1).fill(0);
+    const withFiller = Array(groups + 1).fill(0);
+    counts[0] = 1;
+    for (const size of alternatives.values()) {
+        for (let i = groups; i >= 0; i--) {
+            // A group can supply either a full triplet or the remainder, not both.
+            withFiller[i] += counts[i] * size + (i > 0 ? withFiller[i - 1] * size : 0);
+            if (i > 0) counts[i] += counts[i - 1] * size;
+        }
+    }
+    return remainder ? withFiller[groups] : counts[groups];
+}
+
+function* generateTalismanCombinations(ordinary, special, slots, ordinaryGrade, specialGrade, groupKeys = ordinary) {
+    const count = countTalismanCombinations(ordinary.length, special.length, slots, groupKeys);
+    if (!count) return;
+    const remaining = slots - special.length;
+    const groups = Math.floor(remaining / 3);
+    const remainder = remaining % 3;
+    const selected = [];
+    const selectedGroups = new Set();
+    function* choose(start) {
+        if (selected.length === groups) {
+            const base = [
+                ...special.map((modifierHrid) => ({ modifierHrid, gradeIndex: specialGrade })),
+                ...selected.flatMap((modifierHrid) =>
+                    Array.from({ length: 3 }, () => ({ modifierHrid, gradeIndex: ordinaryGrade }))
+                ),
+            ];
+            if (!remainder) {
+                yield base;
+            } else {
+                for (let i = 0; i < ordinary.length; i++) {
+                    if (selectedGroups.has(groupKeys[i])) continue;
+                    yield [
+                        ...base,
+                        ...Array.from({ length: remainder }, () => ({ modifierHrid: ordinary[i], gradeIndex: ordinaryGrade })),
+                    ];
+                }
+            }
+            return;
+        }
+        for (let i = start; i <= ordinary.length - (groups - selected.length); i++) {
+            if (selectedGroups.has(groupKeys[i])) continue;
+            selected.push(ordinary[i]);
+            selectedGroups.add(groupKeys[i]);
+            yield* choose(i + 1);
+            selectedGroups.delete(groupKeys[i]);
+            selected.pop();
+        }
+    }
+    yield* choose(0);
+}
+
+function countTalismanPoolCombinations(ordinaryCount, specialCount, slots, groupKeys = null) {
+    let count = 0;
+    let choices = 1;
+    for (let size = 0; size <= Math.min(specialCount, slots); size++) {
+        count += choices * countTalismanCombinations(ordinaryCount, size, slots, groupKeys);
+        choices = choices * (specialCount - size) / (size + 1);
+    }
+    return count;
+}
+
+function* generateTalismanPoolCombinations(ordinary, special, slots, ordinaryGrade, specialGrade, groupKeys = ordinary) {
+    const subset = [];
+    function* chooseSpecial(start, size) {
+        if (subset.length === size) {
+            yield* generateTalismanCombinations(ordinary, subset, slots, ordinaryGrade, specialGrade, groupKeys);
+            return;
+        }
+        for (let i = start; i <= special.length - (size - subset.length); i++) {
+            subset.push(special[i]);
+            yield* chooseSpecial(i + 1, size);
+            subset.pop();
+        }
+    }
+    for (let size = Math.min(special.length, slots); size >= 0; size--) {
+        yield* chooseSpecial(0, size);
+    }
+}
+
+class SimulationWorkerPool {
+    constructor(size, createWorker) {
+        this.queue = [];
+        this.workers = [];
+        this.closed = false;
+        try {
+            for (let i = 0; i < size; i++) {
+                const slot = { worker: createWorker(), task: null };
+                slot.worker.onmessage = (event) => {
+                    if (event.data.type === "simulation_progress") return;
+                    if (!slot.task) return;
+                    if (event.data.type === "simulation_result") {
+                        this.finish(slot, null, event.data.simResult);
+                    } else if (event.data.type === "simulation_error") {
+                        this.finish(slot, new Error(String(event.data.error)));
+                    }
+                };
+                slot.worker.onerror = (event) => this.finish(slot, new Error(event.message || "Simulation worker failed."));
+                slot.worker.onmessageerror = () => this.finish(slot, new Error("Simulation worker message could not be read."));
+                this.workers.push(slot);
+            }
+        } catch (error) {
+            this.stop(error);
+            throw error;
+        }
+    }
+
+    run(message) {
+        if (this.closed) return Promise.reject(new Error("Simulation stopped."));
+        return new Promise((resolve, reject) => {
+            this.queue.push({ message, resolve, reject });
+            this.dispatch();
+        });
+    }
+
+    dispatch() {
+        for (const slot of this.workers) {
+            if (this.closed || !this.queue.length) return;
+            if (slot.task) continue;
+            slot.task = this.queue.shift();
+            try {
+                slot.worker.postMessage(slot.task.message);
+            } catch (error) {
+                this.finish(slot, error);
+            }
+        }
+    }
+
+    finish(slot, error, result) {
+        if (!slot.task) return;
+        const task = slot.task;
+        slot.task = null;
+        if (error) task.reject(error);
+        else task.resolve(result);
+        this.dispatch();
+    }
+
+    stop(error = new Error("Simulation stopped.")) {
+        if (this.closed) return;
+        this.closed = true;
+        for (const task of this.queue.splice(0)) task.reject(error);
+        for (const slot of this.workers) {
+            slot.worker.terminate();
+            if (slot.task) {
+                slot.task.reject(error);
+                slot.task = null;
+            }
+        }
+    }
+}
+
+function createTalismanOptimizer({ players, candidateSets, repeats, threads, message, createWorker, onResult, onProgress, onReviewStart = () => {}, onReviewProgress = () => {} }) {
+    const pool = new SimulationWorkerPool(threads, createWorker);
+    const cache = new Map();
+    let stopped = false;
+    const keyOf = (team) => JSON.stringify(team);
+
+    const evaluate = async (team, phase, runs) => {
+        const key = keyOf(team);
+        if (phase === "screen" && cache.has(key)) return cache.get(key);
+        const record = { key, team, phase, completed: 0, repeats: runs, eph: 0 };
+        let total = 0;
+        const simPlayers = players.map((player, index) => ({ ...player, talismanModifiers: team[index] }));
+        await Promise.all(Array.from({ length: runs }, async () => {
+            const result = await pool.run({ ...message, players: simPlayers });
+            const eph = (0,_simulationResultTools__WEBPACK_IMPORTED_MODULE_0__.calculateSimulationEph)(result);
+            if (!Number.isFinite(eph)) throw new Error("Invalid EPH returned by simulation.");
+            total += eph;
+            record.completed++;
+            record.eph = total / record.completed;
+            onResult({ ...record });
+        }));
+        if (phase === "screen") cache.set(key, record);
+        return record;
+    };
+
+    const run = async () => {
+        try {
+            let team = candidateSets.map((set) => set.create().next().value);
+            if (team.some((candidate) => !candidate)) throw new Error("A player has no valid talisman combinations.");
+            let incumbent = await evaluate(team, "screen", 1);
+            let round = 0;
+            let improved;
+            do {
+                improved = false;
+                round++;
+                for (let playerIndex = 0; playerIndex < players.length; playerIndex++) {
+                    const set = candidateSets[playerIndex];
+                    const iterator = set.create();
+                    let completed = 0;
+                    let best = incumbent;
+                    onProgress({ round, playerIndex, completed, total: set.count, evaluated: cache.size });
+                    const runner = async () => {
+                        while (!stopped) {
+                            const next = iterator.next();
+                            if (next.done) return;
+                            const candidateTeam = team.slice();
+                            candidateTeam[playerIndex] = next.value;
+                            const result = await evaluate(candidateTeam, "screen", 1);
+                            if (result.eph > best.eph) best = result;
+                            completed++;
+                            onProgress({ round, playerIndex, completed, total: set.count, evaluated: cache.size });
+                        }
+                    };
+                    await Promise.all(Array.from({ length: Math.min(threads, set.count) }, () => runner()));
+                    if (stopped) throw new Error("Simulation stopped.");
+                    if (best.eph > incumbent.eph) {
+                        team = best.team;
+                        incumbent = best;
+                        improved = true;
+                    }
+                }
+            } while (improved && !stopped);
+            const finalists = [...cache.values()].sort((a, b) => b.eph - a.eph).slice(0, 5);
+            onReviewStart({ total: finalists.length });
+            let nextIndex = 0;
+            let completed = 0;
+            const reviewed = [];
+            const review = async () => {
+                while (!stopped && nextIndex < finalists.length) {
+                    const finalist = finalists[nextIndex++];
+                    reviewed.push(await evaluate(finalist.team, "review", repeats));
+                    completed++;
+                    onReviewProgress({ completed, total: finalists.length });
+                }
+            };
+            await Promise.all(Array.from({ length: Math.min(threads, finalists.length) }, () => review()));
+            if (stopped) throw new Error("Simulation stopped.");
+            reviewed.sort((a, b) => b.eph - a.eph);
+            return reviewed[0];
+        } finally {
+            pool.stop();
+        }
+    };
+    return {
+        run,
+        stop() {
+            stopped = true;
+            pool.stop();
+        },
+    };
+}
+
+
+/***/ }),
+
+/***/ "./src/talismanPoolPresets.js":
+/*!************************************!*\
+  !*** ./src/talismanPoolPresets.js ***!
+  \************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   CANDIDATE_PRESETS_KEY: () => (/* binding */ CANDIDATE_PRESETS_KEY),
+/* harmony export */   TEAM_PRESETS_KEY: () => (/* binding */ TEAM_PRESETS_KEY),
+/* harmony export */   deleteNamedPoolPreset: () => (/* binding */ deleteNamedPoolPreset),
+/* harmony export */   readNamedPoolPresets: () => (/* binding */ readNamedPoolPresets),
+/* harmony export */   validateCandidatePreset: () => (/* binding */ validateCandidatePreset),
+/* harmony export */   validateTeamPreset: () => (/* binding */ validateTeamPreset),
+/* harmony export */   writeNamedPoolPreset: () => (/* binding */ writeNamedPoolPreset)
+/* harmony export */ });
+const CANDIDATE_PRESETS_KEY = "talismanPoolCandidatePresets";
+const TEAM_PRESETS_KEY = "talismanPoolTeamPresets";
+
+function readNamedPoolPresets(storage, key) {
+    const presets = JSON.parse(storage.getItem(key) ?? "[]");
+    if (!Array.isArray(presets) || presets.some((preset) =>
+        !preset || typeof preset !== "object" || typeof preset.name !== "string" || !preset.name.trim()
+    )) {
+        throw new Error("Invalid saved talisman presets.");
+    }
+    return presets;
+}
+
+function writeNamedPoolPreset(storage, key, preset) {
+    if (typeof preset.name !== "string" || !preset.name.trim()) throw new Error("Preset name is required.");
+    const presets = readNamedPoolPresets(storage, key);
+    const index = presets.findIndex((entry) => entry.name === preset.name);
+    if (index < 0) presets.push(preset);
+    else presets[index] = preset;
+    storage.setItem(key, JSON.stringify(presets));
+}
+
+function deleteNamedPoolPreset(storage, key, name) {
+    const presets = readNamedPoolPresets(storage, key);
+    storage.setItem(key, JSON.stringify(presets.filter((preset) => preset.name !== name)));
+}
+
+function validateCandidatePreset(preset, ordinaryHrids, specialHrids) {
+    const validList = (values, allowed) => Array.isArray(values)
+        && values.every((value) => typeof value === "string" && allowed.has(value))
+        && new Set(values).size === values.length;
+    const validGrade = (grade) => Number.isInteger(grade) && grade >= 0 && grade <= 5;
+    if (!validList(preset.ordinary, ordinaryHrids) || !validList(preset.special, specialHrids)
+        || !validGrade(preset.ordinaryGrade) || !validGrade(preset.specialGrade)) {
+        throw new Error("Invalid or unavailable talisman candidate preset.");
+    }
+}
+
+function validateTeamPreset(preset, modifierHrids) {
+    if (!Array.isArray(preset.players) || preset.players.length !== 3
+        || new Set(preset.players.map((entry) => entry?.hrid)).size !== 3) {
+        throw new Error("Invalid saved talisman team.");
+    }
+    for (const entry of preset.players) {
+        if (!entry || !/^player[1-5]$/.test(entry.hrid) || !Array.isArray(entry.selections)
+            || entry.selections.length > 12 || entry.selections.some((selection) =>
+                !selection || !modifierHrids.has(selection.modifierHrid)
+                || !Number.isInteger(selection.gradeIndex) || selection.gradeIndex < 0 || selection.gradeIndex > 5
+            )) {
+            throw new Error("Invalid or unavailable saved talisman selection.");
+        }
+    }
+}
+
+
+/***/ }),
+
+/***/ "./src/talismanPoolUI.js":
+/*!*******************************!*\
+  !*** ./src/talismanPoolUI.js ***!
+  \*******************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   initTalismanPool: () => (/* binding */ initTalismanPool)
+/* harmony export */ });
+/* harmony import */ var _combatsimulator_equipment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./combatsimulator/equipment */ "./src/combatsimulator/equipment.js");
+/* harmony import */ var _talismanOptimizer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./talismanOptimizer */ "./src/talismanOptimizer.js");
+/* harmony import */ var _talismanPoolPresets__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./talismanPoolPresets */ "./src/talismanPoolPresets.js");
+
+
+
+
+function initTalismanPool({ getSnapshot, modifierMap, supportedStats, planetHrids, createWorker, preparePlayers, savePlayerResult }) {
+    const modal = document.getElementById("talismanPoolModal");
+    const settings = document.getElementById("talismanPoolSettings");
+    const playerContainer = document.getElementById("talismanPoolPlayers");
+    const estimate = document.getElementById("talismanPoolEstimate");
+    const status = document.getElementById("talismanPoolStatus");
+    const start = document.getElementById("buttonStartTalismanPool");
+    const stop = document.getElementById("buttonStopTalismanPool");
+    const headers = document.getElementById("talismanPoolResultHeaders");
+    const completedBody = document.getElementById("talismanPoolCompleted");
+    const partialBody = document.getElementById("talismanPoolPartial");
+    const ordinaryGrade = document.getElementById("talismanPoolOrdinaryGrade");
+    const specialGrade = document.getElementById("talismanPoolSpecialGrade");
+    const threadsInput = document.getElementById("talismanPoolThreads");
+    const repeatsInput = document.getElementById("talismanPoolRepeats");
+    const resultName = document.getElementById("talismanPoolResultName");
+    const zoneSelect = document.getElementById("talismanPoolZone");
+    const difficultySelect = document.getElementById("talismanPoolDifficulty");
+    const text = (key, values = {}) => i18next.t(`common:talismanPool.${key}`, values);
+    const supported = new Set(supportedStats);
+    const planets = new Set(planetHrids);
+    const modifiers = Object.values(modifierMap)
+        .filter((modifier) => modifier.talismanTypeHrid === "/talisman_types/combat")
+        .filter((modifier) => modifier.keys.every((key) => supported.has(key.charAt(0).toLowerCase() + key.slice(1))))
+        .sort((a, b) => a.sortIndex - b.sortIndex);
+    const special = modifiers.filter((modifier) => modifier.groupHrid === "/talisman_modifier_groups/special");
+    const ordinary = modifiers.filter((modifier) => modifier.groupHrid !== "/talisman_modifier_groups/special");
+    const ordinaryHrids = new Set(ordinary.map((modifier) => modifier.hrid));
+    const specialHrids = new Set(special.map((modifier) => modifier.hrid));
+    let snapshot = null;
+    let cards = [];
+    let optimizer = null;
+    let cancelled = false;
+
+    for (const select of [ordinaryGrade, specialGrade]) {
+        for (let grade = 1; grade <= 6; grade++) select.add(new Option(`G${grade}`, grade - 1));
+    }
+    ordinaryGrade.value = "2";
+    specialGrade.value = "5";
+
+    const nameOf = (modifier) => modifier.keys.map((key) => {
+        const stat = key.charAt(0).toLowerCase() + key.slice(1);
+        return i18next.t(`combatStats.${stat}`, { defaultValue: modifier.name });
+    }).join(" / ");
+    const setStatus = (message, isError = false) => {
+        status.textContent = message;
+        status.classList.toggle("text-danger", isError);
+    };
+    const selectedCards = () => cards.filter((card) => card.enabled.checked);
+    const selectedValues = (container) => [...container.querySelectorAll("input:checked")].map((input) => input.value);
+    const groupKeysFor = (values) => values.map((hrid) => modifierMap[hrid].keys.join("|"));
+    const countFor = (card) => {
+        const regular = selectedValues(card.ordinary);
+        return (0,_talismanOptimizer__WEBPACK_IMPORTED_MODULE_1__.countTalismanPoolCombinations)(
+            regular.length, selectedValues(card.special).length, card.slots, groupKeysFor(regular)
+        );
+    };
+    const renderEstimate = () => {
+        const selected = selectedCards();
+        for (const card of cards) {
+            card.body.hidden = !card.enabled.checked;
+            card.count.textContent = `${text("slots")}: ${card.slots} · ${text("combinations")}: ${countFor(card).toLocaleString()}`;
+        }
+        if (selected.length !== 3) {
+            estimate.textContent = text("invalidPlayers");
+            return;
+        }
+        const invalid = selected.find((card) => countFor(card) === 0);
+        if (invalid) {
+            estimate.textContent = text("invalidCombination", { player: invalid.name });
+            return;
+        }
+        const groups = selected.reduce((total, card) => total + countFor(card), 0);
+        const repeats = Number(repeatsInput.value);
+        estimate.textContent = text("estimate", {
+            groups: groups.toLocaleString(),
+            runs: Number.isInteger(repeats) && repeats > 0 ? repeats : 0,
+        });
+    };
+
+    const createChoices = (list, selected, title) => {
+        const details = document.createElement("details");
+        details.className = "border rounded p-2 mb-2";
+        const summary = document.createElement("summary");
+        summary.className = "small fw-semibold";
+        summary.textContent = title;
+        details.append(summary);
+        const options = document.createElement("div");
+        options.className = "mt-2";
+        for (const modifier of list) {
+            const label = document.createElement("label");
+            label.className = "form-check small";
+            const input = document.createElement("input");
+            input.className = "form-check-input";
+            input.type = "checkbox";
+            input.value = modifier.hrid;
+            input.checked = selected.has(modifier.hrid);
+            const caption = document.createElement("span");
+            caption.className = "form-check-label";
+            caption.textContent = nameOf(modifier);
+            label.append(input, caption);
+            options.append(label);
+        }
+        details.append(options);
+        return { details, options };
+    };
+
+    const presetError = (error) => {
+        console.error("Could not use talisman pool presets.", error);
+        setStatus(text("presetError", { error: error.message }), true);
+    };
+    const renderCandidateSelects = (selectedName, selectedCard) => {
+        const presets = (0,_talismanPoolPresets__WEBPACK_IMPORTED_MODULE_2__.readNamedPoolPresets)(localStorage, _talismanPoolPresets__WEBPACK_IMPORTED_MODULE_2__.CANDIDATE_PRESETS_KEY);
+        for (const card of cards) {
+            const value = card === selectedCard ? selectedName : card.presetSelect.value;
+            card.presetSelect.replaceChildren(new Option(text("selectPreset"), ""));
+            for (const preset of presets) card.presetSelect.add(new Option(preset.name, preset.name));
+            card.presetSelect.value = presets.some((preset) => preset.name === value) ? value : "";
+        }
+    };
+    const createCandidateControls = (ordinaryOptions, specialOptions) => {
+        const root = document.createElement("div");
+        root.className = "border-top pt-2";
+        const input = document.createElement("input");
+        input.className = "form-control form-control-sm mb-1";
+        input.type = "text";
+        input.maxLength = 40;
+        input.placeholder = text("candidateName");
+        input.setAttribute("aria-label", text("candidateName"));
+        const caption = document.createElement("div");
+        caption.className = "small text-muted mb-1";
+        caption.textContent = text("candidateGrades");
+        const select = document.createElement("select");
+        select.className = "form-select form-select-sm mb-1";
+        select.setAttribute("aria-label", text("selectPreset"));
+        const actions = document.createElement("div");
+        actions.className = "d-flex gap-1";
+        const button = (key) => {
+            const element = document.createElement("button");
+            element.type = "button";
+            element.className = key === "delete" ? "btn btn-sm btn-outline-danger" : "btn btn-sm btn-outline-primary";
+            element.textContent = text(key);
+            actions.append(element);
+            return element;
+        };
+        const save = button("save");
+        const load = button("load");
+        const remove = button("delete");
+        const cardForSelect = () => cards.find((card) => card.presetSelect === select);
+        save.addEventListener("click", () => {
+            const name = input.value.trim();
+            if (!name) {
+                setStatus(text("nameRequired"), true);
+                input.focus();
+                return;
+            }
+            try {
+                const presets = (0,_talismanPoolPresets__WEBPACK_IMPORTED_MODULE_2__.readNamedPoolPresets)(localStorage, _talismanPoolPresets__WEBPACK_IMPORTED_MODULE_2__.CANDIDATE_PRESETS_KEY);
+                if (presets.some((preset) => preset.name === name)
+                    && !window.confirm(text("confirmOverwrite", { name }))) return;
+                const preset = {
+                    name,
+                    ordinary: selectedValues(ordinaryOptions),
+                    special: selectedValues(specialOptions),
+                    ordinaryGrade: Number(ordinaryGrade.value),
+                    specialGrade: Number(specialGrade.value),
+                };
+                (0,_talismanPoolPresets__WEBPACK_IMPORTED_MODULE_2__.validateCandidatePreset)(preset, ordinaryHrids, specialHrids);
+                (0,_talismanPoolPresets__WEBPACK_IMPORTED_MODULE_2__.writeNamedPoolPreset)(localStorage, _talismanPoolPresets__WEBPACK_IMPORTED_MODULE_2__.CANDIDATE_PRESETS_KEY, preset);
+                renderCandidateSelects(name, cardForSelect());
+                setStatus(text("candidateSaved"));
+            } catch (error) {
+                presetError(error);
+            }
+        });
+        load.addEventListener("click", () => {
+            if (!select.value) {
+                setStatus(text("selectRequired"), true);
+                return;
+            }
+            try {
+                const preset = (0,_talismanPoolPresets__WEBPACK_IMPORTED_MODULE_2__.readNamedPoolPresets)(localStorage, _talismanPoolPresets__WEBPACK_IMPORTED_MODULE_2__.CANDIDATE_PRESETS_KEY)
+                    .find((entry) => entry.name === select.value);
+                if (!preset) throw new Error("Saved candidate preset not found.");
+                (0,_talismanPoolPresets__WEBPACK_IMPORTED_MODULE_2__.validateCandidatePreset)(preset, ordinaryHrids, specialHrids);
+                for (const [container, values] of [[ordinaryOptions, preset.ordinary], [specialOptions, preset.special]]) {
+                    for (const checkbox of container.querySelectorAll("input")) checkbox.checked = values.includes(checkbox.value);
+                }
+                ordinaryGrade.value = String(preset.ordinaryGrade);
+                specialGrade.value = String(preset.specialGrade);
+                input.value = preset.name;
+                renderEstimate();
+                setStatus(text("candidateLoaded"));
+            } catch (error) {
+                presetError(error);
+            }
+        });
+        remove.addEventListener("click", () => {
+            if (!select.value) {
+                setStatus(text("selectRequired"), true);
+                return;
+            }
+            try {
+                (0,_talismanPoolPresets__WEBPACK_IMPORTED_MODULE_2__.deleteNamedPoolPreset)(localStorage, _talismanPoolPresets__WEBPACK_IMPORTED_MODULE_2__.CANDIDATE_PRESETS_KEY, select.value);
+                renderCandidateSelects("", cardForSelect());
+                setStatus(text("presetDeleted"));
+            } catch (error) {
+                presetError(error);
+            }
+        });
+        root.append(input, caption, select, actions);
+        return { root, select };
+    };
+
+    const renderPlayers = () => {
+        const previous = new Map(cards.map((card) => [card.player.hrid, {
+            enabled: card.enabled.checked,
+            ordinary: selectedValues(card.ordinary),
+            special: selectedValues(card.special),
+            preset: card.presetSelect.value,
+        }]));
+        playerContainer.replaceChildren();
+        cards = snapshot.players.map((player, index) => {
+            const saved = previous.get(player.hrid);
+            const belt = player.equipment["/equipment_types/belt"];
+            const slots = belt ? Math.min(12, Math.max(0, Math.floor(_combatsimulator_equipment__WEBPACK_IMPORTED_MODULE_0__["default"].createFromDTO(belt).getCombatStat("talismanSlots") * 4))) : 0;
+            const column = document.createElement("div");
+            column.className = "col-12 col-lg-4";
+            const box = document.createElement("div");
+            box.className = "border rounded p-2 h-100";
+            const label = document.createElement("label");
+            label.className = "form-check fw-semibold";
+            const enabled = document.createElement("input");
+            enabled.className = "form-check-input";
+            enabled.type = "checkbox";
+            enabled.checked = saved ? saved.enabled : index < 3;
+            const caption = document.createElement("span");
+            caption.className = "form-check-label";
+            caption.textContent = snapshot.names[index] || player.hrid;
+            label.append(enabled, caption);
+            const count = document.createElement("div");
+            count.className = "small mb-2";
+            const body = document.createElement("div");
+            const ordinaryChoices = createChoices(ordinary, new Set(saved?.ordinary || []), text("ordinary"));
+            const specialChoices = createChoices(special, new Set(saved?.special || []), text("special"));
+            const presetControls = createCandidateControls(ordinaryChoices.options, specialChoices.options);
+            body.append(ordinaryChoices.details, specialChoices.details, presetControls.root);
+            box.append(label, count, body);
+            column.append(box);
+            playerContainer.append(column);
+            return {
+                player, name: caption.textContent, slots, enabled, count, body,
+                ordinary: ordinaryChoices.options, special: specialChoices.options,
+                presetSelect: presetControls.select, previousPreset: saved?.preset || "",
+            };
+        });
+        renderCandidateSelects();
+        for (const card of cards) card.presetSelect.value = card.previousPreset;
+        renderEstimate();
+    };
+
+    playerContainer.addEventListener("change", renderEstimate);
+    repeatsInput.addEventListener("input", renderEstimate);
+    modal.addEventListener("show.bs.modal", () => {
+        if (optimizer) return;
+        try {
+            for (const [target, source] of [[zoneSelect, document.getElementById("selectZone")],
+                [difficultySelect, document.getElementById("selectDifficulty")]]) {
+                const value = target.value || source.value;
+                target.replaceChildren(...[...source.options].filter((option) =>
+                    target !== zoneSelect || planets.has(option.value)
+                ).map((option) => {
+                    const copy = option.cloneNode(true);
+                    copy.disabled = false;
+                    return copy;
+                }));
+                target.value = [...target.options].some((option) => option.value === value)
+                    ? value : target.options[0]?.value || "";
+            }
+            snapshot = getSnapshot();
+            renderPlayers();
+            setStatus("");
+            start.disabled = false;
+        } catch (error) {
+            console.error("Could not prepare talisman pool simulation.", error);
+            snapshot = null;
+            start.disabled = true;
+            setStatus(text("error", { error: error.message }), true);
+        }
+    });
+
+    start.addEventListener("click", async () => {
+        if (!snapshot || optimizer) return;
+        const selected = selectedCards();
+        if (selected.length !== 3) {
+            setStatus(text("invalidPlayers"), true);
+            return;
+        }
+        const threads = Number(threadsInput.value);
+        const repeats = Number(repeatsInput.value);
+        if (!Number.isInteger(threads) || threads < 1 || threads > 32
+            || !Number.isInteger(repeats) || repeats < 1 || repeats > 100) {
+            setStatus(text("invalidNumbers"), true);
+            return;
+        }
+        const invalid = selected.find((card) => countFor(card) === 0);
+        if (invalid) {
+            setStatus(text("invalidCombination", { player: invalid.name }), true);
+            return;
+        }
+        const grade = Number(ordinaryGrade.value);
+        const specialLevel = Number(specialGrade.value);
+        if (!zoneSelect.value || difficultySelect.value === "") {
+            setStatus(text("invalidZone"), true);
+            return;
+        }
+        const sets = selected.map((card) => {
+            const regular = selectedValues(card.ordinary);
+            const specialCandidates = selectedValues(card.special);
+            return {
+                count: countFor(card),
+                create: () => (0,_talismanOptimizer__WEBPACK_IMPORTED_MODULE_1__.generateTalismanPoolCombinations)(regular, specialCandidates, card.slots, grade, specialLevel, groupKeysFor(regular)),
+            };
+        });
+        headers.replaceChildren();
+        for (const name of [text("eph"), ...selected.map((card) => card.name)]) {
+            const th = document.createElement("th");
+            th.scope = "col";
+            th.textContent = name;
+            headers.append(th);
+        }
+        completedBody.replaceChildren();
+        partialBody.replaceChildren();
+        const rows = new Map();
+        const sorted = [];
+        const formatTeam = (selections) => {
+            const counts = new Map();
+            for (const selection of selections) {
+                const key = `${selection.modifierHrid}|${selection.gradeIndex}`;
+                counts.set(key, (counts.get(key) || 0) + 1);
+            }
+            return [...counts].map(([key, count]) => {
+                const [hrid, gradeIndex] = key.split("|");
+                return `${nameOf(modifierMap[hrid])} G${Number(gradeIndex) + 1} ×${count}`;
+            }).join(" · ") || "—";
+        };
+        const updateResult = (record) => {
+            let row = rows.get(record.key);
+            if (!row) {
+                row = document.createElement("tr");
+                for (let i = 0; i < 4; i++) row.append(document.createElement("td"));
+                record.team.forEach((combination, index) => {
+                    const caption = document.createElement("div");
+                    caption.textContent = formatTeam(combination);
+                    const save = document.createElement("button");
+                    save.type = "button";
+                    save.className = "btn btn-sm btn-outline-primary mt-1";
+                    save.textContent = text("save");
+                    save.disabled = true;
+                    save.addEventListener("click", () => {
+                        const name = resultName.value.trim();
+                        if (!name) {
+                            setStatus(text("nameRequired"), true);
+                            resultName.focus();
+                            return;
+                        }
+                        try {
+                            if (savePlayerResult(name, combination)) {
+                                setStatus(text("playerSaved", { player: selected[index].name }));
+                            }
+                        } catch (error) {
+                            presetError(error);
+                        }
+                    });
+                    row.cells[index + 1].append(caption, save);
+                });
+                partialBody.append(row);
+                rows.set(record.key, row);
+            }
+            row.cells[0].textContent = `${record.eph.toFixed(4)}${record.completed < record.repeats ? ` (${record.completed}/${record.repeats})` : ""}`;
+            if (record.completed === record.repeats) {
+                if (record.phase === "review") row.querySelectorAll("button").forEach((button) => { button.disabled = false; });
+                let low = 0;
+                let high = sorted.length;
+                while (low < high) {
+                    const mid = Math.floor((low + high) / 2);
+                    if (sorted[mid].eph >= record.eph) low = mid + 1;
+                    else high = mid;
+                }
+                completedBody.insertBefore(row, sorted[low]?.row || null);
+                sorted.splice(low, 0, { eph: record.eph, row });
+            }
+        };
+        cancelled = false;
+        settings.disabled = true;
+        start.disabled = true;
+        stop.disabled = false;
+        setStatus(text("baseline"));
+        try {
+            optimizer = (0,_talismanOptimizer__WEBPACK_IMPORTED_MODULE_1__.createTalismanOptimizer)({
+                players: preparePlayers(selected.map((card) => card.player)),
+                candidateSets: sets,
+                repeats,
+                threads,
+                message: { ...snapshot.message, zone: { zoneHrid: zoneSelect.value, difficultyTier: Number(difficultySelect.value) } },
+                createWorker,
+                onResult: updateResult,
+                onProgress: (progress) => setStatus(text("progress", {
+                    round: progress.round,
+                    player: selected[progress.playerIndex].name,
+                    done: progress.completed.toLocaleString(),
+                    total: progress.total.toLocaleString(),
+                    evaluated: progress.evaluated.toLocaleString(),
+                })),
+                onReviewStart: ({ total }) => {
+                    rows.clear();
+                    sorted.length = 0;
+                    completedBody.replaceChildren();
+                    partialBody.replaceChildren();
+                    setStatus(text("reviewing", { done: 0, total }));
+                },
+                onReviewProgress: ({ completed, total }) => setStatus(text("reviewing", { done: completed, total })),
+            });
+            await optimizer.run();
+            setStatus(text("finished"));
+        } catch (error) {
+            if (cancelled) setStatus(text("stopped"));
+            else {
+                console.error("Talisman pool simulation failed.", error);
+                setStatus(text("error", { error: error.message }), true);
+            }
+        } finally {
+            optimizer = null;
+            settings.disabled = false;
+            start.disabled = false;
+            stop.disabled = true;
+        }
+    });
+    stop.addEventListener("click", () => {
+        if (optimizer) {
+            cancelled = true;
+            stop.disabled = true;
+            optimizer.stop();
+        }
+    });
 }
 
 
@@ -3136,7 +3955,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _combatsimulator_data_talismanModifierDetailMap_json__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./combatsimulator/data/talismanModifierDetailMap.json */ "./src/combatsimulator/data/talismanModifierDetailMap.json");
 /* harmony import */ var _simulationResultTools__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./simulationResultTools */ "./src/simulationResultTools.js");
 /* harmony import */ var _consumablePresets__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ./consumablePresets */ "./src/consumablePresets.js");
-/* harmony import */ var _patchNote_json__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! ../patchNote.json */ "./patchNote.json");
+/* harmony import */ var _talismanPoolUI__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! ./talismanPoolUI */ "./src/talismanPoolUI.js");
+/* harmony import */ var _talismanPoolPresets__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! ./talismanPoolPresets */ "./src/talismanPoolPresets.js");
+/* harmony import */ var _patchNote_json__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! ../patchNote.json */ "./patchNote.json");
+
+
 
 
 
@@ -3321,7 +4144,7 @@ function initTalismanModifierSection() {
 }
 
 const TALISMAN_PRESETS_STORAGE_KEY = "talismanPresets";
-const MAX_TALISMAN_PRESETS = 10;
+const MAX_TALISMAN_PRESETS = 30;
 
 function loadTalismanPresets() {
     try {
@@ -3335,6 +4158,32 @@ function loadTalismanPresets() {
     }
 }
 
+function renderTalismanPresetOptions(selectedName) {
+    const presetSelect = document.getElementById("selectTalismanPreset");
+    const presets = loadTalismanPresets();
+    const value = selectedName ?? presetSelect.value;
+    presetSelect.replaceChildren(presetSelect.options[0]);
+    presets.forEach((preset) => presetSelect.add(new Option(preset.name, preset.name)));
+    presetSelect.value = presets.some((preset) => preset.name === value) ? value : "";
+    document.getElementById("talismanPresetCount").textContent = `${presets.length}/${MAX_TALISMAN_PRESETS}`;
+    document.getElementById("buttonDeleteTalismanPreset").disabled = !presetSelect.value;
+}
+
+function saveTalismanPoolResult(name, selections) {
+    const presets = (0,_talismanPoolPresets__WEBPACK_IMPORTED_MODULE_24__.readNamedPoolPresets)(localStorage, TALISMAN_PRESETS_STORAGE_KEY);
+    if (presets.some((preset) => !Array.isArray(preset.selections))) {
+        throw new Error("Invalid saved talisman presets.");
+    }
+    const exists = presets.some((preset) => preset.name === name);
+    if (exists && !window.confirm(i18next.t("common:talismanPool.confirmOverwrite", { name }))) return false;
+    if (!exists && presets.length >= MAX_TALISMAN_PRESETS) {
+        throw new Error(i18next.t("talismanPresets.limitReached"));
+    }
+    (0,_talismanPoolPresets__WEBPACK_IMPORTED_MODULE_24__.writeNamedPoolPreset)(localStorage, TALISMAN_PRESETS_STORAGE_KEY, { name, selections });
+    renderTalismanPresetOptions(name);
+    return true;
+}
+
 function initTalismanPresetControls() {
     const nameInput = document.getElementById("talismanPresetName");
     const presetSelect = document.getElementById("selectTalismanPreset");
@@ -3343,17 +4192,6 @@ function initTalismanPresetControls() {
     const clearButton = document.getElementById("buttonClearTalismans");
     const loadButton = document.getElementById("buttonLoadTalismanPreset");
     const deleteButton = document.getElementById("buttonDeleteTalismanPreset");
-    const placeholderOption = presetSelect.options[0];
-
-    const renderPresets = (selectedName = presetSelect.value) => {
-        const presets = loadTalismanPresets();
-        presetSelect.replaceChildren(placeholderOption);
-        presets.forEach((preset) => presetSelect.add(new Option(preset.name, preset.name)));
-        presetSelect.value = presets.some((preset) => preset.name === selectedName) ? selectedName : "";
-        countLabel.textContent = `${presets.length}/${MAX_TALISMAN_PRESETS}`;
-        deleteButton.disabled = !presetSelect.value;
-    };
-
     saveButton.addEventListener("click", () => {
         const name = nameInput.value.trim();
         if (!name) {
@@ -3376,7 +4214,7 @@ function initTalismanPresetControls() {
         }
 
         localStorage.setItem(TALISMAN_PRESETS_STORAGE_KEY, JSON.stringify(presets));
-        renderPresets(name);
+        renderTalismanPresetOptions(name);
     });
 
     clearButton.addEventListener("click", () => {
@@ -3395,14 +4233,93 @@ function initTalismanPresetControls() {
     deleteButton.addEventListener("click", () => {
         const remainingPresets = loadTalismanPresets().filter((preset) => preset.name !== presetSelect.value);
         localStorage.setItem(TALISMAN_PRESETS_STORAGE_KEY, JSON.stringify(remainingPresets));
-        renderPresets();
+        renderTalismanPresetOptions();
     });
 
     presetSelect.addEventListener("change", () => {
         deleteButton.disabled = !presetSelect.value;
     });
 
-    renderPresets("");
+    renderTalismanPresetOptions("");
+}
+
+function renderTalismanTeamPresetOptions(selectedName = "") {
+    const select = document.getElementById("selectTalismanTeamPreset");
+    const notice = document.getElementById("talismanTeamPresetNotice");
+    try {
+        const presets = (0,_talismanPoolPresets__WEBPACK_IMPORTED_MODULE_24__.readNamedPoolPresets)(localStorage, _talismanPoolPresets__WEBPACK_IMPORTED_MODULE_24__.TEAM_PRESETS_KEY);
+        document.getElementById("talismanLegacyTeamPresetPanel").hidden = presets.length === 0;
+        const value = selectedName || select.value;
+        select.replaceChildren(select.options[0]);
+        for (const preset of presets) select.add(new Option(preset.name, preset.name));
+        select.value = presets.some((preset) => preset.name === value) ? value : "";
+        document.getElementById("buttonLoadTalismanTeamPreset").disabled = !select.value;
+        document.getElementById("buttonDeleteTalismanTeamPreset").disabled = !select.value;
+    } catch (error) {
+        document.getElementById("talismanLegacyTeamPresetPanel").hidden = false;
+        console.error("Could not read team talisman presets.", error);
+        notice.textContent = i18next.t("common:talismanPool.presetError", { error: error.message });
+        notice.classList.add("text-danger");
+    }
+}
+
+function initTalismanTeamPresetControls() {
+    const select = document.getElementById("selectTalismanTeamPreset");
+    const notice = document.getElementById("talismanTeamPresetNotice");
+    const showNotice = (message, isError = false) => {
+        notice.textContent = message;
+        notice.classList.toggle("text-danger", isError);
+    };
+    const reportError = (error) => {
+        console.error("Could not use team talisman preset.", error);
+        showNotice(i18next.t("common:talismanPool.presetError", { error: error.message }), true);
+    };
+    select.addEventListener("change", () => {
+        document.getElementById("buttonLoadTalismanTeamPreset").disabled = !select.value;
+        document.getElementById("buttonDeleteTalismanTeamPreset").disabled = !select.value;
+    });
+    document.getElementById("buttonLoadTalismanTeamPreset").addEventListener("click", () => {
+        try {
+            const preset = (0,_talismanPoolPresets__WEBPACK_IMPORTED_MODULE_24__.readNamedPoolPresets)(localStorage, _talismanPoolPresets__WEBPACK_IMPORTED_MODULE_24__.TEAM_PRESETS_KEY)
+                .find((entry) => entry.name === select.value);
+            if (!preset) throw new Error("Saved team talisman preset not found.");
+            const modifierSelect = document.querySelector("#talismanModifierRows select");
+            (0,_talismanPoolPresets__WEBPACK_IMPORTED_MODULE_24__.validateTeamPreset)(preset, new Set([...modifierSelect.options].map((option) => option.value).filter(Boolean)));
+            const updates = new Map();
+            for (const entry of preset.players) {
+                const id = entry.hrid.substring(6);
+                if (id !== currentPlayerTabId) {
+                    const data = JSON.parse(playerDataMap[id]);
+                    if (!data || typeof data !== "object" || Array.isArray(data)) {
+                        throw new Error(`Invalid player configuration: ${entry.hrid}`);
+                    }
+                    data.talismanModifiers = entry.selections;
+                    updates.set(id, JSON.stringify(data));
+                }
+            }
+            const current = preset.players.find((entry) => entry.hrid === `player${currentPlayerTabId}`);
+            if (current) {
+                setTalismanModifierSelections(current.selections);
+                updateUI();
+                savePreviousPlayer(currentPlayerTabId);
+            }
+            for (const [id, value] of updates) playerDataMap[id] = value;
+            showNotice(i18next.t("common:talismanPool.teamLoaded"));
+        } catch (error) {
+            reportError(error);
+        }
+    });
+    document.getElementById("buttonDeleteTalismanTeamPreset").addEventListener("click", () => {
+        try {
+            (0,_talismanPoolPresets__WEBPACK_IMPORTED_MODULE_24__.deleteNamedPoolPreset)(localStorage, _talismanPoolPresets__WEBPACK_IMPORTED_MODULE_24__.TEAM_PRESETS_KEY, select.value);
+            select.value = "";
+            renderTalismanTeamPresetOptions();
+            showNotice(i18next.t("common:talismanPool.presetDeleted"));
+        } catch (error) {
+            reportError(error);
+        }
+    });
+    renderTalismanTeamPresetOptions();
 }
 
 function getTalismanModifierSelections() {
@@ -6906,7 +7823,7 @@ function initSimulationControls() {
         if (worker) {
             worker.terminate();
         }
-        worker = new Worker(new URL(/* worker import */ __webpack_require__.p + __webpack_require__.u(3), __webpack_require__.b));
+        worker = new Worker(new URL(/* worker import */ __webpack_require__.p + __webpack_require__.u(4), __webpack_require__.b));
 
         if (multiWorker) {
             multiWorker.terminate();
@@ -6922,7 +7839,7 @@ function initSimulationControls() {
     });
 }
 
-function startSimulation(selectedPlayers) {
+function collectSimulationPlayers(selectedPlayers, isLabyrinthMode = null) {
     let simLabyrinthToggle = document.getElementById("simLabyrinthToggle");
     let simAllLabyrinthsToggle = document.getElementById("simAllLabyrinthsToggle");
 
@@ -6933,7 +7850,7 @@ function startSimulation(selectedPlayers) {
             updateState();
             updateUI();
             player.hrid = "player" + j.toString();
-            if (!simLabyrinthToggle.checked && !simAllLabyrinthsToggle.checked) {
+            if (!(isLabyrinthMode ?? (simLabyrinthToggle.checked || simAllLabyrinthsToggle.checked))) {
                 for (let i = 0; i < 3; i++) {
                     if (main_food[i] && i < player.combatDetails.combatStats.foodSlots) {
                         let consumable = new _combatsimulator_consumable_js__WEBPACK_IMPORTED_MODULE_7__["default"](main_food[i], triggerMap[main_food[i]]);
@@ -6976,6 +7893,11 @@ function startSimulation(selectedPlayers) {
     updateState();
     updateUI();
 
+    setPlayerLevelGapDebuffs(playersToSim);
+    return playersToSim;
+}
+
+function setPlayerLevelGapDebuffs(playersToSim) {
     let maxPlayerCombatLevel = 1;
     for (let player of playersToSim) {
         player.combatLevel = calcCombatLevel(player.staminaLevel, player.intelligenceLevel, player.defenseLevel, player.attackLevel, player.meleeLevel, player.rangedLevel, player.magicLevel);
@@ -6996,6 +7918,9 @@ function startSimulation(selectedPlayers) {
         }
     }
 
+}
+
+function getSimulationExtra() {
     let extra = {};
     extra.mooPass = document.getElementById("mooPassToggle").checked;
     extra.comExp = 0;
@@ -7022,6 +7947,36 @@ function startSimulation(selectedPlayers) {
         console.log("extra.personalBuffs:", extra.personalBuffs);
     }
 
+    return extra;
+}
+
+function getTalismanPoolSnapshot() {
+    const duration = Number(document.getElementById("inputSimulationTime").value);
+    if (!Number.isFinite(duration) || duration <= 0) {
+        throw new Error(i18next.t("common:talismanPool.invalidNumbers"));
+    }
+    savePreviousPlayer(currentPlayerTabId);
+    const previousHrid = player.hrid;
+    let players;
+    try {
+        players = collectSimulationPlayers([1, 2, 3, 4, 5], false);
+    } finally {
+        player.hrid = previousHrid;
+    }
+    const extra = getSimulationExtra();
+    extra.enableHpMpVisualization = false;
+    return {
+        players,
+        names: players.map((entry) => document.getElementById(`${entry.hrid}-tab`).textContent.trim()),
+        message: { type: "start_simulation", labyrinth: null, simulationTimeLimit: duration * ONE_HOUR, extra, quiet: true },
+    };
+}
+
+function startSimulation(selectedPlayers) {
+    const playersToSim = collectSimulationPlayers(selectedPlayers);
+    const extra = getSimulationExtra();
+    let simLabyrinthToggle = document.getElementById("simLabyrinthToggle");
+    let simAllLabyrinthsToggle = document.getElementById("simAllLabyrinthsToggle");
     let simAllZonesToggle = document.getElementById("simAllZoneToggle");
     let simAllSoloToggle = document.getElementById("simAllSoloToggle");
     let simDungeonToggle = document.getElementById("simDungeonToggle");
@@ -7317,7 +8272,7 @@ document.getElementById("buttonUploadJSONSimulate").addEventListener("click", (e
                         simulationTimeLimit: simulationTimeLimit,
                         extra: extra
                     };
-                    const worker = new Worker(new URL(/* worker import */ __webpack_require__.p + __webpack_require__.u(5), __webpack_require__.b));
+                    const worker = new Worker(new URL(/* worker import */ __webpack_require__.p + __webpack_require__.u(6), __webpack_require__.b));
                     worker.onmessage = mainWorkerOnMessage;
                     worker.postMessage(workerMessage);
                     customAlert("Simulation task Created", "info")
@@ -8611,14 +9566,14 @@ function updateTable(tableId, item, price) {
 
 function initPatchNotes() {
     const patchNotesRows = document.getElementById("patchNotes");
-    for (const pn in _patchNote_json__WEBPACK_IMPORTED_MODULE_23__) {
+    for (const pn in _patchNote_json__WEBPACK_IMPORTED_MODULE_25__) {
         const patchNoteContainer = document.createElement("div");
         patchNotesRows.setAttribute('class', 'col-12 mb-4');
 
         const patchNoteElement = document.createElement("h6");
         patchNoteElement.innerHTML = pn;
         const patchNoteList = document.createElement("ul");
-        for (const note of _patchNote_json__WEBPACK_IMPORTED_MODULE_23__[pn]) {
+        for (const note of _patchNote_json__WEBPACK_IMPORTED_MODULE_25__[pn]) {
             const noteElement = document.createElement("li");
             noteElement.innerHTML = note;
             patchNoteList.appendChild(noteElement);
@@ -8821,6 +9776,7 @@ function updateContent() {
 
 initEquipmentSection();
 initTalismanModifierSection();
+initTalismanTeamPresetControls();
 initHouseRoomsModal();
 initAchievementsModal();
 initLevelSection();
@@ -8841,6 +9797,23 @@ initPatchNotes();
 initExtraBuffSection();
 initHpMpVisualization();
 (0,_simulationResultTools__WEBPACK_IMPORTED_MODULE_21__.initSimulationResultTools)();
+(0,_talismanPoolUI__WEBPACK_IMPORTED_MODULE_23__.initTalismanPool)({
+    getSnapshot: getTalismanPoolSnapshot,
+    modifierMap: _combatsimulator_data_talismanModifierDetailMap_json__WEBPACK_IMPORTED_MODULE_20__,
+    supportedStats: _combatsimulator_player_js__WEBPACK_IMPORTED_MODULE_1__["default"].combatEquipmentStats,
+    planetHrids: Object.values(_combatsimulator_data_actionDetailMap_json__WEBPACK_IMPORTED_MODULE_13__)
+        .filter((action) => action.type === "/action_types/combat"
+            && action.category !== "/action_categories/combat/dungeons"
+            && action.combatZoneInfo.fightInfo.randomSpawnInfo.maxSpawnCount > 1)
+        .map((action) => action.hrid),
+    createWorker: () => new Worker(new URL(/* worker import */ __webpack_require__.p + __webpack_require__.u(3), __webpack_require__.b)),
+    preparePlayers: (players) => {
+        const copies = structuredClone(players);
+        setPlayerLevelGapDebuffs(copies);
+        return copies;
+    },
+    savePlayerResult: saveTalismanPoolResult,
+});
 
 updateState();
 updateUI();

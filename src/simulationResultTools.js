@@ -55,6 +55,16 @@ export function normalizeTo24Hours(value, durationHours) {
     return numericValue * 24 / hours;
 }
 
+export function calculateSimulationEph(simResult) {
+    const duration = simResult.isDungeon && simResult.lastDungeonFinishTime > 0
+        ? simResult.lastDungeonFinishTime
+        : simResult.lastEncounterFinishTime > 0
+            ? simResult.lastEncounterFinishTime
+            : simResult.simulatedTime;
+    const encounters = simResult.isDungeon ? simResult.dungeonsCompleted : simResult.encounters;
+    return duration > 0 ? encounters * ONE_HOUR / duration : 0;
+}
+
 export function minimumPlayerShardDropCount(shardCounts) {
     return shardCounts.length ? Math.min(...shardCounts) : 0;
 }
@@ -764,12 +774,6 @@ function saveCurrentResult() {
         return;
     }
     const isDungeon = Boolean(simResult.isDungeon);
-    const effectiveDuration = isDungeon && simResult.lastDungeonFinishTime > 0
-        ? simResult.lastDungeonFinishTime / ONE_HOUR
-        : simResult.lastEncounterFinishTime > 0
-            ? simResult.lastEncounterFinishTime / ONE_HOUR
-            : durationHours;
-    const encounters = isDungeon ? simResult.dungeonsCompleted : simResult.encounters;
     const playerExpectedDrops = getExpectedDropsByPlayer(latestResultContext, playerHrids, durationHours);
     const expectedDrops = getTeamExpectedDrops(playerExpectedDrops);
     const shardsPerPlayer = playerExpectedDrops.map(({ drops }) =>
@@ -841,7 +845,7 @@ function saveCurrentResult() {
             groupJson: latestResultContext.getGroupConfigJson?.() || "",
         },
         metrics: {
-            eph: effectiveDuration > 0 ? encounters / effectiveDuration : 0,
+            eph: calculateSimulationEph(simResult),
             deathsPerDay: players.reduce((total, player) => total + player.deathsPerDay, 0),
             deathsPerHour: players.reduce((total, player) => total + player.deathsPerHour, 0),
             shardsPerDay,
