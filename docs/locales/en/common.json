@@ -6,7 +6,9 @@
         "dropPrices": "Drop Prices"
     },
     "equipment": {
-        "presets": "Presets"
+        "presets": "Presets",
+        "refine": "Switch to refined equipment",
+        "unrefine": "Switch to unrefined equipment"
     },
     "player": "Player",
     "trigger": "Trigger",
