@@ -2,6 +2,7 @@ import Equipment from "./combatsimulator/equipment.js";
 import Player from "./combatsimulator/player.js";
 import abilityDetailMap from "./combatsimulator/data/abilityDetailMap.json";
 import itemDetailMap from "./combatsimulator/data/itemDetailMap.json";
+import dropItemIconNames from "./assets/drop-item-icons.json";
 import houseRoomDetailMap from "./combatsimulator/data/houseRoomDetailMap.json";
 import Ability from "./combatsimulator/ability.js";
 import Consumable from "./combatsimulator/consumable.js";
@@ -18,6 +19,7 @@ import openableLootDropMap from "./combatsimulator/data/openableLootDropMap.json
 import achievementTierMap from "./combatsimulator/data/achievementTierDetailMap.json"
 import achievementDetailMap from "./combatsimulator/data/achievementDetailMap.json"
 import talismanModifierDetailMap from "./combatsimulator/data/talismanModifierDetailMap.json";
+import { initSimulationResultTools, setCurrentSimulationResult } from "./simulationResultTools";
 
 import patchNote from "../patchNote.json";
 
@@ -1681,15 +1683,22 @@ function showSimulationResult(simResult) {
     renderWipeEvents(simResult);
     window.profit = window.revenue - window.expenses;
     document.getElementById('profitSpan').innerText = window.profit.toLocaleString();
-    document.getElementById('profitPreview').innerText = window.profit.toLocaleString();
     window.noRngProfit = window.noRngRevenue - window.expenses;
     document.getElementById('noRngProfitSpan').innerText = window.noRngProfit.toLocaleString();
-    document.getElementById('noRngProfitPreview').innerText = window.noRngProfit.toLocaleString();
 
     // 显示战斗图表
     if (document.getElementById('hpMpVisualizationToggle').checked) {
         renderCombatCharts(simResult);
     }
+    const playerHrids = selectedPlayers.map((playerNumber) => `player${playerNumber}`);
+    setCurrentSimulationResult(
+        simResult,
+        playerHrids.length ? playerHrids : [playerToDisplay],
+        (playerHrid) => simResult.isDungeon
+            ? new Map()
+            : calcDropMaps(simResult, playerHrid, false).noRngTotalDropMap,
+        () => JSON.stringify(playerDataMap)
+    );
 }
 
 function showAllSimulationResults(simResults) {
@@ -2129,7 +2138,7 @@ function fidDropAmount(dropAmount) {
     return Math.random() < fracPart ? intPart + 1 : intPart;
 }
 
-function calcDropMaps(simResult, playerToDisplay) {
+function calcDropMaps(simResult, playerToDisplay, includeRandomDrops = true) {
     let dropRateMultiplier = simResult.dropRateMultiplier[playerToDisplay];
     let rareFindMultiplier = simResult.rareFindMultiplier[playerToDisplay];
     let combatDropQuantity = simResult.combatDropQuantity[playerToDisplay];
@@ -2173,19 +2182,21 @@ function calcDropMaps(simResult, playerToDisplay) {
                 dropObject.noRngDropAmount += simResult.deaths[monster] * dropObject.dropRate * ((dropObject.dropMax + dropObject.dropMin) / 2) * (1 + debuffOnLevelGap) * (1 + combatDropQuantity) / numberOfPlayers;
             }
 
-            for (let i = 0; i < simResult.deaths[monster]; i++) {
-                for (let dropObject of dropMap.values()) {
-                    let chance = Math.random();
-                    if (chance <= dropObject.dropRate / numberOfPlayers) {
-                        let amount = Math.floor(Math.random() * (dropObject.dropMax - dropObject.dropMin + 1) + dropObject.dropMin) * (1 + debuffOnLevelGap) * (1 + combatDropQuantity);
-                        dropObject.number = dropObject.number + fidDropAmount(amount);
+            if (includeRandomDrops) {
+                for (let i = 0; i < simResult.deaths[monster]; i++) {
+                    for (let dropObject of dropMap.values()) {
+                        let chance = Math.random();
+                        if (chance <= dropObject.dropRate / numberOfPlayers) {
+                            let amount = Math.floor(Math.random() * (dropObject.dropMax - dropObject.dropMin + 1) + dropObject.dropMin) * (1 + debuffOnLevelGap) * (1 + combatDropQuantity);
+                            dropObject.number = dropObject.number + fidDropAmount(amount);
+                        }
                     }
-                }
-                for (let dropObject of rareDropMap.values()) {
-                    let chance = Math.random();
-                    if (chance <= dropObject.dropRate / numberOfPlayers) {
-                        let amount = Math.floor(Math.random() * (dropObject.dropMax - dropObject.dropMin + 1) + dropObject.dropMin) * (1 + debuffOnLevelGap) * (1 + combatDropQuantity);
-                        dropObject.number = dropObject.number + fidDropAmount(amount);
+                    for (let dropObject of rareDropMap.values()) {
+                        let chance = Math.random();
+                        if (chance <= dropObject.dropRate / numberOfPlayers) {
+                            let amount = Math.floor(Math.random() * (dropObject.dropMax - dropObject.dropMin + 1) + dropObject.dropMin) * (1 + debuffOnLevelGap) * (1 + combatDropQuantity);
+                            dropObject.number = dropObject.number + fidDropAmount(amount);
+                        }
                     }
                 }
             }
@@ -2394,10 +2405,7 @@ document.getElementById('buttonExportResults').addEventListener('click', functio
 function showKills(simResult, playerToDisplay) {
     let resultDiv = document.getElementById("simulationResultKills");
     let dropsResultDiv = document.getElementById("simulationResultDrops");
-    let noRngDropsResultDiv = document.getElementById("noRngDrops");
     let newChildren = [];
-    let newDropChildren = [];
-    let newNoRngDropChildren = [];
 
     let hoursSimulated = simResult.simulatedTime / ONE_HOUR;
     if (simResult.isDungeon && simResult.lastDungeonFinishTime > 0) {
@@ -2484,13 +2492,6 @@ function showKills(simResult, playerToDisplay) {
     let revenueModalTable = document.querySelector("#revenueTable > tbody");
     let total = 0;
     for (let [name, dropAmount] of totalDropMap.entries()) {
-        let dropRow = createRow(
-            ["col-md-6", "col-md-6 text-end"],
-            [name, dropAmount.toLocaleString()]
-        );
-        dropRow.firstElementChild.setAttribute("data-i18n", "itemNames." + name);
-        newDropChildren.push(dropRow);
-
         let tableRow = '<tr class="' + name.replace(/\s+/g, '') + '"><td data-i18n="itemNames.';
         tableRow += name;
         tableRow += '"></td><td contenteditable="true">';
@@ -2532,13 +2533,6 @@ function showKills(simResult, playerToDisplay) {
     let noRngRevenueModalTable = document.querySelector("#noRngRevenueTable > tbody");
     let noRngTotal = 0;
     for (let [name, dropAmount] of noRngTotalDropMap.entries()) {
-        let noRngDropRow = createRow(
-            ["col-md-6", "col-md-6 text-end"],
-            [name, dropAmount.toLocaleString()]
-        );
-        noRngDropRow.firstElementChild.setAttribute("data-i18n", "itemNames." + name);
-        newNoRngDropChildren.push(noRngDropRow);
-
         let tableRow = '<tr class="' + name.replace(/\s+/g, '') + '"><td data-i18n="itemNames.';
         tableRow += name;
         tableRow += '"></td><td contenteditable="true">';
@@ -2580,12 +2574,124 @@ function showKills(simResult, playerToDisplay) {
     document.getElementById('noRngRevenueSpan').innerText = noRngTotal.toLocaleString();
     window.noRngRevenue = noRngTotal;
 
-    let resultAccordion = document.getElementById("noRngDropsAccordion");
-    showElement(resultAccordion);
-
     resultDiv.replaceChildren(...newChildren);
-    dropsResultDiv.replaceChildren(...newDropChildren);
-    noRngDropsResultDiv.replaceChildren(...newNoRngDropChildren);
+    dropsResultDiv.replaceChildren(
+        ...(noRngTotalDropMap.size ? [createDropInventory(noRngTotalDropMap)] : [])
+    );
+}
+
+const dropCategoryIcons = {
+    "/item_categories/currency": "🪙",
+    "/item_categories/loot": "📦",
+    "/item_categories/scroll": "📜",
+    "/item_categories/labyrinth": "🌀",
+    "/item_categories/dungeon_key": "🗝️",
+    "/item_categories/food": "🍲",
+    "/item_categories/drink": "🧪",
+    "/item_categories/ability_book": "📘",
+    "/item_categories/equipment": "⚔️",
+    "/item_categories/resource": "💎",
+};
+const dropItemIcons = new Set(dropItemIconNames);
+const dropItemSpriteUrl = new URL("assets/drop-items.svg", document.baseURI).href;
+
+function formatExpectedDropQuantity(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return "0";
+    const magnitude = Math.abs(number);
+    if (magnitude > 0 && magnitude < 0.001) return number < 0 ? ">-0.001" : "<0.001";
+    return number.toLocaleString(undefined, { maximumSignificantDigits: 6 });
+}
+
+function createDropInventory(dropMap) {
+    const root = document.createElement("div");
+    root.className = "drop-inventory";
+
+    const controls = document.createElement("div");
+    controls.className = "drop-inventory-modes";
+    const grid = document.createElement("div");
+    grid.className = "drop-inventory-grid";
+    grid.setAttribute("role", "list");
+    const list = document.createElement("div");
+    list.className = "drop-inventory-list";
+    list.setAttribute("role", "list");
+
+    const setMode = (mode) => {
+        root.dataset.mode = mode;
+        grid.hidden = mode !== "icons";
+        list.hidden = mode !== "text";
+        controls.querySelectorAll("button").forEach((button) => {
+            button.setAttribute("aria-pressed", String(button.dataset.mode === mode));
+        });
+    };
+
+    for (const mode of ["icons", "text"]) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "btn btn-sm btn-outline-secondary";
+        button.dataset.mode = mode;
+        button.dataset.i18n = mode === "icons" ? "common:dropIcons" : "common:dropText";
+        button.textContent = i18next.t(button.dataset.i18n);
+        button.addEventListener("click", () => setMode(mode));
+        controls.append(button);
+    }
+
+    for (const [hrid, amount] of dropMap) {
+        const item = itemDetailMap[hrid];
+        const itemName = item?.name || hrid;
+        const quantity = formatExpectedDropQuantity(amount);
+        const fullQuantity = Number(amount).toLocaleString(undefined, { maximumSignificantDigits: 16 });
+
+        const tile = document.createElement("button");
+        tile.type = "button";
+        tile.className = "drop-inventory-tile";
+        tile.title = `${itemName} × ${fullQuantity}`;
+        tile.setAttribute("aria-label", tile.title);
+        tile.dataset.itemHrid = hrid;
+        tile.dataset.quantity = String(amount);
+        tile.setAttribute("role", "listitem");
+
+        const iconId = hrid.split("/").pop();
+        if (dropItemIcons.has(iconId)) {
+            const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            icon.classList.add("drop-inventory-icon");
+            icon.setAttribute("viewBox", "0 0 50 50");
+            icon.setAttribute("aria-hidden", "true");
+            icon.setAttribute("focusable", "false");
+            const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+            use.setAttribute("href", `${dropItemSpriteUrl}#${iconId}`);
+            icon.append(use);
+            tile.append(icon);
+        } else {
+            const icon = document.createElement("span");
+            icon.className = "drop-inventory-icon";
+            icon.setAttribute("aria-hidden", "true");
+            icon.textContent = dropCategoryIcons[item?.categoryHrid] || "📦";
+            tile.append(icon);
+        }
+        const count = document.createElement("span");
+        count.className = "drop-inventory-quantity";
+        count.setAttribute("aria-hidden", "true");
+        count.textContent = quantity;
+        tile.append(count);
+        grid.append(tile);
+
+        const row = document.createElement("div");
+        row.className = "drop-inventory-text-row";
+        row.setAttribute("role", "listitem");
+        row.dataset.itemHrid = hrid;
+        const name = document.createElement("span");
+        name.dataset.i18n = `itemNames.${hrid}`;
+        name.textContent = itemName;
+        const textQuantity = document.createElement("span");
+        textQuantity.textContent = quantity;
+        row.append(name, textQuantity);
+        list.append(row);
+    }
+
+    root.append(controls, grid, list);
+    setMode("icons");
+    return root;
 }
 
 function showDeaths(simResult, playerToDisplay) {
@@ -3170,6 +3276,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const player4Input = document.getElementById('player4');
     const player5Input = document.getElementById('player5');
+    const selectAllPlayersInput = document.getElementById('selectAllPlayers');
+
+    function getVisiblePlayerCheckboxes() {
+        return Array.from(playerContainer.querySelectorAll('.player-checkbox'))
+            .filter((checkbox) => checkbox.parentElement.style.display !== 'none');
+    }
+
+    function updateSelectAllPlayers() {
+        const boxes = getVisiblePlayerCheckboxes();
+        const checkedCount = boxes.filter((checkbox) => checkbox.checked).length;
+        selectAllPlayersInput.checked = boxes.length > 0 && checkedCount === boxes.length;
+        selectAllPlayersInput.indeterminate = checkedCount > 0 && checkedCount < boxes.length;
+    }
 
     function addPlayers() {
         player4Input.parentElement.style.display = 'block';
@@ -3196,7 +3315,19 @@ document.addEventListener('DOMContentLoaded', function () {
     function updatePlayersCheckbox(isCheck) {
         const boxes = playerContainer.querySelectorAll('.player-checkbox');
         boxes.forEach((checkBox) => { checkBox.checked = isCheck });
+        updateSelectAllPlayers();
     }
+
+    selectAllPlayersInput.addEventListener('change', function () {
+        getVisiblePlayerCheckboxes().forEach((checkbox) => {
+            checkbox.checked = selectAllPlayersInput.checked;
+        });
+        updateSelectAllPlayers();
+    });
+    playerContainer.querySelectorAll('.player-checkbox').forEach((checkbox) => {
+        checkbox.addEventListener('change', updateSelectAllPlayers);
+    });
+    updateSelectAllPlayers();
 
     function updateDifficultySelect(isCheck) {
         const difficultySelect = document.getElementById('selectDifficulty');
@@ -3245,9 +3376,191 @@ document.querySelectorAll('#playerTab .nav-link').forEach(tab => {
     tab.addEventListener('shown.bs.tab', onTabChange);
 });
 
+function initSimulationQuickButtons() {
+    const zoneSelect = document.getElementById("selectZone");
+    const dungeonSelect = document.getElementById("selectDungeon");
+    const difficultySelect = document.getElementById("selectDifficulty");
+    const simulationTimeInput = document.getElementById("inputSimulationTime");
+    const simDungeonToggle = document.getElementById("simDungeonToggle");
+    const simAllZoneToggle = document.getElementById("simAllZoneToggle");
+    const simAllSoloToggle = document.getElementById("simAllSoloToggle");
+    const zoneContainer = document.getElementById("zoneQuickButtons");
+    const dungeonContainer = document.getElementById("dungeonQuickButtons");
+    const difficultyContainer = document.getElementById("difficultyQuickButtons");
+    const timeContainer = document.getElementById("simulationTimeQuickButtons");
+
+    const dispatchChange = (element) => element.dispatchEvent(new Event("change", { bubbles: true }));
+    const setToggle = (element, checked) => {
+        if (element.checked === checked) return;
+        element.checked = checked;
+        dispatchChange(element);
+    };
+    const createButton = (container, label, value, title) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "simulation-quick-button";
+        button.textContent = label;
+        button.dataset.value = value;
+        button.title = title;
+        button.setAttribute("aria-label", title);
+        button.setAttribute("aria-pressed", "false");
+        container.append(button);
+        return button;
+    };
+
+    const zoneSelections = [
+        { value: "/actions/combat/smelly_planet", zh: "臭", en: "Sm" },
+        { value: "/actions/combat/swamp_planet", zh: "沼", en: "Sw" },
+        { value: "/actions/combat/aqua_planet", zh: "海", en: "Aq" },
+        { value: "/actions/combat/jungle_planet", zh: "丛", en: "Ju" },
+        { value: "/actions/combat/gobo_planet", zh: "哥", en: "Gb" },
+        { value: "/actions/combat/planet_of_the_eyes", zh: "眼", en: "Ey" },
+        { value: "/actions/combat/sorcerers_tower", zh: "法", en: "So" },
+        { value: "/actions/combat/bear_with_it", zh: "熊", en: "Be" },
+        { value: "/actions/combat/golem_cave", zh: "石", en: "Gl" },
+        { value: "/actions/combat/twilight_zone", zh: "暮", en: "Tw" },
+        { value: "/actions/combat/infernal_abyss", zh: "地", en: "In" },
+    ];
+    const dungeonSelections = [
+        "/actions/combat/chimerical_den",
+        "/actions/combat/sinister_circus",
+        "/actions/combat/enchanted_fortress",
+        "/actions/combat/pirate_cove",
+    ];
+
+    const zoneButtons = zoneSelections.map((selection) => {
+        const option = [...zoneSelect.options].find(({ value }) => value === selection.value);
+        const button = createButton(
+            zoneContainer,
+            i18next.language?.startsWith("zh") ? selection.zh : selection.en,
+            selection.value,
+            option?.textContent || selection.value
+        );
+        button.addEventListener("click", () => {
+            zoneSelect.value = selection.value;
+            dispatchChange(zoneSelect);
+            setToggle(simDungeonToggle, false);
+            setToggle(simAllZoneToggle, false);
+            setToggle(simAllSoloToggle, false);
+            updateButtonStates();
+        });
+        return { button, selection };
+    });
+
+    const dungeonButtons = dungeonSelections.map((value, index) => {
+        const option = [...dungeonSelect.options].find((candidate) => candidate.value === value);
+        const button = createButton(dungeonContainer, `D${index + 1}`, value, option?.textContent || value);
+        button.addEventListener("click", () => {
+            dungeonSelect.value = value;
+            dispatchChange(dungeonSelect);
+            setToggle(simDungeonToggle, true);
+            setToggle(simAllZoneToggle, false);
+            setToggle(simAllSoloToggle, false);
+            updateButtonStates();
+        });
+        return { button, value };
+    });
+
+    const difficultyButtons = [...difficultySelect.options].map((option) => {
+        const button = createButton(
+            difficultyContainer,
+            option.textContent,
+            option.value,
+            option.textContent
+        );
+        button.addEventListener("click", () => {
+            if (button.disabled) return;
+            difficultySelect.value = option.value;
+            dispatchChange(difficultySelect);
+            updateButtonStates();
+        });
+        return { button, value: option.value, option };
+    });
+
+    const timePresets = [
+        { label: "X2", mode: "double" },
+        { label: "12", mode: "set", value: 12 },
+        { label: "24", mode: "set", value: 24 },
+        { label: "50", mode: "set", value: 50 },
+        { label: "100", mode: "set", value: 100 },
+    ];
+    const timeButtons = timePresets.map((preset) => {
+        const value = preset.mode === "double" ? "double" : String(preset.value);
+        const button = createButton(timeContainer, preset.label, value, preset.label);
+        button.addEventListener("click", () => {
+            const currentValue = Number(simulationTimeInput.value) || 0;
+            const nextValue = preset.mode === "double" ? currentValue * 2 : preset.value;
+            simulationTimeInput.value = String(Math.max(1, Math.min(2500, nextValue)));
+            dispatchChange(simulationTimeInput);
+            updateButtonStates();
+        });
+        return { button, preset };
+    });
+
+    function updateButtonStates() {
+        const isChinese = i18next.language?.startsWith("zh");
+        for (const { button, selection } of zoneButtons) {
+            const option = [...zoneSelect.options].find(({ value }) => value === selection.value);
+            button.textContent = isChinese ? selection.zh : selection.en;
+            button.title = option?.textContent || selection.value;
+            button.setAttribute("aria-label", button.title);
+            button.setAttribute(
+                "aria-pressed",
+                String(!simDungeonToggle.checked && !simAllZoneToggle.checked
+                    && !simAllSoloToggle.checked && zoneSelect.value === selection.value)
+            );
+        }
+        for (const { button, value } of dungeonButtons) {
+            const option = [...dungeonSelect.options].find((candidate) => candidate.value === value);
+            button.title = option?.textContent || value;
+            button.setAttribute("aria-label", button.title);
+            button.setAttribute(
+                "aria-pressed",
+                String(simDungeonToggle.checked && dungeonSelect.value === value)
+            );
+        }
+        for (const { button, value, option } of difficultyButtons) {
+            button.disabled = option.disabled;
+            button.setAttribute("aria-pressed", String(difficultySelect.value === value));
+        }
+        for (const { button, preset } of timeButtons) {
+            button.setAttribute(
+                "aria-pressed",
+                String(preset.mode === "set" && Number(simulationTimeInput.value) === preset.value)
+            );
+        }
+    }
+
+    function updateGroupLabels() {
+        const isChinese = i18next.language?.startsWith("zh");
+        zoneContainer.setAttribute("aria-label", isChinese ? "星球快捷选择" : "Planet shortcuts");
+        dungeonContainer.setAttribute("aria-label", isChinese ? "地下城快捷选择" : "Dungeon shortcuts");
+        difficultyContainer.setAttribute("aria-label", isChinese ? "难度快捷选择" : "Difficulty shortcuts");
+        timeContainer.setAttribute("aria-label", isChinese ? "时长快捷选择" : "Duration presets");
+    }
+
+    zoneSelect.addEventListener("change", updateButtonStates);
+    dungeonSelect.addEventListener("change", updateButtonStates);
+    difficultySelect.addEventListener("change", updateButtonStates);
+    simulationTimeInput.addEventListener("input", updateButtonStates);
+    simulationTimeInput.addEventListener("change", updateButtonStates);
+    simAllZoneToggle.addEventListener("change", updateButtonStates);
+    simAllSoloToggle.addEventListener("change", updateButtonStates);
+    simDungeonToggle.addEventListener("change", () => setTimeout(updateButtonStates, 0));
+    document.getElementById("startSimulationModal")
+        .addEventListener("shown.bs.modal", updateButtonStates);
+    i18next.on("languageChanged", () => {
+        updateGroupLabels();
+        updateButtonStates();
+    });
+    updateGroupLabels();
+    updateButtonStates();
+}
+
 function initSimulationControls() {
     let simulationTimeInput = document.getElementById("inputSimulationTime");
     simulationTimeInput.value = 24;
+    initSimulationQuickButtons();
 
     buttonStartSimulation.addEventListener("click", (event) => {
         let invalidElements = document.querySelectorAll(":invalid");
@@ -3387,12 +3700,14 @@ function startSimulation(selectedPlayers) {
     extra.personalBuffs = {};
     if (document.getElementById("personalBuffsToggle").checked) {
         const groups = document.querySelectorAll("#personalBuffsBox .character-group");
-        groups.forEach((group, index) => {
+        groups.forEach((group) => {
+            const playerHrid = group.dataset.playerHrid;
+            if (!playerHrid) return;
             const checkedBuffs = [];
             group.querySelectorAll("input[type='checkbox']:checked").forEach(input => {
                 checkedBuffs.push(input.value);
             });
-            extra.personalBuffs[index] = checkedBuffs;
+            extra.personalBuffs[playerHrid] = checkedBuffs;
         });
         console.log("extra.personalBuffs:", extra.personalBuffs);
     }
@@ -4955,11 +5270,9 @@ document.addEventListener("input", (e) => {
         document.getElementById('noRngRevenueSpan').innerText = window.noRngRevenue.toLocaleString();
 
         window.profit = window.revenue - window.expenses;
-        document.getElementById('profitPreview').innerText = window.profit.toLocaleString();
         document.getElementById('profitSpan').innerText = window.profit.toLocaleString();
         window.noRngProfit = window.noRngRevenue - window.expenses;
         document.getElementById('noRngProfitSpan').innerText = window.noRngProfit.toLocaleString();
-        document.getElementById('noRngProfitPreview').innerText = window.noRngProfit.toLocaleString();
     }
 });
 
@@ -5091,6 +5404,7 @@ function initExtraBuffSection() {
         // 创建角色分组容器
         const charGroup = document.createElement('div');
         charGroup.className = 'character-group mb-3';
+        charGroup.dataset.playerHrid = `player${charIdx + 1}`;
 
         // 角色标题
         const charTitle = document.createElement('h6');
@@ -5215,6 +5529,7 @@ initDamageDoneTaken();
 initPatchNotes();
 initExtraBuffSection();
 initHpMpVisualization();
+initSimulationResultTools();
 
 updateState();
 updateUI();

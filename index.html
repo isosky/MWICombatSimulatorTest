@@ -7,6 +7,122 @@
             min-width: 3.60rem
         }
 
+        .simulation-quick-select,
+        .simulation-time-input-group {
+            width: 20.375rem;
+            max-width: 100%;
+        }
+
+        .simulation-quick-button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .simulation-quick-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            border: 1px solid rgb(153, 179, 221);
+            border-radius: 4px;
+            background: rgb(230, 238, 255);
+            color: rgb(42, 92, 170);
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .simulation-quick-button[aria-pressed="true"] {
+            border-color: rgb(42, 92, 170);
+            background: rgb(190, 213, 255);
+        }
+
+        .simulation-quick-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .simulation-quick-button:focus-visible {
+            outline: 2px solid rgb(42, 92, 170);
+            outline-offset: 2px;
+        }
+
+        body.dark-mode .simulation-quick-button {
+            border-color: #777;
+            background: #444;
+            color: #f0f0f0;
+        }
+
+        body.dark-mode .simulation-quick-button[aria-pressed="true"] {
+            border-color: #9dc0ff;
+            background: #36527d;
+        }
+
+        .drop-inventory-modes {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.25rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .drop-inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(3.25rem, 1fr));
+            gap: 0.3rem;
+        }
+
+        .drop-inventory-tile {
+            position: relative;
+            display: grid;
+            place-items: center;
+            width: 3.1rem;
+            height: 3.1rem;
+            border: 1px solid #bbb;
+            border-radius: 0.35rem;
+            background: #f8f9fa;
+            color: inherit;
+        }
+
+        .drop-inventory-icon {
+            display: block;
+            width: 2.5rem;
+            height: 2.5rem;
+        }
+
+        .drop-inventory-quantity {
+            position: absolute;
+            right: 0.1rem;
+            bottom: 0;
+            max-width: 100%;
+            padding: 0 0.12rem;
+            border-radius: 0.2rem;
+            background: rgba(0, 0, 0, 0.72);
+            color: white;
+            font-size: 0.65rem;
+            line-height: 1.25;
+        }
+
+        .drop-inventory-list {
+            max-height: 14rem;
+            overflow-y: auto;
+        }
+
+        .drop-inventory-text-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.5rem;
+            padding: 0.15rem 0;
+        }
+
+        body.dark-mode .drop-inventory-tile {
+            border-color: #666;
+            background: #444;
+        }
+
         body.dark-mode {
             background-color: #333;
             color: #f0f0f0;
@@ -138,6 +254,37 @@
         #combatStatsPanel .combat-stat-equipment,
         #combatStatsPanel .combat-stat-talisman {
             text-align: right;
+            white-space: nowrap;
+        }
+
+        #simulationResultArchiveModal .simulation-result-archive-dialog {
+            max-width: min(98vw, 1800px);
+        }
+
+        #simulationResultArchiveModal .modal-body {
+            font-size: 0.875rem;
+        }
+
+        #simulationResultArchiveModal .simulation-result-player-grid {
+            font-size: 0.75rem;
+            line-height: 1.35;
+        }
+
+        #simulationResultArchiveModal .simulation-result-player-card {
+            min-width: 0;
+        }
+
+        #simulationResultArchiveModal .simulation-result-player-card h6 {
+            font-size: 0.8rem;
+        }
+
+        #simulationResultArchiveModal .simulation-result-player-card th,
+        #simulationResultArchiveModal .simulation-result-player-card td {
+            padding: 0.25rem;
+        }
+
+        #simulationResultArchiveModal .simulation-result-player-card th:not(:first-child),
+        #simulationResultArchiveModal .simulation-result-player-card td:not(:first-child) {
             white-space: nowrap;
         }
     </style>
@@ -918,6 +1065,22 @@
                                 </label>
                             </div>
                         </div>
+                        <div class="row mt-2">
+                            <div class="col-md-auto">
+                                <button id="buttonSimulationResultArchive" class="btn btn-outline-primary" type="button"
+                                    data-bs-toggle="modal" data-bs-target="#simulationResultArchiveModal"
+                                    data-i18n="common:simulationResultTools.archive">
+                                    Simulation Result Archive
+                                </button>
+                            </div>
+                            <div class="col-md-auto">
+                                <button id="buttonSimulationResultCompare" class="btn btn-outline-primary" type="button"
+                                    data-bs-toggle="modal" data-bs-target="#simulationResultCompareModal"
+                                    data-i18n="common:simulationResultTools.compare">
+                                    Compare Drops
+                                </button>
+                            </div>
+                        </div>
                         <div class="row mb-2 pt-3">
                             <div class="col-md-auto">
                                 <button id="buttonShowAllSimData" class="btn btn-primary" type="button"
@@ -1319,36 +1482,9 @@
                         </div>
                         <div id="simulationResultTotalDamageTaken" class="mb-2"></div>
                         <div class="row pt-2">
-                            <b><span data-i18n="common:profit">Profit</span>: <span id="profitPreview"></span></b>
-                        </div>
-                        <div class="row pt-2">
-                            <b><span data-i18n="common:noRNGProfit">No RNG Profit</span>: <span
-                                    id="noRngProfitPreview"></span></b>
-                        </div>
-                        <div class="row pt-2">
-                            <b data-i18n="common:dropTotal">Drops (Total)</b>
+                            <b data-i18n="common:noRNGDrops">No RNG Drops</b>
                         </div>
                         <div class="row" id="simulationResultDrops"></div>
-                        <div class="row pt-2 d-none" id="noRngDropsAccordion">
-                            <div class="col">
-                                <div class="accordion">
-                                    <div class="accordion-item">
-                                        <h2 class="accordion-header">
-                                            <button id="buttonNoRngDropsAccordion" class="accordion-button collapsed"
-                                                type="button" data-bs-toggle="collapse"
-                                                data-bs-target="#collapseNoRngDrops" style="padding: 0.5em">
-                                                <b data-i18n="common:noRNGDrops">No RNG Drops</b>
-                                            </button>
-                                        </h2>
-                                        <div id="collapseNoRngDrops" class="accordion-collapse collapse">
-                                            <div class="accordion-body">
-                                                <div id="noRngDrops"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                     <!-- #endregion -->
                 </div>
@@ -1607,23 +1743,25 @@
                             <label for="selectZone" class="col-md-3 col-form-label"
                                 data-i18n="party.selectZone">Zone</label>
                             <div class="col-md">
-                                <select id="selectZone" class="form-select">
+                                <select id="selectZone" class="form-select simulation-quick-select">
                                 </select>
+                                <div id="zoneQuickButtons" class="simulation-quick-button-group" role="group"></div>
                             </div>
                         </div>
                         <div class="row mb-1">
                             <label for="selectDungeon" class="col-md-3 col-form-label"
                                 data-i18n="shopCategoryNames./shop_categories/dungeon">Dungeon</label>
                             <div class="col-md">
-                                <select id="selectDungeon" class="form-select">
+                                <select id="selectDungeon" class="form-select simulation-quick-select">
                                 </select>
+                                <div id="dungeonQuickButtons" class="simulation-quick-button-group" role="group"></div>
                             </div>
                         </div>
                         <div class="row mb-1">
                             <label for="selectDifficulty" class="col-md-3 col-form-label"
                                 data-i18n="party.difficulty">Difficulty</label>
                             <div class="col-md">
-                                <select id="selectDifficulty" class="form-select">
+                                <select id="selectDifficulty" class="form-select simulation-quick-select">
                                     <option value="0">T0</option>
                                     <option value="1">T1</option>
                                     <option value="2">T2</option>
@@ -1631,17 +1769,19 @@
                                     <option value="4">T4</option>
                                     <option value="5">T5</option>
                                 </select>
+                                <div id="difficultyQuickButtons" class="simulation-quick-button-group" role="group"></div>
                             </div>
                         </div>
                         <div class="row mb-1">
                             <label for="inputSimulationTime" class="col-md-3 col-form-label"
                                 data-i18n="skillActionDetail.duration">Duration</label>
                             <div class="col-md">
-                                <div class="input-group">
+                                <div class="input-group simulation-time-input-group">
                                     <input type="number" id="inputSimulationTime" class="form-control" value="100"
                                         min="1" max="2500" required />
                                     <span class="input-group-text" data-i18n="settingsPanel.hours">hours</span>
                                 </div>
+                                <div id="simulationTimeQuickButtons" class="simulation-quick-button-group" role="group"></div>
                             </div>
                         </div>
                         <div class="row mb-1">
@@ -1666,7 +1806,14 @@
                         <div class="row">
                             <div class="col-md-6 pt-1">
                                 <div id="playerCheckBox" class="outlined-box">
-                                    <h6 data-i18n="common:selectPlayer">Select Players</h6>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-2" data-i18n="common:selectPlayer">Select Players</h6>
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" id="selectAllPlayers">
+                                            <label class="form-check-label" for="selectAllPlayers"
+                                                data-i18n="common:allPlayers">All</label>
+                                        </div>
+                                    </div>
                                     <div class="form-check">
                                         <input class="form-check-input player-checkbox" type="checkbox" id="player1">
                                         <label class="form-check-label" for="player1">
@@ -2268,6 +2415,98 @@
         integrity="sha512-Y51n9mtKTVBh3Jbx5pZSJNDDMyY+yGe77DGtBPzRlgsf/YLCh13kSZ3JmfHGzYFCmOndraf0sQgfM654b7dJ3w=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="bundle.js" type="module"></script>
+    <div class="modal fade" id="simulationResultArchiveModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable simulation-result-archive-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" data-i18n="common:simulationResultTools.archive">Simulation Result Archive</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <button id="buttonSaveSimulationResult" type="button" class="btn btn-primary"
+                            data-i18n="common:simulationResultTools.saveCurrent">Save Current Result</button>
+                        <button id="buttonClearSimulationResults" type="button" class="btn btn-outline-danger"
+                            data-i18n="common:simulationResultTools.clearAll">Clear All</button>
+                    </div>
+                    <div id="simulationResultArchiveNotice" class="small mb-2" role="status" aria-live="polite"></div>
+                    <div id="simulationResultArchiveGroups"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="simulationResultCompareModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" data-i18n="common:simulationResultTools.compare">Compare Drops</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="simulationResultCompareNotice" class="small mb-2" role="status" aria-live="polite"></div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="simulationResultCompareA"
+                                data-i18n="common:simulationResultTools.recordA">Record A</label>
+                            <select id="simulationResultCompareA" class="form-select"></select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="simulationResultCompareB"
+                                data-i18n="common:simulationResultTools.recordB">Record B</label>
+                            <select id="simulationResultCompareB" class="form-select"></select>
+                        </div>
+                    </div>
+                    <div id="simulationResultCompareCategories" class="d-flex flex-wrap gap-3 mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="compareCategoryFragments"
+                                data-category="fragments" checked>
+                            <label class="form-check-label" for="compareCategoryFragments"
+                                data-i18n="common:simulationResultTools.fragments">Fragments</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="compareCategoryCharms"
+                                data-category="charms" checked>
+                            <label class="form-check-label" for="compareCategoryCharms"
+                                data-i18n="common:simulationResultTools.charms">Charms</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="compareCategoryConsumables"
+                                data-category="consumables" checked>
+                            <label class="form-check-label" for="compareCategoryConsumables"
+                                data-i18n="common:simulationResultTools.consumables">Consumables</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="compareCategoryResources"
+                                data-category="resources">
+                            <label class="form-check-label" for="compareCategoryResources"
+                                data-i18n="common:simulationResultTools.resources">Resources</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="compareCategoryOther"
+                                data-category="other">
+                            <label class="form-check-label" for="compareCategoryOther"
+                                data-i18n="common:simulationResultTools.otherDrops">Other Drops</label>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped align-middle">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="common:simulationResultTools.item">Item</th>
+                                    <th class="text-end">A</th>
+                                    <th class="text-end">B</th>
+                                    <th class="text-end" data-i18n="common:simulationResultTools.difference">Difference</th>
+                                    <th class="text-end" data-i18n="common:simulationResultTools.percent">Difference %</th>
+                                </tr>
+                            </thead>
+                            <tbody id="simulationResultCompareRows"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 <footer>
     <div style="text-align: center;">

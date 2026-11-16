@@ -113,6 +113,44 @@ class Player extends CombatUnit {
     }
 
     updateCombatDetails() {
+        const equipmentEntries = Object.entries(this.equipment);
+        const talismanSnapshot = this.talismanModifiers.map((selection) => ({
+            selection,
+            modifierHrid: selection?.modifierHrid,
+            gradeIndex: selection?.gradeIndex,
+        }));
+        const cache = this._equipmentStatsCache;
+        const equipmentSnapshotMatches = cache
+            && cache.equipmentSnapshot.length === equipmentEntries.length
+            && equipmentEntries.every(([slot, item], index) => {
+                const previous = cache.equipmentSnapshot[index];
+                return previous.slot === slot
+                    && previous.item === item
+                    && previous.hrid === item?.hrid
+                    && previous.enhancementLevel === item?.enhancementLevel
+                    && previous.gameItem === item?.gameItem;
+            });
+        const talismanSnapshotMatches = cache
+            && cache.talismanSnapshot.length === talismanSnapshot.length
+            && talismanSnapshot.every((selection, index) => {
+                const previous = cache.talismanSnapshot[index];
+                return previous.selection === selection.selection
+                    && previous.modifierHrid === selection.modifierHrid
+                    && previous.gradeIndex === selection.gradeIndex;
+            });
+
+        if (equipmentSnapshotMatches && talismanSnapshotMatches) {
+            for (const stat of equipmentSnapshotStatKeys) {
+                this.combatDetails.combatStats[stat] = cache.combatStats[stat];
+            }
+            this.combatDetails.equipmentStats ??= {};
+            this.combatDetails.talismanStats ??= {};
+            Object.assign(this.combatDetails.equipmentStats, cache.equipmentStats);
+            Object.assign(this.combatDetails.talismanStats, cache.talismanStats);
+            super.updateCombatDetails();
+            return;
+        }
+
         if (this.equipment["/equipment_types/main_hand"]) {
             this.combatDetails.combatStats.combatStyleHrid =
                 this.equipment["/equipment_types/main_hand"].getCombatStyle();
@@ -193,8 +231,42 @@ class Player extends CombatUnit {
             this.combatDetails.combatStats.drinkSlots = 1;
         }
 
+        this._equipmentStatsCache = {
+            equipmentSnapshot: equipmentEntries.map(([slot, item]) => ({
+                slot,
+                item,
+                hrid: item?.hrid,
+                enhancementLevel: item?.enhancementLevel,
+                gameItem: item?.gameItem,
+            })),
+            talismanSnapshot,
+            combatStats: Object.fromEntries(equipmentSnapshotStatKeys.map((stat) => [
+                stat,
+                this.combatDetails.combatStats[stat],
+            ])),
+            equipmentStats: Object.fromEntries(Player.combatEquipmentStats.map((stat) => [
+                stat,
+                this.combatDetails.equipmentStats[stat],
+            ])),
+            talismanStats: Object.fromEntries(Player.combatEquipmentStats.map((stat) => [
+                stat,
+                this.combatDetails.talismanStats[stat],
+            ])),
+        };
+
         super.updateCombatDetails();
     }
 }
+
+const equipmentSnapshotStatKeys = [
+    ...Player.combatEquipmentStats,
+    "combatStyleHrid",
+    "damageType",
+    "attackInterval",
+    "primaryTraining",
+    "focusTraining",
+    "foodSlots",
+    "drinkSlots",
+];
 
 export default Player;

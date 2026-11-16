@@ -479,10 +479,30 @@ class CombatUnit {
     permanentBuffs = {};
     zoneBuffs = {};
     extraBuffs = {};
+    _buffBoostIndex = null;
 
     constructor() { }
 
     updateCombatDetails() {
+        const buffBoostIndex = new Map();
+        for (const buff of Object.values(this.combatBuffs)) {
+            let boosts = buffBoostIndex.get(buff.typeHrid);
+            if (!boosts) {
+                boosts = [];
+                buffBoostIndex.set(buff.typeHrid, boosts);
+            }
+            boosts.push({ ratioBoost: buff.ratioBoost, flatBoost: buff.flatBoost });
+        }
+
+        this._buffBoostIndex = buffBoostIndex;
+        try {
+            this.recalculateCombatDetails();
+        } finally {
+            this._buffBoostIndex = null;
+        }
+    }
+
+    recalculateCombatDetails() {
         if (this.isPlayer) {
             if (this.combatDetails.combatStats.hpRegenPer10 === 0) {
                 this.combatDetails.combatStats.hpRegenPer10 = 0.01;
@@ -824,6 +844,10 @@ class CombatUnit {
     }
 
     getBuffBoosts(type) {
+        if (this._buffBoostIndex !== null) {
+            return this._buffBoostIndex.get(type) || [];
+        }
+
         let boosts = [];
         Object.values(this.combatBuffs)
             .filter((buff) => buff.typeHrid == type)
@@ -1272,6 +1296,44 @@ class Player extends _combatUnit__WEBPACK_IMPORTED_MODULE_1__["default"] {
     }
 
     updateCombatDetails() {
+        const equipmentEntries = Object.entries(this.equipment);
+        const talismanSnapshot = this.talismanModifiers.map((selection) => ({
+            selection,
+            modifierHrid: selection?.modifierHrid,
+            gradeIndex: selection?.gradeIndex,
+        }));
+        const cache = this._equipmentStatsCache;
+        const equipmentSnapshotMatches = cache
+            && cache.equipmentSnapshot.length === equipmentEntries.length
+            && equipmentEntries.every(([slot, item], index) => {
+                const previous = cache.equipmentSnapshot[index];
+                return previous.slot === slot
+                    && previous.item === item
+                    && previous.hrid === item?.hrid
+                    && previous.enhancementLevel === item?.enhancementLevel
+                    && previous.gameItem === item?.gameItem;
+            });
+        const talismanSnapshotMatches = cache
+            && cache.talismanSnapshot.length === talismanSnapshot.length
+            && talismanSnapshot.every((selection, index) => {
+                const previous = cache.talismanSnapshot[index];
+                return previous.selection === selection.selection
+                    && previous.modifierHrid === selection.modifierHrid
+                    && previous.gradeIndex === selection.gradeIndex;
+            });
+
+        if (equipmentSnapshotMatches && talismanSnapshotMatches) {
+            for (const stat of equipmentSnapshotStatKeys) {
+                this.combatDetails.combatStats[stat] = cache.combatStats[stat];
+            }
+            this.combatDetails.equipmentStats ??= {};
+            this.combatDetails.talismanStats ??= {};
+            Object.assign(this.combatDetails.equipmentStats, cache.equipmentStats);
+            Object.assign(this.combatDetails.talismanStats, cache.talismanStats);
+            super.updateCombatDetails();
+            return;
+        }
+
         if (this.equipment["/equipment_types/main_hand"]) {
             this.combatDetails.combatStats.combatStyleHrid =
                 this.equipment["/equipment_types/main_hand"].getCombatStyle();
@@ -1352,9 +1414,43 @@ class Player extends _combatUnit__WEBPACK_IMPORTED_MODULE_1__["default"] {
             this.combatDetails.combatStats.drinkSlots = 1;
         }
 
+        this._equipmentStatsCache = {
+            equipmentSnapshot: equipmentEntries.map(([slot, item]) => ({
+                slot,
+                item,
+                hrid: item?.hrid,
+                enhancementLevel: item?.enhancementLevel,
+                gameItem: item?.gameItem,
+            })),
+            talismanSnapshot,
+            combatStats: Object.fromEntries(equipmentSnapshotStatKeys.map((stat) => [
+                stat,
+                this.combatDetails.combatStats[stat],
+            ])),
+            equipmentStats: Object.fromEntries(Player.combatEquipmentStats.map((stat) => [
+                stat,
+                this.combatDetails.equipmentStats[stat],
+            ])),
+            talismanStats: Object.fromEntries(Player.combatEquipmentStats.map((stat) => [
+                stat,
+                this.combatDetails.talismanStats[stat],
+            ])),
+        };
+
         super.updateCombatDetails();
     }
 }
+
+const equipmentSnapshotStatKeys = [
+    ...Player.combatEquipmentStats,
+    "combatStyleHrid",
+    "damageType",
+    "attackInterval",
+    "primaryTraining",
+    "focusTraining",
+    "foodSlots",
+    "drinkSlots",
+];
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Player);
 
@@ -1555,6 +1651,966 @@ class Trigger {
 
 /***/ }),
 
+/***/ "./src/simulationResultTools.js":
+/*!**************************************!*\
+  !*** ./src/simulationResultTools.js ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   classifyDropCategory: () => (/* binding */ classifyDropCategory),
+/* harmony export */   comparisonTone: () => (/* binding */ comparisonTone),
+/* harmony export */   getComparableItems: () => (/* binding */ getComparableItems),
+/* harmony export */   groupArchiveRecords: () => (/* binding */ groupArchiveRecords),
+/* harmony export */   initSimulationResultTools: () => (/* binding */ initSimulationResultTools),
+/* harmony export */   minimumPlayerShardDropCount: () => (/* binding */ minimumPlayerShardDropCount),
+/* harmony export */   normalizeTo24Hours: () => (/* binding */ normalizeTo24Hours),
+/* harmony export */   setCurrentSimulationResult: () => (/* binding */ setCurrentSimulationResult)
+/* harmony export */ });
+/* harmony import */ var _combatsimulator_data_itemDetailMap_json__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./combatsimulator/data/itemDetailMap.json */ "./src/combatsimulator/data/itemDetailMap.json");
+
+
+const STORAGE_KEY = "mwi_simulation_result_archive_v1";
+const LEGACY_ARCHIVE_KEY = "mwi_sim_saved_runs_v1";
+const LEGACY_COMPARE_KEY = "combat_simulator_comparator_v1.0";
+const LEGACY_MIGRATION_KEY = "mwi_simulation_result_legacy_migrated_v1";
+const MAX_RECORDS = 200;
+const ONE_HOUR = 60 * 60 * 1e9;
+
+let latestResultContext = null;
+let records = [];
+let storageError = null;
+
+function classifyDropCategory(hrid, itemMap = _combatsimulator_data_itemDetailMap_json__WEBPACK_IMPORTED_MODULE_0__) {
+    const item = itemMap[hrid];
+    if (hrid?.endsWith("_key_fragment")) return "fragments";
+    if (hrid?.endsWith("_charm")) return "charms";
+    if (item?.categoryHrid === "/item_categories/resource") return "resources";
+    return "other";
+}
+
+function groupArchiveRecords(archiveRecords) {
+    const groups = new Map();
+    for (const record of archiveRecords) {
+        const mapKey = record.mapHrid || record.mapName || "unknown-map";
+        const difficulty = String(record.difficulty || record.difficultyTier || "?");
+        const key = `${mapKey}|${difficulty}`;
+        if (!groups.has(key)) {
+            groups.set(key, {
+                key,
+                mapHrid: record.mapHrid || "",
+                mapName: record.mapName || record.mapHrid || "Unknown Map",
+                difficulty,
+                records: [],
+            });
+        }
+        groups.get(key).records.push(record);
+    }
+
+    return [...groups.values()]
+        .map((group) => ({
+            ...group,
+            records: group.records.slice().sort((a, b) => b.savedAt - a.savedAt),
+        }))
+        .sort((a, b) =>
+            a.mapName.localeCompare(b.mapName)
+            || a.difficulty.localeCompare(b.difficulty, undefined, { numeric: true })
+        );
+}
+
+function normalizeTo24Hours(value, durationHours) {
+    const numericValue = Number(value);
+    const hours = Number(durationHours);
+    if (!Number.isFinite(numericValue) || !Number.isFinite(hours) || hours <= 0) return 0;
+    return numericValue * 24 / hours;
+}
+
+function minimumPlayerShardDropCount(shardCounts) {
+    return shardCounts.length ? Math.min(...shardCounts) : 0;
+}
+
+function comparisonTone(valueA, valueB) {
+    if (valueB > valueA) return "text-success";
+    if (valueB < valueA) return "text-danger";
+    return "";
+}
+
+function translate(key, fallback) {
+    return globalThis.i18next?.t
+        ? globalThis.i18next.t(key, { defaultValue: fallback })
+        : fallback;
+}
+
+function toolText(key, fallback) {
+    return translate(`common:simulationResultTools.${key}`, fallback);
+}
+
+function parseNumber(value) {
+    const parsed = Number(String(value ?? "").replace(/,/g, "").replace(/[<>]/g, ""));
+    return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function itemNameFor(hrid) {
+    const item = _combatsimulator_data_itemDetailMap_json__WEBPACK_IMPORTED_MODULE_0__[hrid];
+    return item
+        ? translate(`itemNames.${hrid}`, item.name)
+        : hrid || toolText("unknownItem", "Unknown item");
+}
+
+function findItemHrid(name) {
+    const normalizedName = String(name || "").trim().toLocaleLowerCase();
+    if (!normalizedName) return "";
+    if (_combatsimulator_data_itemDetailMap_json__WEBPACK_IMPORTED_MODULE_0__[normalizedName]) return normalizedName;
+
+    for (const [hrid, item] of Object.entries(_combatsimulator_data_itemDetailMap_json__WEBPACK_IMPORTED_MODULE_0__)) {
+        if (
+            item.name.toLocaleLowerCase() === normalizedName
+            || itemNameFor(hrid).toLocaleLowerCase() === normalizedName
+        ) {
+            return hrid;
+        }
+    }
+    return "";
+}
+
+function normalizeDrops(drops, { onlyKnownItems = false, factor = 1 } = {}) {
+    if (!Array.isArray(drops)) return [];
+    return drops.flatMap((drop) => {
+        const name = String(drop?.name || drop?.itemName || "").trim();
+        const hrid = drop?.hrid || drop?.itemHrid || findItemHrid(name);
+        if (onlyKnownItems && !_combatsimulator_data_itemDetailMap_json__WEBPACK_IMPORTED_MODULE_0__[hrid]) return [];
+        return [{
+            hrid: _combatsimulator_data_itemDetailMap_json__WEBPACK_IMPORTED_MODULE_0__[hrid] ? hrid : "",
+            name: name || itemNameFor(hrid),
+            quantity: parseNumber(drop?.quantity ?? drop?.numericValue ?? drop?.value ?? drop?.rawValue) * factor,
+        }];
+    });
+}
+
+function legacyRecord(id, mapName, difficulty, drops, source, extras = {}) {
+    const durationHours = Number(extras.simulationHours);
+    const factor = durationHours > 0 ? 24 / durationHours : 1;
+    const normalizedDrops = normalizeDrops(drops, {
+        onlyKnownItems: source === "compare",
+        factor,
+    });
+    const itemDrops = normalizedDrops.filter((drop) => drop.hrid);
+    if (!mapName && itemDrops.length === 0) return null;
+
+    const mapHrid = extras.mapHrid || "";
+    const players = Array.isArray(extras.players) ? extras.players : [];
+    const deathsPerDay = Number.isFinite(Number(extras.metrics?.deathsPerDay))
+        ? Number(extras.metrics.deathsPerDay)
+        : parseNumber(extras.metrics?.deathsPerHour) * 24;
+    return {
+        id,
+        schemaVersion: 2,
+        savedAt: Number(extras.savedAt) || Date.parse(extras.savedAt) || Date.now(),
+        mapHrid,
+        mapName: mapName || mapHrid || toolText("unknownMap", "Unknown Map"),
+        difficulty: difficulty || "?",
+        simulationHours: durationHours || 24,
+        mode: extras.mode || "",
+        playerNames: players.map((player) => player.name),
+        metrics: {
+            ...extras.metrics,
+            deathsPerDay,
+            shardsPerDay: itemDrops
+                .filter((drop) => classifyDropCategory(drop.hrid) === "fragments")
+                .reduce((total, drop) => total + drop.quantity, 0),
+        },
+        players,
+        configuration: extras.configuration || {},
+        experience: extras.experience || [],
+        drops: source === "compare" ? itemDrops : normalizedDrops,
+        matchedDrops: itemDrops.filter((drop) =>
+            ["fragments", "charms"].includes(classifyDropCategory(drop.hrid))
+        ),
+    };
+}
+
+function readLegacyRecords() {
+    const migrated = [];
+    try {
+        const legacyArchive = JSON.parse(localStorage.getItem(LEGACY_ARCHIVE_KEY) || "null");
+        if (Array.isArray(legacyArchive?.slots)) {
+            legacyArchive.slots.forEach((slot, index) => {
+                const record = slot?.record;
+                const result = record?.results;
+                if (!result) return;
+                const config = record.config || {};
+                const mapHrid = result.mapHrid
+                    || (result.mapType === "dungeon" ? config.dungeonValue : config.zoneValue)
+                    || "";
+                const mapName = result.mapName || result.map || "";
+                const playerSource = Array.isArray(result.consumablesByPlayer)
+                    && result.consumablesByPlayer.length
+                    ? result.consumablesByPlayer
+                    : (config.players || []).filter((player) => player.checked);
+                const legacyPlayers = playerSource.map((entry) => {
+                        const playerIndex = Number(entry.playerIndex ?? entry.index) || 0;
+                        const deathsPerHour = parseNumber(entry.deathPerHour);
+                        return {
+                            hrid: `player${playerIndex + 1}`,
+                            name: entry.playerLabel || entry.label || `Player ${playerIndex + 1}`,
+                            deathsPerHour,
+                            deathsPerDay: deathsPerHour * 24,
+                            experience: [],
+                            consumables: normalizeDrops(entry.consumables, { factor: 24 })
+                                .map((item) => ({ ...item, perHour: item.quantity / 24 })),
+                        };
+                    });
+                const converted = legacyRecord(
+                    `legacy-archive-${slot.id || index}`,
+                    mapName,
+                    result.difficulty,
+                    result.allDrops?.length ? result.allDrops : result.matchedDrops,
+                    "archive",
+                    {
+                        mapHrid,
+                        savedAt: record.savedAt || record.createdAt,
+                        simulationHours: config.simulationHours,
+                        mode: result.mapType || "",
+                        players: legacyPlayers,
+                        configuration: config,
+                        experience: Array.isArray(result.experience)
+                            ? result.experience.map((item) => ({
+                                name: item.name || "",
+                                value: parseNumber(item.numericValue ?? item.value),
+                            }))
+                            : [],
+                        metrics: {
+                            eph: parseNumber(result.eph?.numericValue ?? result.eph?.rawValue),
+                            deathsPerHour: parseNumber(result.deathPerHour),
+                            experiencePerHour: parseNumber(result.experience?.[0]?.numericValue ?? result.experience?.[0]?.value),
+                        },
+                    }
+                );
+                if (converted) migrated.push(converted);
+            });
+        }
+    } catch (error) {
+        console.error("Could not migrate legacy simulation result archives.", error);
+    }
+
+    try {
+        const legacyCompare = JSON.parse(localStorage.getItem(LEGACY_COMPARE_KEY) || "null");
+        if (Array.isArray(legacyCompare?.dataSlots)) {
+            legacyCompare.dataSlots.forEach((slot, index) => {
+                const data = slot?.data;
+                if (!data) return;
+                const converted = legacyRecord(
+                    `legacy-compare-${slot.id || index}`,
+                    data.map?.name || "",
+                    data.map?.difficulty || "?",
+                    data.drops,
+                    "compare",
+                    { simulationHours: 24 }
+                );
+                if (converted) migrated.push(converted);
+            });
+        }
+    } catch (error) {
+        console.error("Could not migrate legacy drop comparison records.", error);
+    }
+    return migrated;
+}
+
+function loadRecords() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const parsed = raw === null ? [] : JSON.parse(raw);
+        if (!Array.isArray(parsed)) throw new Error("Saved result archive is not a list.");
+        const needsNormalization = parsed.some((record) => record.schemaVersion < 2);
+        let loadedRecords = parsed.map((record) => {
+            if (record.schemaVersion >= 2) return record;
+            const oldDrops = normalizeDrops(record.drops);
+            const oldPlayers = Array.isArray(record.players) ? record.players : [];
+            return {
+                ...record,
+                schemaVersion: 2,
+                simulationHours: Number(record.simulationHours) || 24,
+                playerNames: record.playerNames || (record.playerName ? [record.playerName] : []),
+                players: oldPlayers.map((player) => ({
+                    ...player,
+                    consumables: (player.consumables || []).map((item) => ({
+                        ...item,
+                        perHour: Number(item.perHour) || Number(item.quantity || 0) / 24,
+                    })),
+                })),
+                drops: oldDrops,
+                matchedDrops: oldDrops.filter((drop) =>
+                    ["fragments", "charms"].includes(classifyDropCategory(drop.hrid))
+                ),
+                metrics: {
+                    ...record.metrics,
+                    deathsPerDay: Number(record.metrics?.deathsPerDay)
+                        || normalizeTo24Hours(record.metrics?.deathsPerHour || 0, 1),
+                    shardsPerDay: Number(record.metrics?.shardsPerDay)
+                        || oldDrops
+                            .filter((drop) => classifyDropCategory(drop.hrid) === "fragments")
+                            .reduce((total, drop) => total + drop.quantity, 0),
+                },
+            };
+        });
+
+        if (localStorage.getItem(LEGACY_MIGRATION_KEY) !== "done") {
+            const existingIds = new Set(loadedRecords.map((record) => record.id));
+            for (const migratedRecord of readLegacyRecords()) {
+                if (!existingIds.has(migratedRecord.id)) {
+                    loadedRecords.push(migratedRecord);
+                    existingIds.add(migratedRecord.id);
+                }
+            }
+            loadedRecords.sort((a, b) => b.savedAt - a.savedAt);
+            loadedRecords = loadedRecords.slice(0, MAX_RECORDS);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(loadedRecords));
+            localStorage.setItem(LEGACY_MIGRATION_KEY, "done");
+        } else if (raw === null || needsNormalization) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(loadedRecords));
+        }
+        return loadedRecords;
+    } catch (error) {
+        storageError = error;
+        console.error("Could not load simulation result archives.", error);
+        return [];
+    }
+}
+
+function persistRecords() {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+        storageError = null;
+    } catch (error) {
+        storageError = error;
+        console.error("Could not save simulation result archives.", error);
+        throw error;
+    }
+}
+
+function setNotice(element, message, isError = false) {
+    element.textContent = message;
+    element.classList.toggle("text-danger", isError);
+    element.classList.toggle("text-muted", !isError);
+}
+
+function formatQuantity(value) {
+    return Number(value || 0).toLocaleString(undefined, { maximumSignificantDigits: 7 });
+}
+
+function recordTitle(record) {
+    const date = new Date(record.savedAt);
+    return Number.isNaN(date.getTime()) ? "" : date.toLocaleString();
+}
+
+function getPlayerNames(record) {
+    if (record.players?.length) return record.players.map((player) => player.name);
+    if (record.playerNames?.length) return record.playerNames;
+    return record.playerName ? [record.playerName] : [];
+}
+
+function mapLabel(record) {
+    if (!record.mapHrid) return record.mapName || toolText("unknownMap", "Unknown Map");
+    return translate(`actionNames.${record.mapHrid}`, record.mapName || record.mapHrid);
+}
+
+function makeCell(text, className = "") {
+    const cell = document.createElement("td");
+    cell.textContent = text;
+    if (className) cell.className = className;
+    return cell;
+}
+
+function makeHeader(text, className = "") {
+    const cell = document.createElement("th");
+    cell.scope = "col";
+    cell.textContent = text;
+    if (className) cell.className = className;
+    return cell;
+}
+
+function addDetailRow(container, label, value) {
+    const row = document.createElement("div");
+    row.className = "d-flex justify-content-between gap-3 border-bottom py-1";
+    const labelElement = document.createElement("span");
+    labelElement.className = "text-muted";
+    labelElement.textContent = label;
+    const valueElement = document.createElement("span");
+    valueElement.className = "text-end";
+    valueElement.textContent = value;
+    row.append(labelElement, valueElement);
+    container.append(row);
+}
+
+function createDetailCard(title) {
+    const card = document.createElement("section");
+    card.className = "border rounded p-2 h-100";
+    const heading = document.createElement("h6");
+    heading.className = "mb-2";
+    heading.textContent = title;
+    card.append(heading);
+    return card;
+}
+
+function addItemsTable(card, items, { showPerHour = false, valueLabel = "perDay" } = {}) {
+    if (!items.length) {
+        const empty = document.createElement("div");
+        empty.className = "text-muted";
+        empty.textContent = toolText("noItems", "None");
+        card.append(empty);
+        return;
+    }
+    const table = document.createElement("table");
+    table.className = "table table-sm mb-0";
+    const header = document.createElement("thead");
+    const headerRow = document.createElement("tr");
+    headerRow.append(makeHeader(toolText("item", "Item")));
+    if (showPerHour) {
+        headerRow.append(makeHeader(toolText("perHour", "Per Hour"), "text-end"));
+    }
+    headerRow.append(makeHeader(toolText(valueLabel, "Per 24 Hours"), "text-end"));
+    header.append(headerRow);
+    const body = document.createElement("tbody");
+    for (const item of items) {
+        const row = document.createElement("tr");
+        row.append(makeCell(item.name || itemNameFor(item.hrid)));
+        if (showPerHour) {
+            row.append(makeCell(formatQuantity(item.perHour), "text-end"));
+        }
+        row.append(makeCell(formatQuantity(item.quantity), "text-end"));
+        body.append(row);
+    }
+    table.append(header, body);
+    card.append(table);
+}
+
+function renderRecordDetails(record) {
+    const root = document.createElement("div");
+    root.className = "row g-2 mt-1";
+
+    const configCard = createDetailCard(toolText("configuration", "Configuration"));
+    const playerNames = getPlayerNames(record);
+    addDetailRow(configCard, toolText("date", "Saved At"), recordTitle(record) || "-");
+    addDetailRow(configCard, toolText("selectedPlayers", "Selected Players"), playerNames.join(" / ") || "-");
+    addDetailRow(configCard, toolText("mode", "Mode"), record.mode || record.configuration?.mapType || "-");
+    addDetailRow(
+        configCard,
+        toolText("simulationDuration", "Simulation Duration"),
+        `${formatQuantity(record.simulationHours || 24)} h`
+    );
+    const yes = translate("common:simulationResults.Yes", "Yes");
+    const no = translate("common:simulationResults.No", "No");
+    const configuration = record.configuration || {};
+    addDetailRow(
+        configCard,
+        toolText("simulationOptions", "Simulation Options"),
+        [
+            `${toolText("dungeon", "Dungeon")}: ${configuration.simDungeon ? yes : no}`,
+            `${toolText("allZones", "All Zones")}: ${configuration.simAllZone ? yes : no}`,
+            `${toolText("allSolo", "All Solo")}: ${configuration.simAllSolo ? yes : no}`,
+        ].join(" / ")
+    );
+    root.append(configCard);
+    configCard.classList.add("col-12", "col-lg-6");
+
+    const coreCard = createDetailCard(toolText("coreResults", "Core Results"));
+    addDetailRow(coreCard, toolText("eph", "EPH"), formatQuantity(record.metrics?.eph));
+    addDetailRow(coreCard, toolText("deathsPerDay", "Deaths / 24h"), formatQuantity(record.metrics?.deathsPerDay));
+    addDetailRow(coreCard, toolText("shardsPerDay", "Fragments / 24h"), formatQuantity(record.metrics?.shardsPerDay));
+    root.append(coreCard);
+    coreCard.classList.add("col-12", "col-lg-6");
+
+    const experienceCard = createDetailCard(toolText("experience", "Experience"));
+    const experience = record.experience?.length
+        ? record.experience
+        : (record.players || []).flatMap((player) =>
+            (player.experience || []).map((item) => ({
+                name: `${player.name}: ${item.name}`,
+                value: item.value,
+            }))
+        );
+    addItemsTable(experienceCard, experience.filter((item) => Number(item.value) !== 0).map((item) => ({
+        name: item.name,
+        quantity: item.value,
+    })), { valueLabel: "perHour" });
+    root.append(experienceCard);
+    experienceCard.classList.add("col-12", "col-lg-6");
+
+    const matchedCard = createDetailCard(toolText("matchedDrops", "Fragments and Charms"));
+    addItemsTable(matchedCard, (record.matchedDrops || []).map((drop) => ({
+        name: drop.name || itemNameFor(drop.hrid),
+        quantity: drop.quantity,
+    })));
+    root.append(matchedCard);
+    matchedCard.classList.add("col-12", "col-lg-6");
+
+    const consumablesCard = createDetailCard(toolText("consumablesByPlayer", "Consumables by Player"));
+    const players = record.players?.slice(0, 5) || [];
+    if (!players.some((player) => player.consumables?.length)) {
+        const empty = document.createElement("div");
+        empty.className = "text-muted";
+        empty.textContent = toolText("noItems", "None");
+        consumablesCard.append(empty);
+    } else {
+        const playerGrid = document.createElement("div");
+        playerGrid.className = `row row-cols-1 row-cols-md-2 row-cols-xl-${players.length} g-2`;
+        for (const player of players) {
+            const playerColumn = document.createElement("div");
+            playerColumn.className = "col";
+            const playerSection = document.createElement("section");
+            playerSection.className = "border rounded p-2 h-100";
+            const playerHeading = document.createElement("div");
+            playerHeading.className = "fw-semibold";
+            playerHeading.textContent = player.name;
+            playerSection.append(playerHeading);
+            addDetailRow(
+                playerSection,
+                toolText("deathsPerDay", "Deaths / 24h"),
+                formatQuantity(player.deathsPerDay)
+            );
+            addItemsTable(playerSection, player.consumables || [], { showPerHour: true });
+            playerColumn.append(playerSection);
+            playerGrid.append(playerColumn);
+        }
+        consumablesCard.append(playerGrid);
+    }
+    root.append(consumablesCard);
+    consumablesCard.classList.add("col-12");
+
+    const allDropsCard = createDetailCard(toolText("allDrops", "All Expected Drops"));
+    addItemsTable(allDropsCard, (record.drops || []).map((drop) => ({
+        name: drop.name || itemNameFor(drop.hrid),
+        quantity: drop.quantity,
+    })));
+    root.append(allDropsCard);
+    allDropsCard.classList.add("col-12");
+    return root;
+}
+
+function getArchiveNotice() {
+    return document.getElementById("simulationResultArchiveNotice");
+}
+
+function renderArchive() {
+    const root = document.getElementById("simulationResultArchiveGroups");
+    const notice = getArchiveNotice();
+    if (storageError) {
+        setNotice(notice, toolText("storageError", "Could not read or write saved results."), true);
+    } else if (records.length === 0) {
+        setNotice(notice, toolText("emptyArchive", "No saved results yet."), false);
+    } else {
+        setNotice(notice, "", false);
+    }
+    root.replaceChildren();
+
+    for (const group of groupArchiveRecords(records)) {
+        const details = document.createElement("details");
+        details.className = "mb-2 border rounded p-2";
+        const summary = document.createElement("summary");
+        summary.className = "fw-semibold";
+        summary.textContent = `${mapLabel(group.records[0])} · ${group.difficulty} (${group.records.length})`;
+        details.append(summary);
+
+        for (const record of group.records) {
+            const recordDetails = document.createElement("details");
+            recordDetails.className = "border rounded p-2 mt-2";
+            const recordSummary = document.createElement("summary");
+            recordSummary.className = "d-flex flex-wrap align-items-center gap-2";
+
+            const identity = document.createElement("span");
+            identity.className = "me-auto";
+            identity.textContent = [
+                recordTitle(record),
+                getPlayerNames(record).join(" / "),
+            ].filter(Boolean).join(" · ");
+
+            const stats = document.createElement("span");
+            stats.className = "d-flex flex-wrap gap-2";
+            for (const labelAndValue of [
+                [`${toolText("eph", "EPH")} ${formatQuantity(record.metrics?.eph)}`, "text-bg-primary"],
+                [`${toolText("deathsPerDay", "Deaths / 24h")} ${formatQuantity(record.metrics?.deathsPerDay)}`, "text-bg-secondary"],
+                [`${toolText("shardsPerDay", "Fragments / 24h")} ${formatQuantity(record.metrics?.shardsPerDay)}`, "text-bg-warning"],
+            ]) {
+                const badge = document.createElement("span");
+                badge.className = `badge ${labelAndValue[1]}`;
+                badge.textContent = labelAndValue[0];
+                stats.append(badge);
+            }
+
+            const compareButton = document.createElement("button");
+            compareButton.type = "button";
+            compareButton.className = "btn btn-sm btn-outline-primary me-1";
+            compareButton.textContent = toolText("compare", "Compare Drops");
+            compareButton.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                openCompareWithRecord(record.id);
+            });
+
+            const deleteButton = document.createElement("button");
+            deleteButton.type = "button";
+            deleteButton.className = "btn btn-sm btn-outline-danger";
+            deleteButton.textContent = toolText("delete", "Delete");
+            deleteButton.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                deleteRecord(record.id);
+            });
+            recordSummary.append(identity, stats, compareButton, deleteButton);
+            recordDetails.append(recordSummary, renderRecordDetails(record));
+            details.append(recordDetails);
+        }
+        root.append(details);
+    }
+}
+
+function getCurrentDrops() {
+    return [...document.querySelectorAll("#simulationResultDrops .drop-inventory-tile")].map((tile) => ({
+        hrid: tile.dataset.itemHrid || "",
+        name: itemNameFor(tile.dataset.itemHrid),
+        quantity: parseNumber(tile.dataset.quantity),
+    }));
+}
+
+function getPlayerLabel(playerHrid) {
+    const tab = document.getElementById(`${playerHrid}-tab`);
+    return tab?.textContent.trim() || playerHrid;
+}
+
+function getExpectedDropsByPlayer(context, playerHrids, durationHours) {
+    const getExpectedDropsForPlayer = context.getExpectedDropsForPlayer;
+    const playerDrops = typeof getExpectedDropsForPlayer === "function"
+        ? playerHrids.map((playerHrid) => ({
+            playerHrid,
+            drops: [...getExpectedDropsForPlayer(playerHrid)].map(([hrid, quantity]) => ({
+                hrid,
+                name: itemNameFor(hrid),
+                quantity: normalizeTo24Hours(quantity, durationHours),
+            })),
+        }))
+        : [{
+            playerHrid: playerHrids[0],
+            drops: getCurrentDrops().map((drop) => ({
+                ...drop,
+                quantity: normalizeTo24Hours(drop.quantity, durationHours),
+            })),
+        }];
+    return playerDrops;
+}
+
+function getTeamExpectedDrops(playerExpectedDrops) {
+    const combined = new Map();
+    for (const { drops } of playerExpectedDrops) {
+        for (const drop of drops) {
+            const existing = combined.get(drop.hrid);
+            if (existing) {
+                existing.quantity += drop.quantity;
+            } else {
+                combined.set(drop.hrid, { ...drop });
+            }
+        }
+    }
+    return [...combined.values()];
+}
+
+function saveCurrentResult() {
+    const notice = getArchiveNotice();
+    if (!latestResultContext) {
+        setNotice(notice, toolText("noCurrentResult", "Run a simulation before saving a result."), true);
+        return;
+    }
+
+    const { simResult } = latestResultContext;
+    const playerHrids = latestResultContext.playerHrids.length
+        ? latestResultContext.playerHrids
+        : ["player1"];
+    const durationHours = simResult.simulatedTime / ONE_HOUR;
+    if (!Number.isFinite(durationHours) || durationHours <= 0) {
+        setNotice(notice, toolText("noCurrentResult", "Run a simulation before saving a result."), true);
+        return;
+    }
+    const isDungeon = Boolean(simResult.isDungeon);
+    const effectiveDuration = isDungeon && simResult.lastDungeonFinishTime > 0
+        ? simResult.lastDungeonFinishTime / ONE_HOUR
+        : simResult.lastEncounterFinishTime > 0
+            ? simResult.lastEncounterFinishTime / ONE_HOUR
+            : durationHours;
+    const encounters = isDungeon ? simResult.dungeonsCompleted : simResult.encounters;
+    const playerExpectedDrops = getExpectedDropsByPlayer(latestResultContext, playerHrids, durationHours);
+    const expectedDrops = getTeamExpectedDrops(playerExpectedDrops);
+    const shardsPerPlayer = playerExpectedDrops.map(({ drops }) =>
+        drops
+            .filter((drop) => classifyDropCategory(drop.hrid) === "fragments")
+            .reduce((total, drop) => total + drop.quantity, 0)
+    );
+    const players = playerHrids.map((playerHrid, index) => {
+        const deaths = Number(simResult.deaths[playerHrid] || 0);
+        const experience = simResult.experienceGained[playerHrid] || {};
+        const totalExperience = Object.values(experience).reduce((total, value) => total + value, 0);
+        const consumables = Object.entries(simResult.consumablesUsed[playerHrid] || {})
+            .map(([hrid, count]) => {
+                const perHour = Number(count) / durationHours;
+                return {
+                    hrid,
+                    name: itemNameFor(hrid),
+                    perHour,
+                    quantity: perHour * 24,
+                };
+            })
+            .sort((a, b) => b.quantity - a.quantity);
+
+        return {
+            hrid: playerHrid,
+            name: getPlayerLabel(playerHrid),
+            deathsPerHour: deaths / durationHours,
+            deathsPerDay: normalizeTo24Hours(deaths, durationHours),
+            shardsPerDay: shardsPerPlayer[index] || 0,
+            experience: [
+                { name: toolText("total", "Total"), value: totalExperience / durationHours },
+                ...Object.entries(experience).map(([skill, value]) => ({
+                    name: translate(`leaderboardCategoryNames.${skill}`, skill),
+                    value: value / durationHours,
+                })),
+            ],
+            consumables,
+        };
+    });
+    const mapHrid = simResult.isLabyrinth
+        ? simResult.labyrinthName
+        : simResult.zoneName;
+    const mapName = mapHrid ? translate(`actionNames.${mapHrid}`, mapHrid) : "";
+    const difficulty = simResult.roomLevel !== undefined && simResult.isLabyrinth
+        ? `L${simResult.roomLevel}`
+        : simResult.difficultyTier !== undefined
+            ? `T${simResult.difficultyTier}`
+            : "?";
+    const shardsPerDay = minimumPlayerShardDropCount(shardsPerPlayer);
+    const savedRecord = {
+        id: `result-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        schemaVersion: 2,
+        savedAt: Date.now(),
+        mapHrid: mapHrid || "",
+        mapName: mapName || toolText("unknownMap", "Unknown Map"),
+        difficulty,
+        mode: toolText(
+            isDungeon ? "dungeon" : simResult.isLabyrinth ? "labyrinth" : "zone",
+            isDungeon ? "Dungeon" : simResult.isLabyrinth ? "Labyrinth" : "Zone"
+        ),
+        simulationHours: durationHours,
+        playerNames: players.map((player) => player.name),
+        players,
+        configuration: {
+            simulationHours: durationHours,
+            simDungeon: isDungeon,
+            simAllZone: Boolean(document.getElementById("simAllZoneToggle")?.checked),
+            simAllSolo: Boolean(document.getElementById("simAllSoloToggle")?.checked),
+        },
+        metrics: {
+            eph: effectiveDuration > 0 ? encounters / effectiveDuration : 0,
+            deathsPerDay: players.reduce((total, player) => total + player.deathsPerDay, 0),
+            deathsPerHour: players.reduce((total, player) => total + player.deathsPerHour, 0),
+            shardsPerDay,
+        },
+        drops: expectedDrops,
+        matchedDrops: expectedDrops.filter((drop) =>
+            ["fragments", "charms"].includes(classifyDropCategory(drop.hrid))
+        ),
+    };
+
+    const previousRecords = records;
+    try {
+        records = [savedRecord, ...records].slice(0, MAX_RECORDS);
+        persistRecords();
+        setNotice(notice, toolText("saved", "Result saved."), false);
+        renderArchive();
+        renderCompareOptions();
+    } catch {
+        records = previousRecords;
+        setNotice(notice, toolText("storageError", "Could not read or write saved results."), true);
+    }
+}
+
+function deleteRecord(id) {
+    const previousRecords = records;
+    records = records.filter((record) => record.id !== id);
+    try {
+        persistRecords();
+        renderArchive();
+        renderCompareOptions();
+    } catch {
+        records = previousRecords;
+        renderArchive();
+    }
+}
+
+function clearRecords() {
+    if (!window.confirm(toolText("confirmClear", "Delete all saved results?"))) return;
+    const previousRecords = records;
+    records = [];
+    try {
+        persistRecords();
+        renderArchive();
+        renderCompareOptions();
+    } catch {
+        records = previousRecords;
+        renderArchive();
+    }
+}
+
+function getRecordOptionLabel(record) {
+    return `${mapLabel(record)} · ${record.difficulty} · ${recordTitle(record)}`;
+}
+
+function renderCompareOptions(selectA = "", selectB = "") {
+    const selectOne = document.getElementById("simulationResultCompareA");
+    const selectTwo = document.getElementById("simulationResultCompareB");
+    const sortedRecords = records.slice().sort((a, b) => b.savedAt - a.savedAt);
+    for (const select of [selectOne, selectTwo]) {
+        select.replaceChildren();
+        const emptyOption = document.createElement("option");
+        emptyOption.value = "";
+        emptyOption.textContent = toolText("selectRecord", "Select a saved result");
+        select.append(emptyOption);
+        for (const record of sortedRecords) {
+            const option = document.createElement("option");
+            option.value = record.id;
+            option.textContent = getRecordOptionLabel(record);
+            select.append(option);
+        }
+    }
+    selectOne.value = selectA || sortedRecords[0]?.id || "";
+    selectTwo.value = selectB || sortedRecords[1]?.id || "";
+    renderComparison();
+}
+
+function getComparableItems(record) {
+    const items = [];
+    for (const drop of record.drops || []) {
+        const hrid = drop.hrid || "";
+        items.push({
+            key: `drop:${hrid || drop.name}`,
+            category: classifyDropCategory(hrid),
+            name: hrid ? itemNameFor(hrid) : drop.name,
+            quantity: Number(drop.quantity) || 0,
+        });
+    }
+
+    for (const player of record.players || []) {
+        for (const item of player.consumables || []) {
+            const hrid = item.hrid || "";
+            items.push({
+                key: `consumable:${player.hrid || player.name}:${hrid || item.name}`,
+                category: "consumables",
+                name: `${player.name}: ${hrid ? itemNameFor(hrid) : item.name}`,
+                quantity: Number(item.quantity) || 0,
+            });
+        }
+    }
+    return items;
+}
+
+function renderComparison() {
+    const rows = document.getElementById("simulationResultCompareRows");
+    const notice = document.getElementById("simulationResultCompareNotice");
+    const selectedCategories = new Set(
+        [...document.querySelectorAll("#simulationResultCompareCategories input:checked")]
+            .map((input) => input.dataset.category)
+    );
+    const recordA = records.find((record) => record.id === document.getElementById("simulationResultCompareA").value);
+    const recordB = records.find((record) => record.id === document.getElementById("simulationResultCompareB").value);
+    rows.replaceChildren();
+
+    if (!recordA || !recordB) {
+        setNotice(notice, toolText("selectTwoRecords", "Select two saved results to compare."), false);
+        return;
+    }
+    setNotice(notice, "", false);
+
+    const itemsA = new Map(getComparableItems(recordA).map((item) => [item.key, item]));
+    const itemsB = new Map(getComparableItems(recordB).map((item) => [item.key, item]));
+    const allItems = new Set([...itemsA.keys(), ...itemsB.keys()]);
+    const visibleDrops = [...allItems]
+        .map((key) => {
+            const item = itemsB.get(key) || itemsA.get(key);
+            return {
+                name: item.name,
+                category: item.category,
+                valueA: itemsA.get(key)?.quantity || 0,
+                valueB: itemsB.get(key)?.quantity || 0,
+            };
+        })
+        .filter((item) => selectedCategories.has(item.category))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+    if (visibleDrops.length === 0) {
+        const row = document.createElement("tr");
+        const cell = makeCell(toolText("noMatchingDrops", "No matching drops in the selected categories."));
+        cell.colSpan = 5;
+        cell.className = "text-center text-muted";
+        row.append(cell);
+        rows.append(row);
+        return;
+    }
+
+    for (const drop of visibleDrops) {
+        const difference = drop.valueB - drop.valueA;
+        const tone = comparisonTone(drop.valueA, drop.valueB);
+        const percent = drop.valueA === 0
+            ? (drop.valueB === 0 ? "-" : "∞")
+            : `${((difference / drop.valueA) * 100).toFixed(2)}%`;
+        const row = document.createElement("tr");
+        row.append(
+            makeCell(drop.name),
+            makeCell(formatQuantity(drop.valueA), "text-end"),
+            makeCell(formatQuantity(drop.valueB), "text-end"),
+            makeCell(formatQuantity(difference), `text-end ${tone}`),
+            makeCell(percent, `text-end ${tone}`)
+        );
+        rows.append(row);
+    }
+}
+
+function openCompareWithRecord(id) {
+    const otherRecord = records.find((record) => record.id !== id);
+    renderCompareOptions(id, otherRecord?.id || "");
+    const archiveModal = document.getElementById("simulationResultArchiveModal");
+    const compareModal = document.getElementById("simulationResultCompareModal");
+    archiveModal.addEventListener("hidden.bs.modal", () => {
+        bootstrap.Modal.getOrCreateInstance(compareModal).show();
+    }, { once: true });
+    bootstrap.Modal.getOrCreateInstance(archiveModal).hide();
+}
+
+function setCurrentSimulationResult(simResult, playerHrids, getExpectedDropsForPlayer) {
+    latestResultContext = {
+        simResult,
+        playerHrids,
+        getExpectedDropsForPlayer,
+    };
+}
+
+function initSimulationResultTools() {
+    records = loadRecords();
+    document.getElementById("buttonSaveSimulationResult").addEventListener("click", saveCurrentResult);
+    document.getElementById("buttonClearSimulationResults").addEventListener("click", clearRecords);
+    document.getElementById("simulationResultArchiveModal").addEventListener("show.bs.modal", renderArchive);
+    document.getElementById("simulationResultCompareModal").addEventListener("show.bs.modal", () => {
+        renderCompareOptions(
+            document.getElementById("simulationResultCompareA").value,
+            document.getElementById("simulationResultCompareB").value
+        );
+    });
+    document.getElementById("simulationResultCompareA").addEventListener("change", renderComparison);
+    document.getElementById("simulationResultCompareB").addEventListener("change", renderComparison);
+    document.getElementById("simulationResultCompareCategories").addEventListener("change", renderComparison);
+    renderArchive();
+    renderCompareOptions();
+}
+
+
+/***/ }),
+
 /***/ "./patchNote.json":
 /*!************************!*\
   !*** ./patchNote.json ***!
@@ -1562,6 +2618,16 @@ class Trigger {
 /***/ ((module) => {
 
 module.exports = /*#__PURE__*/JSON.parse('{"2026年5月5日":["更新装备数据和本地化名称"],"2026年4月7日":["增加字段显示迷宫尝试次数和迷宫成功率"],"2026年3月5日":["优化狂怒相关的模拟性能"],"2026年3月3日":["支持迷宫封印对应的个人增益"],"2026年2月24日":["更新迷宫补丁的数据","新增支持迷宫单体/批量模拟"],"2026年2月1日":["修正战斗等级计算的精度","修正地下城完成或失败后重新进入战斗的时间间隔 by wangchyan","修正诅咒和削弱的持续时间 by wangchyan","修正诅咒和狂怒的触发逻辑 by wangchyan","修正地下城团灭重置机制的部分逻辑 by wangchyan","修复守护光环和速度光环部分增益未正确受对应等级加强的异常 by wangchyan","修复无敌技能未正确影响韧性数值的缺陷 by wangchyan","修复初次进入战斗时未能优先吃喝的异常 by wangchyan","战斗时长相关的统计现在仅计算已完成的战斗，不再包含当前未结束的战斗 by wangchyan"],"2026年1月11日":["修复trigger错误计算已阵亡单位的问题 by wangchyan"],"2025年12月31日":["实验性功能新增HP/MP可视化图表 by wangchyan","修复防御伤害未正确受damge加成的异常 by wangchyan","修复守护光环的治疗加成效果未生效的异常 by wangchyan","修复快速治疗等技能未正确选择最低%生命为目标的错误 by wangchyan"],"2025年12月30日":["地下城增加最短完成时间记录"],"2025年12月24日":["修复技能释放选择的缺陷，之前可能存在异常缺蓝等情况"],"2025年12月18日":["支持成就系统及对应buff效果","地下城怪物的掉落不再生效"],"2025年12月6日":["修复游戏更新后技能在无trigger情况下由[]变为null时造成的异常"],"2025年11月7日":["兼容支持从CN镜像站调用API获取价格"],"2025年10月14日":["修复怪物攻击间隔数值未能适配攻击等级的问题"],"2025年9月17日":["修复暴击光环的trigger缺陷"],"2025年9月9日":["复活时不再错误的清空所有buff","团灭日志增加反伤、荆棘和DOT伤害记录"],"2025年8月21日":["增加单挑战斗批量模拟和对应怪物选项","增加MooPass和社区buff的选项及对应功能","精炼装备数值加强","秘法主教属性削弱","init_client_info_v1.20250819.0.json游戏数据更新"],"2025年8月20日":["修复经验和掉落计算在极端情况下的可能异常"],"2025年8月19日":["合并Test和Temp分支的rework内容","init_client_info_v1.20250818.0.json游戏数据更新"],"2025年8月18日":["修复贯穿技能可能对相同目标造成重复伤害的问题","修复团灭日志在黑夜模式下的显示异常","战斗等级公式更新","钟乳石魔像的荆棘数值调整","init_client_info_v1.20250626.0_0817.json游戏数据更新"],"2025年8月16日":["增加停止模拟按钮 by BKN46","增加技能顺序调整按钮 by BKN46","增加团灭日志 by TruthLight","怪物属性更新","奥术反射更名为报应","init_client_info_v1.20250626.0_0815.json游戏数据更新"],"2025年8月14日":["怪物属性更新","远程和法师装备属性调整","反伤计算上限调整","修复战斗间隔释放技能的异常","修复技能释放判断逻辑的异常","法力值耗尽比例更加准确","调整远程经验的15%和魔法经验的12%映射到攻击经验","init_client_info_v1.20250626.0_0813.json游戏数据更新"],"2025年8月11日":["怪物属性更新","近战和物理技能施法时间更新","盾击和重锤数值调整","双手盾防御经验加成调整","init_client_info_v1.20250626.0_0811.json游戏数据更新"],"2025年8月8日":["实现组队等级差过大时对掉落和经验的惩罚","实现怪物经验随狂暴进度百分比增加","暴击光环数值调整","增加战斗等级数值显示","增加等级差距惩罚数值显示","init_client_info_v1.20250626.0_0807.json游戏数据更新"],"2025年8月7日":["修复组队战斗时一些重复物品掉落数量异常的缺陷 by contr4l","init_client_info_v1.20250626.0_0806.json游戏数据更新"],"2025年8月3日":["怪物狂暴机制及对应trigger生效","精炼装备更新，护符数值调整，守护光环增加闪避率","init_client_info_v1.20250626.0_0802.json游戏数据更新","狂怒层数修正为5层","招架结算机制调整"],"2025年7月31日":["物品数据和怪物属性更新","尖刺外壳和奥术反射重做","强化数值更新","删除异常trigger","狮鹫盾的虚弱重做","君王剑招架对队友生效","狂怒特效最大层数修正为6层","涟漪特效增加10MP恢复","反伤正确显示其命中率","反伤机制调整","同步双手盾属性和反伤荆棘技能数值的调整"],"2025年7月22日":["暴击光环受远程等级加成","光环基础数值和等级加成调整"],"2025年7月17日":["批量模拟支持勾选星球","经验分配比例调整至30%+70%","光环及对应trigger，并按对应技能等级百分比加成","水火自然默认调整为元素光环","init_client_info_v1.20250626.0_0717.json游戏数据更新"],"2025年7月11日":["怪物经验和技能等级公式更新","闪避和抗性计算公式更新","力量更替为近战以及对应的兼容","init_client_info_v1.20250626.0_0711.json游戏数据更新"],"2025年7月10日":["修复贯穿技能由敌人释放时可能多次击中相同目标的缺陷"],"2025年7月9日":["掉落和掉率调整","经验调整","疫病射击和破甲之刺调整","怪物自动恢复移除","疫病射击trigger调整","获取价格使用官方API"],"2025年7月7日":["怪物属性缩放和地图多难度","法师技能调整和装备上\'技能伤害\'词缀生效","攻击等级和房屋等级对施法速度的影响生效","物品调整","精准重做以攻击等级计算","TEST 远程魔法经验的10%映射到攻击经验！","经验重做和护符装备"]}');
+
+/***/ }),
+
+/***/ "./src/assets/drop-item-icons.json":
+/*!*****************************************!*\
+  !*** ./src/assets/drop-item-icons.json ***!
+  \*****************************************/
+/***/ ((module) => {
+
+module.exports = /*#__PURE__*/JSON.parse('["abyssal_essence","advanced_attack_charm","advanced_defense_charm","advanced_intelligence_charm","advanced_magic_charm","advanced_melee_charm","advanced_ranged_charm","advanced_stamina_charm","amber","amethyst","apple","apple_gummy","aqua_arrow","aqua_essence","arcane_log","azure_cheese","bamboo_branch","bamboo_fabric","basic_attack_charm","basic_defense_charm","basic_intelligence_charm","basic_magic_charm","basic_melee_charm","basic_ranged_charm","basic_stamina_charm","bear_essence","beast_hide","berserk","birch_log","black_bear_fluff","black_tea_leaf","blackberry","blue_key_fragment","blueberry","brown_key_fragment","burble_cheese","burble_milk","burble_tea_leaf","burning_key_fragment","cedar_log","centaur_hoof","cheese","chrono_sphere","cleave","cocoon","coin","colossus_core","cotton","cotton_fabric","crab_pincer","crimson_cheese","crimson_milk","critical_aura","dark_key_fragment","demonic_core","dragon_fruit","dragon_fruit_gummy","egg","elemental_affinity","elusiveness","emp_tea_leaf","entangle","eye_of_the_watcher","eyessence","fierce_aura","fireball","firestorm","flame_arrow","flame_blast","flaming_cloth","flax","frenzy","frost_sphere","frost_surge","garnet","gator_vest","ginkgo_log","gobo_boomstick","gobo_defender","gobo_essence","gobo_hide","gobo_rag","gobo_shooter","gobo_slasher","gobo_smasher","gobo_stabber","goggles","golem_essence","green_key_fragment","green_tea_leaf","grizzly_bear_fluff","guardian_aura","heal","holy_milk","ice_spear","icy_cloth","impale","infernal_ember","insanity","invincible","jade","jungle_essence","large_treasure_chest","linen_fabric","living_granite","log","luna_wing","magnet","magnifying_glass","maim","marine_scale","marsberry","medium_treasure_chest","minor_heal","mooberry","moolong_tea_leaf","moonstone","mystic_aura","natures_veil","orange","orange_gummy","orange_key_fragment","panda_fluff","peach","peach_gummy","pearl","plum","plum_gummy","poke","polar_bear_fluff","precision","provoke","puncture","purple_key_fragment","purpleheart_log","quick_aid","quick_shot","radiant_fiber","rain_of_arrows","rainbow_milk","red_panda_fluff","red_tea_leaf","redwood_log","rejuvenate","reptile_hide","revenant_anima","revive","rough_hide","scratch","shoebill_feather","silencing_shot","silk_fabric","smack","small_treasure_chest","snail_shell","snake_fang","sorcerer_essence","sorcerers_sole","soul_fragment","spaceberry","speed_aura","spike_shell","stalactite_shard","star_fruit","steady_shot","stone_key_fragment","strawberry","stunning_blow","sugar","swamp_essence","sweep","taunt","tome_of_healing","tome_of_the_elements","toughness","toxic_pollen","treant_bark","turtle_shell","twilight_essence","umbral_hide","umbral_leather","vampire_fang","vampirism","verdant_cheese","water_strike","werewolf_claw","wheat","white_key_fragment"]');
 
 /***/ }),
 
@@ -1863,23 +2929,27 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _combatsimulator_player_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./combatsimulator/player.js */ "./src/combatsimulator/player.js");
 /* harmony import */ var _combatsimulator_data_abilityDetailMap_json__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./combatsimulator/data/abilityDetailMap.json */ "./src/combatsimulator/data/abilityDetailMap.json");
 /* harmony import */ var _combatsimulator_data_itemDetailMap_json__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./combatsimulator/data/itemDetailMap.json */ "./src/combatsimulator/data/itemDetailMap.json");
-/* harmony import */ var _combatsimulator_data_houseRoomDetailMap_json__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./combatsimulator/data/houseRoomDetailMap.json */ "./src/combatsimulator/data/houseRoomDetailMap.json");
-/* harmony import */ var _combatsimulator_ability_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./combatsimulator/ability.js */ "./src/combatsimulator/ability.js");
-/* harmony import */ var _combatsimulator_consumable_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./combatsimulator/consumable.js */ "./src/combatsimulator/consumable.js");
-/* harmony import */ var _combatsimulator_houseRoom__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./combatsimulator/houseRoom */ "./src/combatsimulator/houseRoom.js");
-/* harmony import */ var _combatsimulator_data_combatTriggerDependencyDetailMap_json__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./combatsimulator/data/combatTriggerDependencyDetailMap.json */ "./src/combatsimulator/data/combatTriggerDependencyDetailMap.json");
-/* harmony import */ var _combatsimulator_data_combatTriggerConditionDetailMap_json__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./combatsimulator/data/combatTriggerConditionDetailMap.json */ "./src/combatsimulator/data/combatTriggerConditionDetailMap.json");
-/* harmony import */ var _combatsimulator_data_combatTriggerComparatorDetailMap_json__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./combatsimulator/data/combatTriggerComparatorDetailMap.json */ "./src/combatsimulator/data/combatTriggerComparatorDetailMap.json");
-/* harmony import */ var _combatsimulator_data_abilitySlotsLevelRequirementList_json__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./combatsimulator/data/abilitySlotsLevelRequirementList.json */ "./src/combatsimulator/data/abilitySlotsLevelRequirementList.json");
-/* harmony import */ var _combatsimulator_data_actionDetailMap_json__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./combatsimulator/data/actionDetailMap.json */ "./src/combatsimulator/data/actionDetailMap.json");
-/* harmony import */ var _combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./combatsimulator/data/combatMonsterDetailMap.json */ "./src/combatsimulator/data/combatMonsterDetailMap.json");
-/* harmony import */ var _combatsimulator_data_damageTypeDetailMap_json__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./combatsimulator/data/damageTypeDetailMap.json */ "./src/combatsimulator/data/damageTypeDetailMap.json");
-/* harmony import */ var _combatsimulator_data_combatStyleDetailMap_json__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./combatsimulator/data/combatStyleDetailMap.json */ "./src/combatsimulator/data/combatStyleDetailMap.json");
-/* harmony import */ var _combatsimulator_data_openableLootDropMap_json__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./combatsimulator/data/openableLootDropMap.json */ "./src/combatsimulator/data/openableLootDropMap.json");
-/* harmony import */ var _combatsimulator_data_achievementTierDetailMap_json__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./combatsimulator/data/achievementTierDetailMap.json */ "./src/combatsimulator/data/achievementTierDetailMap.json");
-/* harmony import */ var _combatsimulator_data_achievementDetailMap_json__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./combatsimulator/data/achievementDetailMap.json */ "./src/combatsimulator/data/achievementDetailMap.json");
-/* harmony import */ var _combatsimulator_data_talismanModifierDetailMap_json__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./combatsimulator/data/talismanModifierDetailMap.json */ "./src/combatsimulator/data/talismanModifierDetailMap.json");
-/* harmony import */ var _patchNote_json__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ../patchNote.json */ "./patchNote.json");
+/* harmony import */ var _assets_drop_item_icons_json__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./assets/drop-item-icons.json */ "./src/assets/drop-item-icons.json");
+/* harmony import */ var _combatsimulator_data_houseRoomDetailMap_json__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./combatsimulator/data/houseRoomDetailMap.json */ "./src/combatsimulator/data/houseRoomDetailMap.json");
+/* harmony import */ var _combatsimulator_ability_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./combatsimulator/ability.js */ "./src/combatsimulator/ability.js");
+/* harmony import */ var _combatsimulator_consumable_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./combatsimulator/consumable.js */ "./src/combatsimulator/consumable.js");
+/* harmony import */ var _combatsimulator_houseRoom__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./combatsimulator/houseRoom */ "./src/combatsimulator/houseRoom.js");
+/* harmony import */ var _combatsimulator_data_combatTriggerDependencyDetailMap_json__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./combatsimulator/data/combatTriggerDependencyDetailMap.json */ "./src/combatsimulator/data/combatTriggerDependencyDetailMap.json");
+/* harmony import */ var _combatsimulator_data_combatTriggerConditionDetailMap_json__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./combatsimulator/data/combatTriggerConditionDetailMap.json */ "./src/combatsimulator/data/combatTriggerConditionDetailMap.json");
+/* harmony import */ var _combatsimulator_data_combatTriggerComparatorDetailMap_json__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./combatsimulator/data/combatTriggerComparatorDetailMap.json */ "./src/combatsimulator/data/combatTriggerComparatorDetailMap.json");
+/* harmony import */ var _combatsimulator_data_abilitySlotsLevelRequirementList_json__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./combatsimulator/data/abilitySlotsLevelRequirementList.json */ "./src/combatsimulator/data/abilitySlotsLevelRequirementList.json");
+/* harmony import */ var _combatsimulator_data_actionDetailMap_json__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./combatsimulator/data/actionDetailMap.json */ "./src/combatsimulator/data/actionDetailMap.json");
+/* harmony import */ var _combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./combatsimulator/data/combatMonsterDetailMap.json */ "./src/combatsimulator/data/combatMonsterDetailMap.json");
+/* harmony import */ var _combatsimulator_data_damageTypeDetailMap_json__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./combatsimulator/data/damageTypeDetailMap.json */ "./src/combatsimulator/data/damageTypeDetailMap.json");
+/* harmony import */ var _combatsimulator_data_combatStyleDetailMap_json__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./combatsimulator/data/combatStyleDetailMap.json */ "./src/combatsimulator/data/combatStyleDetailMap.json");
+/* harmony import */ var _combatsimulator_data_openableLootDropMap_json__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./combatsimulator/data/openableLootDropMap.json */ "./src/combatsimulator/data/openableLootDropMap.json");
+/* harmony import */ var _combatsimulator_data_achievementTierDetailMap_json__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./combatsimulator/data/achievementTierDetailMap.json */ "./src/combatsimulator/data/achievementTierDetailMap.json");
+/* harmony import */ var _combatsimulator_data_achievementDetailMap_json__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./combatsimulator/data/achievementDetailMap.json */ "./src/combatsimulator/data/achievementDetailMap.json");
+/* harmony import */ var _combatsimulator_data_talismanModifierDetailMap_json__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./combatsimulator/data/talismanModifierDetailMap.json */ "./src/combatsimulator/data/talismanModifierDetailMap.json");
+/* harmony import */ var _simulationResultTools__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./simulationResultTools */ "./src/simulationResultTools.js");
+/* harmony import */ var _patchNote_json__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ../patchNote.json */ "./patchNote.json");
+
+
 
 
 
@@ -2005,7 +3075,7 @@ function initEquipmentSection() {
 function initTalismanModifierSection() {
     const tableBody = document.getElementById("talismanModifierRows");
     const supportedStats = new Set(_combatsimulator_player_js__WEBPACK_IMPORTED_MODULE_1__["default"].combatEquipmentStats);
-    const combatModifiers = Object.values(_combatsimulator_data_talismanModifierDetailMap_json__WEBPACK_IMPORTED_MODULE_19__)
+    const combatModifiers = Object.values(_combatsimulator_data_talismanModifierDetailMap_json__WEBPACK_IMPORTED_MODULE_20__)
         .filter((modifier) => modifier.talismanTypeHrid == "/talisman_types/combat")
         .filter((modifier) => modifier.keys.every((key) => {
             const stat = key.charAt(0).toLowerCase() + key.slice(1);
@@ -2182,7 +3252,7 @@ function updateTalismanModifierDisplays() {
 
         const modifierHrid = row.cells[0].querySelector("select").value;
         const gradeIndex = Number(row.cells[1].querySelector("select").value);
-        const modifier = _combatsimulator_data_talismanModifierDetailMap_json__WEBPACK_IMPORTED_MODULE_19__[modifierHrid];
+        const modifier = _combatsimulator_data_talismanModifierDetailMap_json__WEBPACK_IMPORTED_MODULE_20__[modifierHrid];
         if (!modifier) {
             row.cells[2].textContent = rowIsAvailable ? "" : "未生效";
             if (!rowIsAvailable) {
@@ -2240,7 +3310,7 @@ function initEquipmentSelect(equipmentType) {
 function initHouseRoomsModal() {
     let houseRoomsList = document.getElementById("houseRoomsList");
     let newChildren = [];
-    let houseRooms = Object.values(_combatsimulator_data_houseRoomDetailMap_json__WEBPACK_IMPORTED_MODULE_4__).sort((a, b) => a.sortIndex - b.sortIndex);
+    let houseRooms = Object.values(_combatsimulator_data_houseRoomDetailMap_json__WEBPACK_IMPORTED_MODULE_5__).sort((a, b) => a.sortIndex - b.sortIndex);
     player.houseRooms = {};
 
     for (const room of Object.values(houseRooms)) {
@@ -2284,7 +3354,7 @@ function createHouseInput(hrid) {
 }
 
 function refreshAchievementStatics() {
-    let tierMap = Object.values(_combatsimulator_data_achievementTierDetailMap_json__WEBPACK_IMPORTED_MODULE_17__).sort((a, b) => a.sortIndex - b.sortIndex);
+    let tierMap = Object.values(_combatsimulator_data_achievementTierDetailMap_json__WEBPACK_IMPORTED_MODULE_18__).sort((a, b) => a.sortIndex - b.sortIndex);
     for (const tier of Object.values(tierMap)) {
         const checks = document.querySelectorAll(`input[data-achievement-hrid][data-tier="${tier.sortIndex}"]`);
         const done = Array.from(checks).filter(cb => cb.checked).length;
@@ -2309,9 +3379,9 @@ function initAchievementsModal() {
     let newChildren = [];
     player.achievements = {};
 
-    let tierMap = Object.values(_combatsimulator_data_achievementTierDetailMap_json__WEBPACK_IMPORTED_MODULE_17__).sort((a, b) => a.sortIndex - b.sortIndex);
+    let tierMap = Object.values(_combatsimulator_data_achievementTierDetailMap_json__WEBPACK_IMPORTED_MODULE_18__).sort((a, b) => a.sortIndex - b.sortIndex);
     for (const tier of Object.values(tierMap)) {
-        let detailMap = Object.values(_combatsimulator_data_achievementDetailMap_json__WEBPACK_IMPORTED_MODULE_18__).filter((detail) => detail.tierHrid == tier.hrid).sort((a, b) => a.sortIndex - b.sortIndex);
+        let detailMap = Object.values(_combatsimulator_data_achievementDetailMap_json__WEBPACK_IMPORTED_MODULE_19__).filter((detail) => detail.tierHrid == tier.hrid).sort((a, b) => a.sortIndex - b.sortIndex);
         let detailMapCount = detailMap.length;
         if (detailMapCount <= 0) continue;
 
@@ -2624,11 +3694,11 @@ function updateCombatStatsUI() {
     let combatStyleElement = document.getElementById("combatStat_combatStyleHrid");
     let combatStyle = player.combatDetails.combatStats.combatStyleHrid;
     combatStyleElement.setAttribute("data-i18n", "combatStyleNames." + combatStyle);
-    combatStyleElement.innerHTML = _combatsimulator_data_combatStyleDetailMap_json__WEBPACK_IMPORTED_MODULE_15__[combatStyle].name;
+    combatStyleElement.innerHTML = _combatsimulator_data_combatStyleDetailMap_json__WEBPACK_IMPORTED_MODULE_16__[combatStyle].name;
     renderFinalOnly(combatStyleElement);
 
     let damageTypeElement = document.getElementById("combatStat_damageType");
-    let damageType = _combatsimulator_data_damageTypeDetailMap_json__WEBPACK_IMPORTED_MODULE_14__[player.combatDetails.combatStats.damageType];
+    let damageType = _combatsimulator_data_damageTypeDetailMap_json__WEBPACK_IMPORTED_MODULE_15__[player.combatDetails.combatStats.damageType];
     damageTypeElement.setAttribute("data-i18n", "damageTypeNames." + damageType.hrid);
     damageTypeElement.innerHTML = damageType.name;
     renderFinalOnly(damageTypeElement);
@@ -2969,9 +4039,9 @@ function updateAbilityUI() {
         let inputElement = document.getElementById("inputAbilityLevel_" + i);
         let triggerButton = document.getElementById("buttonAbilityTrigger_" + i);
 
-        selectElement.disabled = player.intelligenceLevel < _combatsimulator_data_abilitySlotsLevelRequirementList_json__WEBPACK_IMPORTED_MODULE_11__[i + 1];
-        inputElement.disabled = player.intelligenceLevel < _combatsimulator_data_abilitySlotsLevelRequirementList_json__WEBPACK_IMPORTED_MODULE_11__[i + 1];
-        triggerButton.disabled = player.intelligenceLevel < _combatsimulator_data_abilitySlotsLevelRequirementList_json__WEBPACK_IMPORTED_MODULE_11__[i + 1] || !main_abilities[i];
+        selectElement.disabled = player.intelligenceLevel < _combatsimulator_data_abilitySlotsLevelRequirementList_json__WEBPACK_IMPORTED_MODULE_12__[i + 1];
+        inputElement.disabled = player.intelligenceLevel < _combatsimulator_data_abilitySlotsLevelRequirementList_json__WEBPACK_IMPORTED_MODULE_12__[i + 1];
+        triggerButton.disabled = player.intelligenceLevel < _combatsimulator_data_abilitySlotsLevelRequirementList_json__WEBPACK_IMPORTED_MODULE_12__[i + 1] || !main_abilities[i];
         let moveUpButton = document.getElementById("selectAbilityMoveUp_" + i);
         moveUpButton.onclick = () => swapAbilityOrder(i, -1);
     }
@@ -3190,7 +4260,7 @@ function updateTriggerModal() {
 
         triggerComparatorSelect.value = modalTriggers[i].comparatorHrid;
 
-        if (_combatsimulator_data_combatTriggerComparatorDetailMap_json__WEBPACK_IMPORTED_MODULE_10__[modalTriggers[i].comparatorHrid].allowValue) {
+        if (_combatsimulator_data_combatTriggerComparatorDetailMap_json__WEBPACK_IMPORTED_MODULE_11__[modalTriggers[i].comparatorHrid].allowValue) {
             showElement(triggerValueInput);
             triggerValueInput.value = modalTriggers[i].value;
         } else {
@@ -3208,7 +4278,7 @@ function fillTriggerDependencySelect(element) {
     element.length = 0;
     element.add(new Option("", ""));
 
-    for (const dependency of Object.values(_combatsimulator_data_combatTriggerDependencyDetailMap_json__WEBPACK_IMPORTED_MODULE_8__).sort(
+    for (const dependency of Object.values(_combatsimulator_data_combatTriggerDependencyDetailMap_json__WEBPACK_IMPORTED_MODULE_9__).sort(
         (a, b) => a.sortIndex - b.sortIndex
     )) {
         let opt = new Option(dependency.name, dependency.hrid);
@@ -3218,13 +4288,13 @@ function fillTriggerDependencySelect(element) {
 }
 
 function fillTriggerConditionSelect(element, dependencyHrid) {
-    let dependency = _combatsimulator_data_combatTriggerDependencyDetailMap_json__WEBPACK_IMPORTED_MODULE_8__[dependencyHrid];
+    let dependency = _combatsimulator_data_combatTriggerDependencyDetailMap_json__WEBPACK_IMPORTED_MODULE_9__[dependencyHrid];
 
     let conditions;
     if (dependency.isSingleTarget) {
-        conditions = Object.values(_combatsimulator_data_combatTriggerConditionDetailMap_json__WEBPACK_IMPORTED_MODULE_9__).filter((condition) => condition.isSingleTarget);
+        conditions = Object.values(_combatsimulator_data_combatTriggerConditionDetailMap_json__WEBPACK_IMPORTED_MODULE_10__).filter((condition) => condition.isSingleTarget);
     } else {
-        conditions = Object.values(_combatsimulator_data_combatTriggerConditionDetailMap_json__WEBPACK_IMPORTED_MODULE_9__).filter((condition) => condition.isMultiTarget);
+        conditions = Object.values(_combatsimulator_data_combatTriggerConditionDetailMap_json__WEBPACK_IMPORTED_MODULE_10__).filter((condition) => condition.isMultiTarget);
     }
 
     element.length = 0;
@@ -3238,9 +4308,9 @@ function fillTriggerConditionSelect(element, dependencyHrid) {
 }
 
 function fillTriggerComparatorSelect(element, conditionHrid) {
-    let condition = _combatsimulator_data_combatTriggerConditionDetailMap_json__WEBPACK_IMPORTED_MODULE_9__[conditionHrid];
+    let condition = _combatsimulator_data_combatTriggerConditionDetailMap_json__WEBPACK_IMPORTED_MODULE_10__[conditionHrid];
 
-    let comparators = condition.allowedComparatorHrids.map((hrid) => _combatsimulator_data_combatTriggerComparatorDetailMap_json__WEBPACK_IMPORTED_MODULE_10__[hrid]);
+    let comparators = condition.allowedComparatorHrids.map((hrid) => _combatsimulator_data_combatTriggerComparatorDetailMap_json__WEBPACK_IMPORTED_MODULE_11__[hrid]);
 
     element.length = 0;
     element.add(new Option("", ""));
@@ -3270,7 +4340,7 @@ function initZones() {
     let zoneSelect = document.getElementById("selectZone");
 
     // TOOD dungeon wave spawns
-    let gameZones = Object.values(_combatsimulator_data_actionDetailMap_json__WEBPACK_IMPORTED_MODULE_12__)
+    let gameZones = Object.values(_combatsimulator_data_actionDetailMap_json__WEBPACK_IMPORTED_MODULE_13__)
         .filter((action) => action.type == "/action_types/combat" && action.category != "/action_categories/combat/dungeons")
         .sort((a, b) => a.sortIndex - b.sortIndex);
 
@@ -3295,7 +4365,7 @@ function initZones() {
         }
     });
 
-    let zoneHrids = Object.values(_combatsimulator_data_actionDetailMap_json__WEBPACK_IMPORTED_MODULE_12__)
+    let zoneHrids = Object.values(_combatsimulator_data_actionDetailMap_json__WEBPACK_IMPORTED_MODULE_13__)
         .filter((action) => action.type == "/action_types/combat" && action.category != "/action_categories/combat/dungeons" && action.combatZoneInfo.fightInfo.randomSpawnInfo.maxSpawnCount > 1)
         .sort((a, b) => a.sortIndex - b.sortIndex)
         .flat();
@@ -3338,7 +4408,7 @@ function initZones() {
         }
     });
 
-    let soloHrids = Object.values(_combatsimulator_data_actionDetailMap_json__WEBPACK_IMPORTED_MODULE_12__)
+    let soloHrids = Object.values(_combatsimulator_data_actionDetailMap_json__WEBPACK_IMPORTED_MODULE_13__)
         .filter((action) => action.type == "/action_types/combat" && action.category != "/action_categories/combat/dungeons" && action.combatZoneInfo.fightInfo.randomSpawnInfo.maxSpawnCount == 1)
         .sort((a, b) => a.sortIndex - b.sortIndex)
         .flat();
@@ -3370,7 +4440,7 @@ function initZones() {
 function initDungeons() {
     let dungeonSelect = document.getElementById("selectDungeon");
 
-    let gameDungeons = Object.values(_combatsimulator_data_actionDetailMap_json__WEBPACK_IMPORTED_MODULE_12__)
+    let gameDungeons = Object.values(_combatsimulator_data_actionDetailMap_json__WEBPACK_IMPORTED_MODULE_13__)
         .filter((action) => action.type == "/action_types/combat" && action.category == "/action_categories/combat/dungeons")
         .sort((a, b) => a.sortIndex - b.sortIndex);
 
@@ -3393,7 +4463,7 @@ let isLabyRinthSim = false;
 function initLabyrinth() {
     let labyrinthSelect = document.getElementById("selectLabyrinth");
 
-    let gameLabyrinths = Object.values(_combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_13__)
+    let gameLabyrinths = Object.values(_combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_14__)
         .filter((monster) => monster.isLabyrinthMonster === true)
         .sort((a, b) => a.sortIndex - b.sortIndex);
 
@@ -3563,15 +4633,21 @@ function showSimulationResult(simResult) {
     renderWipeEvents(simResult);
     window.profit = window.revenue - window.expenses;
     document.getElementById('profitSpan').innerText = window.profit.toLocaleString();
-    document.getElementById('profitPreview').innerText = window.profit.toLocaleString();
     window.noRngProfit = window.noRngRevenue - window.expenses;
     document.getElementById('noRngProfitSpan').innerText = window.noRngProfit.toLocaleString();
-    document.getElementById('noRngProfitPreview').innerText = window.noRngProfit.toLocaleString();
 
     // 显示战斗图表
     if (document.getElementById('hpMpVisualizationToggle').checked) {
         renderCombatCharts(simResult);
     }
+    const playerHrids = selectedPlayers.map((playerNumber) => `player${playerNumber}`);
+    (0,_simulationResultTools__WEBPACK_IMPORTED_MODULE_21__.setCurrentSimulationResult)(
+        simResult,
+        playerHrids.length ? playerHrids : [playerToDisplay],
+        (playerHrid) => simResult.isDungeon
+            ? new Map()
+            : calcDropMaps(simResult, playerHrid, false).noRngTotalDropMap
+    );
 }
 
 function showAllSimulationResults(simResults) {
@@ -4011,7 +5087,7 @@ function fidDropAmount(dropAmount) {
     return Math.random() < fracPart ? intPart + 1 : intPart;
 }
 
-function calcDropMaps(simResult, playerToDisplay) {
+function calcDropMaps(simResult, playerToDisplay, includeRandomDrops = true) {
     let dropRateMultiplier = simResult.dropRateMultiplier[playerToDisplay];
     let rareFindMultiplier = simResult.rareFindMultiplier[playerToDisplay];
     let combatDropQuantity = simResult.combatDropQuantity[playerToDisplay];
@@ -4027,8 +5103,8 @@ function calcDropMaps(simResult, playerToDisplay) {
     for (const monster of monsters) {
         const dropMap = new Map();
         const rareDropMap = new Map();
-        if (_combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_13__[monster].dropTable) {
-            for (const drop of _combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_13__[monster].dropTable) {
+        if (_combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_14__[monster].dropTable) {
+            for (const drop of _combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_14__[monster].dropTable) {
                 if (drop.minDifficultyTier > simResult.difficultyTier) {
                     continue;
                 }
@@ -4039,8 +5115,8 @@ function calcDropMaps(simResult, playerToDisplay) {
 
                 dropMap.set(drop.itemHrid, { "dropRate": Math.min(1.0, dropRate * dropRateMultiplier), "number": 0, "dropMin": drop.minCount, "dropMax": drop.maxCount, "noRngDropAmount": 0 });
             }
-            if (_combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_13__[monster].rareDropTable)
-                for (const drop of _combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_13__[monster].rareDropTable) {
+            if (_combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_14__[monster].rareDropTable)
+                for (const drop of _combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_14__[monster].rareDropTable) {
                     if (drop.minDifficultyTier > simResult.difficultyTier) {
                         continue;
                     }
@@ -4055,19 +5131,21 @@ function calcDropMaps(simResult, playerToDisplay) {
                 dropObject.noRngDropAmount += simResult.deaths[monster] * dropObject.dropRate * ((dropObject.dropMax + dropObject.dropMin) / 2) * (1 + debuffOnLevelGap) * (1 + combatDropQuantity) / numberOfPlayers;
             }
 
-            for (let i = 0; i < simResult.deaths[monster]; i++) {
-                for (let dropObject of dropMap.values()) {
-                    let chance = Math.random();
-                    if (chance <= dropObject.dropRate / numberOfPlayers) {
-                        let amount = Math.floor(Math.random() * (dropObject.dropMax - dropObject.dropMin + 1) + dropObject.dropMin) * (1 + debuffOnLevelGap) * (1 + combatDropQuantity);
-                        dropObject.number = dropObject.number + fidDropAmount(amount);
+            if (includeRandomDrops) {
+                for (let i = 0; i < simResult.deaths[monster]; i++) {
+                    for (let dropObject of dropMap.values()) {
+                        let chance = Math.random();
+                        if (chance <= dropObject.dropRate / numberOfPlayers) {
+                            let amount = Math.floor(Math.random() * (dropObject.dropMax - dropObject.dropMin + 1) + dropObject.dropMin) * (1 + debuffOnLevelGap) * (1 + combatDropQuantity);
+                            dropObject.number = dropObject.number + fidDropAmount(amount);
+                        }
                     }
-                }
-                for (let dropObject of rareDropMap.values()) {
-                    let chance = Math.random();
-                    if (chance <= dropObject.dropRate / numberOfPlayers) {
-                        let amount = Math.floor(Math.random() * (dropObject.dropMax - dropObject.dropMin + 1) + dropObject.dropMin) * (1 + debuffOnLevelGap) * (1 + combatDropQuantity);
-                        dropObject.number = dropObject.number + fidDropAmount(amount);
+                    for (let dropObject of rareDropMap.values()) {
+                        let chance = Math.random();
+                        if (chance <= dropObject.dropRate / numberOfPlayers) {
+                            let amount = Math.floor(Math.random() * (dropObject.dropMax - dropObject.dropMin + 1) + dropObject.dropMin) * (1 + debuffOnLevelGap) * (1 + combatDropQuantity);
+                            dropObject.number = dropObject.number + fidDropAmount(amount);
+                        }
                     }
                 }
             }
@@ -4276,10 +5354,7 @@ document.getElementById('buttonExportResults').addEventListener('click', functio
 function showKills(simResult, playerToDisplay) {
     let resultDiv = document.getElementById("simulationResultKills");
     let dropsResultDiv = document.getElementById("simulationResultDrops");
-    let noRngDropsResultDiv = document.getElementById("noRngDrops");
     let newChildren = [];
-    let newDropChildren = [];
-    let newNoRngDropChildren = [];
 
     let hoursSimulated = simResult.simulatedTime / ONE_HOUR;
     if (simResult.isDungeon && simResult.lastDungeonFinishTime > 0) {
@@ -4355,7 +5430,7 @@ function showKills(simResult, playerToDisplay) {
             let killsPerHour = (simResult.deaths[monster] / hoursSimulated).toFixed(1);
             let monsterRow = createRow(
                 ["col-md-6", "col-md-6 text-end"],
-                [_combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_13__[monster].name, killsPerHour]
+                [_combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_14__[monster].name, killsPerHour]
             );
             monsterRow.firstElementChild.setAttribute("data-i18n", "monsterNames." + monster);
             newChildren.push(monsterRow);
@@ -4366,13 +5441,6 @@ function showKills(simResult, playerToDisplay) {
     let revenueModalTable = document.querySelector("#revenueTable > tbody");
     let total = 0;
     for (let [name, dropAmount] of totalDropMap.entries()) {
-        let dropRow = createRow(
-            ["col-md-6", "col-md-6 text-end"],
-            [name, dropAmount.toLocaleString()]
-        );
-        dropRow.firstElementChild.setAttribute("data-i18n", "itemNames." + name);
-        newDropChildren.push(dropRow);
-
         let tableRow = '<tr class="' + name.replace(/\s+/g, '') + '"><td data-i18n="itemNames.';
         tableRow += name;
         tableRow += '"></td><td contenteditable="true">';
@@ -4414,13 +5482,6 @@ function showKills(simResult, playerToDisplay) {
     let noRngRevenueModalTable = document.querySelector("#noRngRevenueTable > tbody");
     let noRngTotal = 0;
     for (let [name, dropAmount] of noRngTotalDropMap.entries()) {
-        let noRngDropRow = createRow(
-            ["col-md-6", "col-md-6 text-end"],
-            [name, dropAmount.toLocaleString()]
-        );
-        noRngDropRow.firstElementChild.setAttribute("data-i18n", "itemNames." + name);
-        newNoRngDropChildren.push(noRngDropRow);
-
         let tableRow = '<tr class="' + name.replace(/\s+/g, '') + '"><td data-i18n="itemNames.';
         tableRow += name;
         tableRow += '"></td><td contenteditable="true">';
@@ -4462,12 +5523,124 @@ function showKills(simResult, playerToDisplay) {
     document.getElementById('noRngRevenueSpan').innerText = noRngTotal.toLocaleString();
     window.noRngRevenue = noRngTotal;
 
-    let resultAccordion = document.getElementById("noRngDropsAccordion");
-    showElement(resultAccordion);
-
     resultDiv.replaceChildren(...newChildren);
-    dropsResultDiv.replaceChildren(...newDropChildren);
-    noRngDropsResultDiv.replaceChildren(...newNoRngDropChildren);
+    dropsResultDiv.replaceChildren(
+        ...(noRngTotalDropMap.size ? [createDropInventory(noRngTotalDropMap)] : [])
+    );
+}
+
+const dropCategoryIcons = {
+    "/item_categories/currency": "🪙",
+    "/item_categories/loot": "📦",
+    "/item_categories/scroll": "📜",
+    "/item_categories/labyrinth": "🌀",
+    "/item_categories/dungeon_key": "🗝️",
+    "/item_categories/food": "🍲",
+    "/item_categories/drink": "🧪",
+    "/item_categories/ability_book": "📘",
+    "/item_categories/equipment": "⚔️",
+    "/item_categories/resource": "💎",
+};
+const dropItemIcons = new Set(_assets_drop_item_icons_json__WEBPACK_IMPORTED_MODULE_4__);
+const dropItemSpriteUrl = new URL("assets/drop-items.svg", document.baseURI).href;
+
+function formatExpectedDropQuantity(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return "0";
+    const magnitude = Math.abs(number);
+    if (magnitude > 0 && magnitude < 0.001) return number < 0 ? ">-0.001" : "<0.001";
+    return number.toLocaleString(undefined, { maximumSignificantDigits: 6 });
+}
+
+function createDropInventory(dropMap) {
+    const root = document.createElement("div");
+    root.className = "drop-inventory";
+
+    const controls = document.createElement("div");
+    controls.className = "drop-inventory-modes";
+    const grid = document.createElement("div");
+    grid.className = "drop-inventory-grid";
+    grid.setAttribute("role", "list");
+    const list = document.createElement("div");
+    list.className = "drop-inventory-list";
+    list.setAttribute("role", "list");
+
+    const setMode = (mode) => {
+        root.dataset.mode = mode;
+        grid.hidden = mode !== "icons";
+        list.hidden = mode !== "text";
+        controls.querySelectorAll("button").forEach((button) => {
+            button.setAttribute("aria-pressed", String(button.dataset.mode === mode));
+        });
+    };
+
+    for (const mode of ["icons", "text"]) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "btn btn-sm btn-outline-secondary";
+        button.dataset.mode = mode;
+        button.dataset.i18n = mode === "icons" ? "common:dropIcons" : "common:dropText";
+        button.textContent = i18next.t(button.dataset.i18n);
+        button.addEventListener("click", () => setMode(mode));
+        controls.append(button);
+    }
+
+    for (const [hrid, amount] of dropMap) {
+        const item = _combatsimulator_data_itemDetailMap_json__WEBPACK_IMPORTED_MODULE_3__[hrid];
+        const itemName = item?.name || hrid;
+        const quantity = formatExpectedDropQuantity(amount);
+        const fullQuantity = Number(amount).toLocaleString(undefined, { maximumSignificantDigits: 16 });
+
+        const tile = document.createElement("button");
+        tile.type = "button";
+        tile.className = "drop-inventory-tile";
+        tile.title = `${itemName} × ${fullQuantity}`;
+        tile.setAttribute("aria-label", tile.title);
+        tile.dataset.itemHrid = hrid;
+        tile.dataset.quantity = String(amount);
+        tile.setAttribute("role", "listitem");
+
+        const iconId = hrid.split("/").pop();
+        if (dropItemIcons.has(iconId)) {
+            const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            icon.classList.add("drop-inventory-icon");
+            icon.setAttribute("viewBox", "0 0 50 50");
+            icon.setAttribute("aria-hidden", "true");
+            icon.setAttribute("focusable", "false");
+            const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+            use.setAttribute("href", `${dropItemSpriteUrl}#${iconId}`);
+            icon.append(use);
+            tile.append(icon);
+        } else {
+            const icon = document.createElement("span");
+            icon.className = "drop-inventory-icon";
+            icon.setAttribute("aria-hidden", "true");
+            icon.textContent = dropCategoryIcons[item?.categoryHrid] || "📦";
+            tile.append(icon);
+        }
+        const count = document.createElement("span");
+        count.className = "drop-inventory-quantity";
+        count.setAttribute("aria-hidden", "true");
+        count.textContent = quantity;
+        tile.append(count);
+        grid.append(tile);
+
+        const row = document.createElement("div");
+        row.className = "drop-inventory-text-row";
+        row.setAttribute("role", "listitem");
+        row.dataset.itemHrid = hrid;
+        const name = document.createElement("span");
+        name.dataset.i18n = `itemNames.${hrid}`;
+        name.textContent = itemName;
+        const textQuantity = document.createElement("span");
+        textQuantity.textContent = quantity;
+        row.append(name, textQuantity);
+        list.append(row);
+    }
+
+    root.append(controls, grid, list);
+    setMode("icons");
+    return root;
 }
 
 function showDeaths(simResult, playerToDisplay) {
@@ -4837,7 +6010,7 @@ function showDamageDone(simResult, playerToDisplay) {
         let resultAccordionButton = document.getElementById(
             "buttonSimulationResultDamageDoneAccordionEnemy" + enemyIndex
         );
-        let targetName = _combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_13__[target].name;
+        let targetName = _combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_14__[target].name;
         resultAccordionButton.innerHTML = "<b><span data-i18n=\"common:simulationResults.damageDone\">Damage Done</span> (" + "<span data-i18n=\"monsterNames." + target + "\">" + targetName + "</span>" + ")</b>";
 
         if (simResult.bossSpawns.includes(target)) {
@@ -4934,7 +6107,7 @@ function showDamageTaken(simResult, playerToDisplay) {
         let resultAccordionButton = document.getElementById(
             "buttonSimulationResultDamageTakenAccordionEnemy" + enemyIndex
         );
-        let sourceName = _combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_13__[source].name;
+        let sourceName = _combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_14__[source].name;
         resultAccordionButton.innerHTML = "<b><span data-i18n=\"common:simulationResults.damageTaken\">Damage Taken</span> (" + "<span data-i18n=\"monsterNames." + source + "\">" + sourceName + "</span>" + ")</b>";
 
         enemyIndex++;
@@ -5052,6 +6225,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const player4Input = document.getElementById('player4');
     const player5Input = document.getElementById('player5');
+    const selectAllPlayersInput = document.getElementById('selectAllPlayers');
+
+    function getVisiblePlayerCheckboxes() {
+        return Array.from(playerContainer.querySelectorAll('.player-checkbox'))
+            .filter((checkbox) => checkbox.parentElement.style.display !== 'none');
+    }
+
+    function updateSelectAllPlayers() {
+        const boxes = getVisiblePlayerCheckboxes();
+        const checkedCount = boxes.filter((checkbox) => checkbox.checked).length;
+        selectAllPlayersInput.checked = boxes.length > 0 && checkedCount === boxes.length;
+        selectAllPlayersInput.indeterminate = checkedCount > 0 && checkedCount < boxes.length;
+    }
 
     function addPlayers() {
         player4Input.parentElement.style.display = 'block';
@@ -5078,7 +6264,19 @@ document.addEventListener('DOMContentLoaded', function () {
     function updatePlayersCheckbox(isCheck) {
         const boxes = playerContainer.querySelectorAll('.player-checkbox');
         boxes.forEach((checkBox) => { checkBox.checked = isCheck });
+        updateSelectAllPlayers();
     }
+
+    selectAllPlayersInput.addEventListener('change', function () {
+        getVisiblePlayerCheckboxes().forEach((checkbox) => {
+            checkbox.checked = selectAllPlayersInput.checked;
+        });
+        updateSelectAllPlayers();
+    });
+    playerContainer.querySelectorAll('.player-checkbox').forEach((checkbox) => {
+        checkbox.addEventListener('change', updateSelectAllPlayers);
+    });
+    updateSelectAllPlayers();
 
     function updateDifficultySelect(isCheck) {
         const difficultySelect = document.getElementById('selectDifficulty');
@@ -5127,9 +6325,191 @@ document.querySelectorAll('#playerTab .nav-link').forEach(tab => {
     tab.addEventListener('shown.bs.tab', onTabChange);
 });
 
+function initSimulationQuickButtons() {
+    const zoneSelect = document.getElementById("selectZone");
+    const dungeonSelect = document.getElementById("selectDungeon");
+    const difficultySelect = document.getElementById("selectDifficulty");
+    const simulationTimeInput = document.getElementById("inputSimulationTime");
+    const simDungeonToggle = document.getElementById("simDungeonToggle");
+    const simAllZoneToggle = document.getElementById("simAllZoneToggle");
+    const simAllSoloToggle = document.getElementById("simAllSoloToggle");
+    const zoneContainer = document.getElementById("zoneQuickButtons");
+    const dungeonContainer = document.getElementById("dungeonQuickButtons");
+    const difficultyContainer = document.getElementById("difficultyQuickButtons");
+    const timeContainer = document.getElementById("simulationTimeQuickButtons");
+
+    const dispatchChange = (element) => element.dispatchEvent(new Event("change", { bubbles: true }));
+    const setToggle = (element, checked) => {
+        if (element.checked === checked) return;
+        element.checked = checked;
+        dispatchChange(element);
+    };
+    const createButton = (container, label, value, title) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "simulation-quick-button";
+        button.textContent = label;
+        button.dataset.value = value;
+        button.title = title;
+        button.setAttribute("aria-label", title);
+        button.setAttribute("aria-pressed", "false");
+        container.append(button);
+        return button;
+    };
+
+    const zoneSelections = [
+        { value: "/actions/combat/smelly_planet", zh: "臭", en: "Sm" },
+        { value: "/actions/combat/swamp_planet", zh: "沼", en: "Sw" },
+        { value: "/actions/combat/aqua_planet", zh: "海", en: "Aq" },
+        { value: "/actions/combat/jungle_planet", zh: "丛", en: "Ju" },
+        { value: "/actions/combat/gobo_planet", zh: "哥", en: "Gb" },
+        { value: "/actions/combat/planet_of_the_eyes", zh: "眼", en: "Ey" },
+        { value: "/actions/combat/sorcerers_tower", zh: "法", en: "So" },
+        { value: "/actions/combat/bear_with_it", zh: "熊", en: "Be" },
+        { value: "/actions/combat/golem_cave", zh: "石", en: "Gl" },
+        { value: "/actions/combat/twilight_zone", zh: "暮", en: "Tw" },
+        { value: "/actions/combat/infernal_abyss", zh: "地", en: "In" },
+    ];
+    const dungeonSelections = [
+        "/actions/combat/chimerical_den",
+        "/actions/combat/sinister_circus",
+        "/actions/combat/enchanted_fortress",
+        "/actions/combat/pirate_cove",
+    ];
+
+    const zoneButtons = zoneSelections.map((selection) => {
+        const option = [...zoneSelect.options].find(({ value }) => value === selection.value);
+        const button = createButton(
+            zoneContainer,
+            i18next.language?.startsWith("zh") ? selection.zh : selection.en,
+            selection.value,
+            option?.textContent || selection.value
+        );
+        button.addEventListener("click", () => {
+            zoneSelect.value = selection.value;
+            dispatchChange(zoneSelect);
+            setToggle(simDungeonToggle, false);
+            setToggle(simAllZoneToggle, false);
+            setToggle(simAllSoloToggle, false);
+            updateButtonStates();
+        });
+        return { button, selection };
+    });
+
+    const dungeonButtons = dungeonSelections.map((value, index) => {
+        const option = [...dungeonSelect.options].find((candidate) => candidate.value === value);
+        const button = createButton(dungeonContainer, `D${index + 1}`, value, option?.textContent || value);
+        button.addEventListener("click", () => {
+            dungeonSelect.value = value;
+            dispatchChange(dungeonSelect);
+            setToggle(simDungeonToggle, true);
+            setToggle(simAllZoneToggle, false);
+            setToggle(simAllSoloToggle, false);
+            updateButtonStates();
+        });
+        return { button, value };
+    });
+
+    const difficultyButtons = [...difficultySelect.options].map((option) => {
+        const button = createButton(
+            difficultyContainer,
+            option.textContent,
+            option.value,
+            option.textContent
+        );
+        button.addEventListener("click", () => {
+            if (button.disabled) return;
+            difficultySelect.value = option.value;
+            dispatchChange(difficultySelect);
+            updateButtonStates();
+        });
+        return { button, value: option.value, option };
+    });
+
+    const timePresets = [
+        { label: "X2", mode: "double" },
+        { label: "12", mode: "set", value: 12 },
+        { label: "24", mode: "set", value: 24 },
+        { label: "50", mode: "set", value: 50 },
+        { label: "100", mode: "set", value: 100 },
+    ];
+    const timeButtons = timePresets.map((preset) => {
+        const value = preset.mode === "double" ? "double" : String(preset.value);
+        const button = createButton(timeContainer, preset.label, value, preset.label);
+        button.addEventListener("click", () => {
+            const currentValue = Number(simulationTimeInput.value) || 0;
+            const nextValue = preset.mode === "double" ? currentValue * 2 : preset.value;
+            simulationTimeInput.value = String(Math.max(1, Math.min(2500, nextValue)));
+            dispatchChange(simulationTimeInput);
+            updateButtonStates();
+        });
+        return { button, preset };
+    });
+
+    function updateButtonStates() {
+        const isChinese = i18next.language?.startsWith("zh");
+        for (const { button, selection } of zoneButtons) {
+            const option = [...zoneSelect.options].find(({ value }) => value === selection.value);
+            button.textContent = isChinese ? selection.zh : selection.en;
+            button.title = option?.textContent || selection.value;
+            button.setAttribute("aria-label", button.title);
+            button.setAttribute(
+                "aria-pressed",
+                String(!simDungeonToggle.checked && !simAllZoneToggle.checked
+                    && !simAllSoloToggle.checked && zoneSelect.value === selection.value)
+            );
+        }
+        for (const { button, value } of dungeonButtons) {
+            const option = [...dungeonSelect.options].find((candidate) => candidate.value === value);
+            button.title = option?.textContent || value;
+            button.setAttribute("aria-label", button.title);
+            button.setAttribute(
+                "aria-pressed",
+                String(simDungeonToggle.checked && dungeonSelect.value === value)
+            );
+        }
+        for (const { button, value, option } of difficultyButtons) {
+            button.disabled = option.disabled;
+            button.setAttribute("aria-pressed", String(difficultySelect.value === value));
+        }
+        for (const { button, preset } of timeButtons) {
+            button.setAttribute(
+                "aria-pressed",
+                String(preset.mode === "set" && Number(simulationTimeInput.value) === preset.value)
+            );
+        }
+    }
+
+    function updateGroupLabels() {
+        const isChinese = i18next.language?.startsWith("zh");
+        zoneContainer.setAttribute("aria-label", isChinese ? "星球快捷选择" : "Planet shortcuts");
+        dungeonContainer.setAttribute("aria-label", isChinese ? "地下城快捷选择" : "Dungeon shortcuts");
+        difficultyContainer.setAttribute("aria-label", isChinese ? "难度快捷选择" : "Difficulty shortcuts");
+        timeContainer.setAttribute("aria-label", isChinese ? "时长快捷选择" : "Duration presets");
+    }
+
+    zoneSelect.addEventListener("change", updateButtonStates);
+    dungeonSelect.addEventListener("change", updateButtonStates);
+    difficultySelect.addEventListener("change", updateButtonStates);
+    simulationTimeInput.addEventListener("input", updateButtonStates);
+    simulationTimeInput.addEventListener("change", updateButtonStates);
+    simAllZoneToggle.addEventListener("change", updateButtonStates);
+    simAllSoloToggle.addEventListener("change", updateButtonStates);
+    simDungeonToggle.addEventListener("change", () => setTimeout(updateButtonStates, 0));
+    document.getElementById("startSimulationModal")
+        .addEventListener("shown.bs.modal", updateButtonStates);
+    i18next.on("languageChanged", () => {
+        updateGroupLabels();
+        updateButtonStates();
+    });
+    updateGroupLabels();
+    updateButtonStates();
+}
+
 function initSimulationControls() {
     let simulationTimeInput = document.getElementById("inputSimulationTime");
     simulationTimeInput.value = 24;
+    initSimulationQuickButtons();
 
     buttonStartSimulation.addEventListener("click", (event) => {
         let invalidElements = document.querySelectorAll(":invalid");
@@ -5195,14 +6575,14 @@ function startSimulation(selectedPlayers) {
             if (!simLabyrinthToggle.checked && !simAllLabyrinthsToggle.checked) {
                 for (let i = 0; i < 3; i++) {
                     if (main_food[i] && i < player.combatDetails.combatStats.foodSlots) {
-                        let consumable = new _combatsimulator_consumable_js__WEBPACK_IMPORTED_MODULE_6__["default"](main_food[i], triggerMap[main_food[i]]);
+                        let consumable = new _combatsimulator_consumable_js__WEBPACK_IMPORTED_MODULE_7__["default"](main_food[i], triggerMap[main_food[i]]);
                         player.food[i] = consumable;
                     } else {
                         player.food[i] = null;
                     }
 
                     if (main_drinks[i] && i < player.combatDetails.combatStats.drinkSlots) {
-                        let consumable = new _combatsimulator_consumable_js__WEBPACK_IMPORTED_MODULE_6__["default"](main_drinks[i], triggerMap[main_drinks[i]]);
+                        let consumable = new _combatsimulator_consumable_js__WEBPACK_IMPORTED_MODULE_7__["default"](main_drinks[i], triggerMap[main_drinks[i]]);
                         player.drinks[i] = consumable;
                     } else {
                         player.drinks[i] = null;
@@ -5211,9 +6591,9 @@ function startSimulation(selectedPlayers) {
             }
 
             for (let i = 0; i < 5; i++) {
-                if (main_abilities[i] && player.intelligenceLevel >= _combatsimulator_data_abilitySlotsLevelRequirementList_json__WEBPACK_IMPORTED_MODULE_11__[i + 1]) {
+                if (main_abilities[i] && player.intelligenceLevel >= _combatsimulator_data_abilitySlotsLevelRequirementList_json__WEBPACK_IMPORTED_MODULE_12__[i + 1]) {
                     let abilityLevelInput = document.getElementById("inputAbilityLevel_" + i);
-                    let ability = new _combatsimulator_ability_js__WEBPACK_IMPORTED_MODULE_5__["default"](main_abilities[i], Number(abilityLevelInput.value), triggerMap[main_abilities[i]]);
+                    let ability = new _combatsimulator_ability_js__WEBPACK_IMPORTED_MODULE_6__["default"](main_abilities[i], Number(abilityLevelInput.value), triggerMap[main_abilities[i]]);
                     player.abilities[i] = ability;
                 } else {
                     player.abilities[i] = null;
@@ -5269,12 +6649,14 @@ function startSimulation(selectedPlayers) {
     extra.personalBuffs = {};
     if (document.getElementById("personalBuffsToggle").checked) {
         const groups = document.querySelectorAll("#personalBuffsBox .character-group");
-        groups.forEach((group, index) => {
+        groups.forEach((group) => {
+            const playerHrid = group.dataset.playerHrid;
+            if (!playerHrid) return;
             const checkedBuffs = [];
             group.querySelectorAll("input[type='checkbox']:checked").forEach(input => {
                 checkedBuffs.push(input.value);
             });
-            extra.personalBuffs[index] = checkedBuffs;
+            extra.personalBuffs[playerHrid] = checkedBuffs;
         });
         console.log("extra.personalBuffs:", extra.personalBuffs);
     }
@@ -5331,7 +6713,7 @@ function startSimulation(selectedPlayers) {
         worker.onmessage = onWorkerMessage;
         worker.postMessage(workerMessage);
     } else if (simAllLabyrinthsToggle.checked) {
-        let gameLabyrinths = Object.values(_combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_13__)
+        let gameLabyrinths = Object.values(_combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_14__)
             .filter((monster) => monster.isLabyrinthMonster === true)
             .sort((a, b) => a.sortIndex - b.sortIndex);
 
@@ -5364,7 +6746,7 @@ function startSimulation(selectedPlayers) {
         let targetHrids = {};
 
         if (simAllZonesToggle.checked) {
-            Object.values(_combatsimulator_data_actionDetailMap_json__WEBPACK_IMPORTED_MODULE_12__)
+            Object.values(_combatsimulator_data_actionDetailMap_json__WEBPACK_IMPORTED_MODULE_13__)
                 .filter(a =>
                     a.type === "/action_types/combat" &&
                     a.category !== "/action_categories/combat/dungeons" &&
@@ -5375,7 +6757,7 @@ function startSimulation(selectedPlayers) {
         }
 
         if (simAllSoloToggle.checked) {
-            Object.values(_combatsimulator_data_actionDetailMap_json__WEBPACK_IMPORTED_MODULE_12__)
+            Object.values(_combatsimulator_data_actionDetailMap_json__WEBPACK_IMPORTED_MODULE_13__)
                 .filter(a =>
                     a.type === "/action_types/combat" &&
                     a.category !== "/action_categories/combat/dungeons" &&
@@ -5434,12 +6816,12 @@ function parsePlayerJson(playerJson, hrid) {
 
     for (const foodHrid of playerJson.food["/action_types/combat"]) {
         if (foodHrid.itemHrid === "") continue;
-        const food = new _combatsimulator_consumable_js__WEBPACK_IMPORTED_MODULE_6__["default"](foodHrid.itemHrid, triggerMap[foodHrid.itemHrid]);
+        const food = new _combatsimulator_consumable_js__WEBPACK_IMPORTED_MODULE_7__["default"](foodHrid.itemHrid, triggerMap[foodHrid.itemHrid]);
         playerData.food.push(food);
     }
     for (const drinkHrid of playerJson.drinks["/action_types/combat"]) {
         if (drinkHrid.itemHrid === "") continue;
-        const drink = new _combatsimulator_consumable_js__WEBPACK_IMPORTED_MODULE_6__["default"](drinkHrid.itemHrid, triggerMap[drinkHrid.itemHrid]);
+        const drink = new _combatsimulator_consumable_js__WEBPACK_IMPORTED_MODULE_7__["default"](drinkHrid.itemHrid, triggerMap[drinkHrid.itemHrid]);
         playerData.drinks.push(drink);
     }
     for (const ability of playerJson.abilities) {
@@ -5447,7 +6829,7 @@ function parsePlayerJson(playerJson, hrid) {
         const abilityLevel = Number(ability.level);
         const abilityHrid = ability.abilityHrid;
         if (abilityLevel > 0) {
-            const abilityObj = new _combatsimulator_ability_js__WEBPACK_IMPORTED_MODULE_5__["default"](abilityHrid, abilityLevel, triggerMap[abilityHrid]);
+            const abilityObj = new _combatsimulator_ability_js__WEBPACK_IMPORTED_MODULE_6__["default"](abilityHrid, abilityLevel, triggerMap[abilityHrid]);
             playerData.abilities.push(abilityObj);
         }
     }
@@ -5526,7 +6908,7 @@ document.getElementById("buttonUploadJSONSimulate").addEventListener("click", (e
                     let targetHrids = {};
 
                     if (simAllZonesToggle.checked) {
-                        Object.values(_combatsimulator_data_actionDetailMap_json__WEBPACK_IMPORTED_MODULE_12__)
+                        Object.values(_combatsimulator_data_actionDetailMap_json__WEBPACK_IMPORTED_MODULE_13__)
                             .filter(a =>
                                 a.type === "/action_types/combat" &&
                                 a.category !== "/action_categories/combat/dungeons" &&
@@ -6034,7 +7416,7 @@ function fixTriggerMap(triggerMap) {
             triggerMap[key] = [];
         }
         for (const trigger of triggerMap[key]) {
-            if (!_combatsimulator_data_combatTriggerConditionDetailMap_json__WEBPACK_IMPORTED_MODULE_9__[trigger.conditionHrid]) {
+            if (!_combatsimulator_data_combatTriggerConditionDetailMap_json__WEBPACK_IMPORTED_MODULE_10__[trigger.conditionHrid]) {
                 err = true;
                 break;
             }
@@ -6123,7 +7505,7 @@ function loadEquipmentSetIntoUI(equipmentSet) {
         }
         player.houseRooms = equipmentSet.houseRooms;
     } else {
-        let houseRooms = Object.values(_combatsimulator_data_houseRoomDetailMap_json__WEBPACK_IMPORTED_MODULE_4__);
+        let houseRooms = Object.values(_combatsimulator_data_houseRoomDetailMap_json__WEBPACK_IMPORTED_MODULE_5__);
         for (const room of Object.values(houseRooms)) {
             const field = document.querySelector('[data-house-hrid="' + room.hrid + '"]');
             field.value = '';
@@ -6143,7 +7525,7 @@ function loadEquipmentSetIntoUI(equipmentSet) {
             player.achievements[achievement] = field.checked;
         }
     } else {
-        let achievements = Object.values(_combatsimulator_data_achievementDetailMap_json__WEBPACK_IMPORTED_MODULE_18__);
+        let achievements = Object.values(_combatsimulator_data_achievementDetailMap_json__WEBPACK_IMPORTED_MODULE_19__);
         for (const detail of Object.values(achievements)) {
             const field = document.querySelector('[data-achievement-hrid="' + detail.hrid + '"]');
             field.checked = false;
@@ -6409,7 +7791,7 @@ function doSoloImport() {
         }
         player.houseRooms = importSet.houseRooms;
     } else {
-        let houseRooms = Object.values(_combatsimulator_data_houseRoomDetailMap_json__WEBPACK_IMPORTED_MODULE_4__);
+        let houseRooms = Object.values(_combatsimulator_data_houseRoomDetailMap_json__WEBPACK_IMPORTED_MODULE_5__);
         for (const room of Object.values(houseRooms)) {
             const field = document.querySelector('[data-house-hrid="' + room.hrid + '"]');
             field.value = '';
@@ -6429,7 +7811,7 @@ function doSoloImport() {
             player.achievements[achievement] = field.checked;
         }
     } else {
-        let achievements = Object.values(_combatsimulator_data_achievementDetailMap_json__WEBPACK_IMPORTED_MODULE_18__);
+        let achievements = Object.values(_combatsimulator_data_achievementDetailMap_json__WEBPACK_IMPORTED_MODULE_19__);
         for (const detail of Object.values(achievements)) {
             const field = document.querySelector('[data-achievement-hrid="' + detail.hrid + '"]');
             field.checked = false;
@@ -6606,7 +7988,7 @@ function updateNextPlayer(currentPlayerNumber) {
     }
 
     { // reset all houseRooms
-        let houseRooms = Object.values(_combatsimulator_data_houseRoomDetailMap_json__WEBPACK_IMPORTED_MODULE_4__);
+        let houseRooms = Object.values(_combatsimulator_data_houseRoomDetailMap_json__WEBPACK_IMPORTED_MODULE_5__);
         for (const room of Object.values(houseRooms)) {
             const field = document.querySelector('[data-house-hrid="' + room.hrid + '"]');
             field.value = '';
@@ -6626,7 +8008,7 @@ function updateNextPlayer(currentPlayerNumber) {
     }
 
     { // reset all achievements
-        let achievements = Object.values(_combatsimulator_data_achievementDetailMap_json__WEBPACK_IMPORTED_MODULE_18__);
+        let achievements = Object.values(_combatsimulator_data_achievementDetailMap_json__WEBPACK_IMPORTED_MODULE_19__);
         for (const detail of Object.values(achievements)) {
             const field = document.querySelector('[data-achievement-hrid="' + detail.hrid + '"]');
             field.checked = false;
@@ -6740,37 +8122,37 @@ async function fetchPrices() {
         window.prices["/items/coin"] = { "ask": 1, "bid": 1, "vendor": 1 };
 
         window.prices["/items/small_treasure_chest"] = {
-            "ask": _combatsimulator_data_openableLootDropMap_json__WEBPACK_IMPORTED_MODULE_16__["/items/small_treasure_chest"].map((item) => {
+            "ask": _combatsimulator_data_openableLootDropMap_json__WEBPACK_IMPORTED_MODULE_17__["/items/small_treasure_chest"].map((item) => {
                 return item.itemHrid in window.prices ? window.prices[item.itemHrid].ask * item.dropRate * (item.maxCount + item.minCount) / 2 : 0;
             }).reduce((a, b) => a + b, 0),
-            "bid": _combatsimulator_data_openableLootDropMap_json__WEBPACK_IMPORTED_MODULE_16__["/items/small_treasure_chest"].map((item) => {
+            "bid": _combatsimulator_data_openableLootDropMap_json__WEBPACK_IMPORTED_MODULE_17__["/items/small_treasure_chest"].map((item) => {
                 return item.itemHrid in window.prices ? window.prices[item.itemHrid].bid * item.dropRate * (item.maxCount + item.minCount) / 2 : 0;
             }).reduce((a, b) => a + b, 0),
-            "vendor": _combatsimulator_data_openableLootDropMap_json__WEBPACK_IMPORTED_MODULE_16__["/items/small_treasure_chest"].map((item) => {
+            "vendor": _combatsimulator_data_openableLootDropMap_json__WEBPACK_IMPORTED_MODULE_17__["/items/small_treasure_chest"].map((item) => {
                 return item.itemHrid in window.prices ? window.prices[item.itemHrid].vendor : 0;
             }).reduce((a, b) => a + b, 0),
         };
 
         window.prices["/items/medium_treasure_chest"] = {
-            "ask": _combatsimulator_data_openableLootDropMap_json__WEBPACK_IMPORTED_MODULE_16__["/items/medium_treasure_chest"].map((item) => {
+            "ask": _combatsimulator_data_openableLootDropMap_json__WEBPACK_IMPORTED_MODULE_17__["/items/medium_treasure_chest"].map((item) => {
                 return item.itemHrid in window.prices ? window.prices[item.itemHrid].ask * item.dropRate * (item.maxCount + item.minCount) / 2 : 0;
             }).reduce((a, b) => a + b, 0),
-            "bid": _combatsimulator_data_openableLootDropMap_json__WEBPACK_IMPORTED_MODULE_16__["/items/medium_treasure_chest"].map((item) => {
+            "bid": _combatsimulator_data_openableLootDropMap_json__WEBPACK_IMPORTED_MODULE_17__["/items/medium_treasure_chest"].map((item) => {
                 return item.itemHrid in window.prices ? window.prices[item.itemHrid].bid * item.dropRate * (item.maxCount + item.minCount) / 2 : 0;
             }).reduce((a, b) => a + b, 0),
-            "vendor": _combatsimulator_data_openableLootDropMap_json__WEBPACK_IMPORTED_MODULE_16__["/items/medium_treasure_chest"].map((item) => {
+            "vendor": _combatsimulator_data_openableLootDropMap_json__WEBPACK_IMPORTED_MODULE_17__["/items/medium_treasure_chest"].map((item) => {
                 return item.itemHrid in window.prices ? window.prices[item.itemHrid].vendor : 0;
             }).reduce((a, b) => a + b, 0),
         };
 
         window.prices["/items/large_treasure_chest"] = {
-            "ask": _combatsimulator_data_openableLootDropMap_json__WEBPACK_IMPORTED_MODULE_16__["/items/large_treasure_chest"].map((item) => {
+            "ask": _combatsimulator_data_openableLootDropMap_json__WEBPACK_IMPORTED_MODULE_17__["/items/large_treasure_chest"].map((item) => {
                 return item.itemHrid in window.prices ? window.prices[item.itemHrid].ask * item.dropRate * (item.maxCount + item.minCount) / 2 : 0;
             }).reduce((a, b) => a + b, 0),
-            "bid": _combatsimulator_data_openableLootDropMap_json__WEBPACK_IMPORTED_MODULE_16__["/items/large_treasure_chest"].map((item) => {
+            "bid": _combatsimulator_data_openableLootDropMap_json__WEBPACK_IMPORTED_MODULE_17__["/items/large_treasure_chest"].map((item) => {
                 return item.itemHrid in window.prices ? window.prices[item.itemHrid].bid * item.dropRate * (item.maxCount + item.minCount) / 2 : 0;
             }).reduce((a, b) => a + b, 0),
-            "vendor": _combatsimulator_data_openableLootDropMap_json__WEBPACK_IMPORTED_MODULE_16__["/items/large_treasure_chest"].map((item) => {
+            "vendor": _combatsimulator_data_openableLootDropMap_json__WEBPACK_IMPORTED_MODULE_17__["/items/large_treasure_chest"].map((item) => {
                 return item.itemHrid in window.prices ? window.prices[item.itemHrid].vendor : 0;
             }).reduce((a, b) => a + b, 0),
         };
@@ -6837,11 +8219,9 @@ document.addEventListener("input", (e) => {
         document.getElementById('noRngRevenueSpan').innerText = window.noRngRevenue.toLocaleString();
 
         window.profit = window.revenue - window.expenses;
-        document.getElementById('profitPreview').innerText = window.profit.toLocaleString();
         document.getElementById('profitSpan').innerText = window.profit.toLocaleString();
         window.noRngProfit = window.noRngRevenue - window.expenses;
         document.getElementById('noRngProfitSpan').innerText = window.noRngProfit.toLocaleString();
-        document.getElementById('noRngProfitPreview').innerText = window.noRngProfit.toLocaleString();
     }
 });
 
@@ -6870,14 +8250,14 @@ function updateTable(tableId, item, price) {
 
 function initPatchNotes() {
     const patchNotesRows = document.getElementById("patchNotes");
-    for (const pn in _patchNote_json__WEBPACK_IMPORTED_MODULE_20__) {
+    for (const pn in _patchNote_json__WEBPACK_IMPORTED_MODULE_22__) {
         const patchNoteContainer = document.createElement("div");
         patchNotesRows.setAttribute('class', 'col-12 mb-4');
 
         const patchNoteElement = document.createElement("h6");
         patchNoteElement.innerHTML = pn;
         const patchNoteList = document.createElement("ul");
-        for (const note of _patchNote_json__WEBPACK_IMPORTED_MODULE_20__[pn]) {
+        for (const note of _patchNote_json__WEBPACK_IMPORTED_MODULE_22__[pn]) {
             const noteElement = document.createElement("li");
             noteElement.innerHTML = note;
             patchNoteList.appendChild(noteElement);
@@ -6973,6 +8353,7 @@ function initExtraBuffSection() {
         // 创建角色分组容器
         const charGroup = document.createElement('div');
         charGroup.className = 'character-group mb-3';
+        charGroup.dataset.playerHrid = `player${charIdx + 1}`;
 
         // 角色标题
         const charTitle = document.createElement('h6');
@@ -7097,6 +8478,7 @@ initDamageDoneTaken();
 initPatchNotes();
 initExtraBuffSection();
 initHpMpVisualization();
+(0,_simulationResultTools__WEBPACK_IMPORTED_MODULE_21__.initSimulationResultTools)();
 
 updateState();
 updateUI();

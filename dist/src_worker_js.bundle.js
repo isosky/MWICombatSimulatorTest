@@ -516,13 +516,14 @@ class CombatSimulator extends EventTarget {
         this.reset();
 
         let ticks = 0;
+        let lastProgressTime = performance.now();
 
         let combatStartEvent = new _events_combatStartEvent__WEBPACK_IMPORTED_MODULE_4__["default"](0);
         this.eventQueue.addEvent(combatStartEvent);
 
         while (this.simulationTime < simulationTimeLimit) {
             let nextEvent = this.eventQueue.getNextEvent();
-            await this.processEvent(nextEvent);
+            this.processEvent(nextEvent);
 
             ticks++;
             if (ticks == 1000) {
@@ -531,6 +532,9 @@ class CombatSimulator extends EventTarget {
                 if (this.enableHpMpVisualization) {
                     this.simResult.addTimeSeriesSnapshot(this.simulationTime, this.players);
                 }
+                const now = performance.now();
+                if (now - lastProgressTime < 250) continue;
+                lastProgressTime = now;
                 let progressEvent = new CustomEvent("progress", {
                     detail: {
                         zone: this.zone?.hrid,
@@ -544,6 +548,17 @@ class CombatSimulator extends EventTarget {
                 this.dispatchEvent(progressEvent);
             }
         }
+
+        this.dispatchEvent(new CustomEvent("progress", {
+            detail: {
+                zone: this.zone?.hrid,
+                difficultyTier: this.zone?.difficultyTier,
+                labyrinth: this.labyrinth?.hrid,
+                roomLevel: this.labyrinth?.roomLevel,
+                progress: 1,
+                timeSeriesData: this.enableHpMpVisualization ? this.simResult.timeSeriesData : null
+            }
+        }));
 
         // for (let i = 0; i < this.simResult.timeSpentAlive.length; i++) {
         //     if (this.simResult.timeSpentAlive[i].alive == true) {
@@ -607,7 +622,7 @@ class CombatSimulator extends EventTarget {
         this.simResult = new _simResult__WEBPACK_IMPORTED_MODULE_18__["default"](this.zone, this.labyrinth, this.players.length);
     }
 
-    async processEvent(event) {
+    processEvent(event) {
         this.simulationTime = event.time;
 
         // console.log(this.simulationTime / 1e9, event.type, event);
@@ -2269,10 +2284,30 @@ class CombatUnit {
     permanentBuffs = {};
     zoneBuffs = {};
     extraBuffs = {};
+    _buffBoostIndex = null;
 
     constructor() { }
 
     updateCombatDetails() {
+        const buffBoostIndex = new Map();
+        for (const buff of Object.values(this.combatBuffs)) {
+            let boosts = buffBoostIndex.get(buff.typeHrid);
+            if (!boosts) {
+                boosts = [];
+                buffBoostIndex.set(buff.typeHrid, boosts);
+            }
+            boosts.push({ ratioBoost: buff.ratioBoost, flatBoost: buff.flatBoost });
+        }
+
+        this._buffBoostIndex = buffBoostIndex;
+        try {
+            this.recalculateCombatDetails();
+        } finally {
+            this._buffBoostIndex = null;
+        }
+    }
+
+    recalculateCombatDetails() {
         if (this.isPlayer) {
             if (this.combatDetails.combatStats.hpRegenPer10 === 0) {
                 this.combatDetails.combatStats.hpRegenPer10 = 0.01;
@@ -2614,6 +2649,10 @@ class CombatUnit {
     }
 
     getBuffBoosts(type) {
+        if (this._buffBoostIndex !== null) {
+            return this._buffBoostIndex.get(type) || [];
+        }
+
         let boosts = [];
         Object.values(this.combatBuffs)
             .filter((buff) => buff.typeHrid == type)
@@ -3699,13 +3738,13 @@ class EventQueue {
     }
 
     containsEventOfType(type) {
-        let heapEvents = this.minHeap.toArray();
+        let heapEvents = this.minHeap.heapArray;
 
         return heapEvents.some((event) => event.type == type);
     }
 
     containsEventOfTypeAndHrid(type, hrid) {
-        let heapEvents = this.minHeap.toArray();
+        let heapEvents = this.minHeap.heapArray;
         return heapEvents.some((event) => event.type == type && event.hrid == hrid);
     }
 
@@ -3723,19 +3762,16 @@ class EventQueue {
 
     clearMatching(fn) {
         let cleared = false;
-        let heapEvents = this.minHeap.toArray();
-
-        for (const event of heapEvents) {
-            if (fn(event)) {
-                this.minHeap.remove(event);
-                cleared = true;
-            }
+        const matches = this.minHeap.heapArray.filter(fn);
+        for (const event of matches) {
+            this.minHeap.remove(event);
+            cleared = true;
         }
         return cleared;
     }
 
     getMatching(fn) {
-        let heapEvents = this.minHeap.toArray(); 
+        let heapEvents = this.minHeap.heapArray;
     
         for (const event of heapEvents) {
             if (fn(event)) {
@@ -4325,6 +4361,44 @@ class Player extends _combatUnit__WEBPACK_IMPORTED_MODULE_1__["default"] {
     }
 
     updateCombatDetails() {
+        const equipmentEntries = Object.entries(this.equipment);
+        const talismanSnapshot = this.talismanModifiers.map((selection) => ({
+            selection,
+            modifierHrid: selection?.modifierHrid,
+            gradeIndex: selection?.gradeIndex,
+        }));
+        const cache = this._equipmentStatsCache;
+        const equipmentSnapshotMatches = cache
+            && cache.equipmentSnapshot.length === equipmentEntries.length
+            && equipmentEntries.every(([slot, item], index) => {
+                const previous = cache.equipmentSnapshot[index];
+                return previous.slot === slot
+                    && previous.item === item
+                    && previous.hrid === item?.hrid
+                    && previous.enhancementLevel === item?.enhancementLevel
+                    && previous.gameItem === item?.gameItem;
+            });
+        const talismanSnapshotMatches = cache
+            && cache.talismanSnapshot.length === talismanSnapshot.length
+            && talismanSnapshot.every((selection, index) => {
+                const previous = cache.talismanSnapshot[index];
+                return previous.selection === selection.selection
+                    && previous.modifierHrid === selection.modifierHrid
+                    && previous.gradeIndex === selection.gradeIndex;
+            });
+
+        if (equipmentSnapshotMatches && talismanSnapshotMatches) {
+            for (const stat of equipmentSnapshotStatKeys) {
+                this.combatDetails.combatStats[stat] = cache.combatStats[stat];
+            }
+            this.combatDetails.equipmentStats ??= {};
+            this.combatDetails.talismanStats ??= {};
+            Object.assign(this.combatDetails.equipmentStats, cache.equipmentStats);
+            Object.assign(this.combatDetails.talismanStats, cache.talismanStats);
+            super.updateCombatDetails();
+            return;
+        }
+
         if (this.equipment["/equipment_types/main_hand"]) {
             this.combatDetails.combatStats.combatStyleHrid =
                 this.equipment["/equipment_types/main_hand"].getCombatStyle();
@@ -4405,9 +4479,43 @@ class Player extends _combatUnit__WEBPACK_IMPORTED_MODULE_1__["default"] {
             this.combatDetails.combatStats.drinkSlots = 1;
         }
 
+        this._equipmentStatsCache = {
+            equipmentSnapshot: equipmentEntries.map(([slot, item]) => ({
+                slot,
+                item,
+                hrid: item?.hrid,
+                enhancementLevel: item?.enhancementLevel,
+                gameItem: item?.gameItem,
+            })),
+            talismanSnapshot,
+            combatStats: Object.fromEntries(equipmentSnapshotStatKeys.map((stat) => [
+                stat,
+                this.combatDetails.combatStats[stat],
+            ])),
+            equipmentStats: Object.fromEntries(Player.combatEquipmentStats.map((stat) => [
+                stat,
+                this.combatDetails.equipmentStats[stat],
+            ])),
+            talismanStats: Object.fromEntries(Player.combatEquipmentStats.map((stat) => [
+                stat,
+                this.combatDetails.talismanStats[stat],
+            ])),
+        };
+
         super.updateCombatDetails();
     }
 }
+
+const equipmentSnapshotStatKeys = [
+    ...Player.combatEquipmentStats,
+    "combatStyleHrid",
+    "damageType",
+    "attackInterval",
+    "primaryTraining",
+    "focusTraining",
+    "foodSlots",
+    "drinkSlots",
+];
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Player);
 
@@ -5057,6 +5165,34 @@ class Zone {
 
 /***/ }),
 
+/***/ "./src/personalBuffs.js":
+/*!******************************!*\
+  !*** ./src/personalBuffs.js ***!
+  \******************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   getPersonalBuffsForPlayer: () => (/* binding */ getPersonalBuffsForPlayer),
+/* harmony export */   mapPersonalBuffsByPlayer: () => (/* binding */ mapPersonalBuffsByPlayer)
+/* harmony export */ });
+function mapPersonalBuffsByPlayer(selections, buffDefinitions) {
+    const mappedBuffs = {};
+    for (const [playerHrid, buffHrids] of Object.entries(selections || {})) {
+        if (!Array.isArray(buffHrids)) continue;
+        const buffs = buffHrids.map((hrid) => buffDefinitions[hrid]).filter(Boolean);
+        if (buffs.length) mappedBuffs[playerHrid] = buffs;
+    }
+    return mappedBuffs;
+}
+
+function getPersonalBuffsForPlayer(mappedBuffs, playerHrid) {
+    return mappedBuffs[playerHrid] || [];
+}
+
+
+/***/ }),
+
 /***/ "./src/worker.js":
 /*!***********************!*\
   !*** ./src/worker.js ***!
@@ -5068,6 +5204,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _combatsimulator_player__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./combatsimulator/player */ "./src/combatsimulator/player.js");
 /* harmony import */ var _combatsimulator_zone__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./combatsimulator/zone */ "./src/combatsimulator/zone.js");
 /* harmony import */ var _combatsimulator_labyrinth__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./combatsimulator/labyrinth */ "./src/combatsimulator/labyrinth.js");
+/* harmony import */ var _personalBuffs__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./personalBuffs */ "./src/personalBuffs.js");
+
 
 
 
@@ -5190,15 +5328,10 @@ onmessage = async function (event) {
                         "duration": 0
                     }
                 };
-                for (let groupIndex in event.data.extra.personalBuffs) {
-                    let buffs = event.data.extra.personalBuffs[groupIndex];
-                    for (let buff of buffs) {
-                        if (personalBuffs[buff]) {
-                            extrapersonalBuffs[groupIndex] = extrapersonalBuffs[groupIndex] || [];
-                            extrapersonalBuffs[groupIndex].push(personalBuffs[buff]);
-                        }
-                    }
-                }
+                extrapersonalBuffs = (0,_personalBuffs__WEBPACK_IMPORTED_MODULE_4__.mapPersonalBuffsByPlayer)(
+                    event.data.extra.personalBuffs,
+                    personalBuffs
+                );
             }
 
             let playersData = event.data.players;
@@ -5217,7 +5350,7 @@ onmessage = async function (event) {
                 currentPlayer.zoneBuffs = zone?.buffs || labyrinth?.buffs || [];
                 currentPlayer.extraBuffs = [
                     ...structuredClone(extraBuffs),
-                    ...(extrapersonalBuffs[i] || [])
+                    ...(0,_personalBuffs__WEBPACK_IMPORTED_MODULE_4__.getPersonalBuffsForPlayer)(extrapersonalBuffs, playersData[i].hrid)
                 ];
                 // 力量神龛
                 if (playersData[i].guildShrine.force > 0) {

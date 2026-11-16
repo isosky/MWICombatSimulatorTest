@@ -159,10 +159,30 @@ class CombatUnit {
     permanentBuffs = {};
     zoneBuffs = {};
     extraBuffs = {};
+    _buffBoostIndex = null;
 
     constructor() { }
 
     updateCombatDetails() {
+        const buffBoostIndex = new Map();
+        for (const buff of Object.values(this.combatBuffs)) {
+            let boosts = buffBoostIndex.get(buff.typeHrid);
+            if (!boosts) {
+                boosts = [];
+                buffBoostIndex.set(buff.typeHrid, boosts);
+            }
+            boosts.push({ ratioBoost: buff.ratioBoost, flatBoost: buff.flatBoost });
+        }
+
+        this._buffBoostIndex = buffBoostIndex;
+        try {
+            this.recalculateCombatDetails();
+        } finally {
+            this._buffBoostIndex = null;
+        }
+    }
+
+    recalculateCombatDetails() {
         if (this.isPlayer) {
             if (this.combatDetails.combatStats.hpRegenPer10 === 0) {
                 this.combatDetails.combatStats.hpRegenPer10 = 0.01;
@@ -504,6 +524,10 @@ class CombatUnit {
     }
 
     getBuffBoosts(type) {
+        if (this._buffBoostIndex !== null) {
+            return this._buffBoostIndex.get(type) || [];
+        }
+
         let boosts = [];
         Object.values(this.combatBuffs)
             .filter((buff) => buff.typeHrid == type)

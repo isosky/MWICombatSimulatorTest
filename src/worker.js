@@ -2,6 +2,7 @@ import CombatSimulator from "./combatsimulator/combatSimulator";
 import Player from "./combatsimulator/player";
 import Zone from "./combatsimulator/zone";
 import Labyrinth from "./combatsimulator/labyrinth";
+import { getPersonalBuffsForPlayer, mapPersonalBuffsByPlayer } from "./personalBuffs";
 
 onmessage = async function (event) {
     switch (event.data.type) {
@@ -120,15 +121,10 @@ onmessage = async function (event) {
                         "duration": 0
                     }
                 };
-                for (let groupIndex in event.data.extra.personalBuffs) {
-                    let buffs = event.data.extra.personalBuffs[groupIndex];
-                    for (let buff of buffs) {
-                        if (personalBuffs[buff]) {
-                            extrapersonalBuffs[groupIndex] = extrapersonalBuffs[groupIndex] || [];
-                            extrapersonalBuffs[groupIndex].push(personalBuffs[buff]);
-                        }
-                    }
-                }
+                extrapersonalBuffs = mapPersonalBuffsByPlayer(
+                    event.data.extra.personalBuffs,
+                    personalBuffs
+                );
             }
 
             let playersData = event.data.players;
@@ -147,7 +143,7 @@ onmessage = async function (event) {
                 currentPlayer.zoneBuffs = zone?.buffs || labyrinth?.buffs || [];
                 currentPlayer.extraBuffs = [
                     ...structuredClone(extraBuffs),
-                    ...(extrapersonalBuffs[i] || [])
+                    ...getPersonalBuffsForPlayer(extrapersonalBuffs, playersData[i].hrid)
                 ];
                 // 力量神龛
                 if (playersData[i].guildShrine.force > 0) {
