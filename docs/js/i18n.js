@@ -129,7 +129,10 @@ const Wa = {
                     curse: "Curse",
                     ripple: "Ripple",
                     bloom: "Bloom",
-                    blaze: "Blaze"
+                    blaze: "Blaze",
+                    "talismanSlots": "Talisman Slots",
+                    "talismanPower": "Talisman Power",
+                    "fortify": "Fortify"
                 },
                 talismanPresets: {
                     namePlaceholder: "Preset name",
@@ -200,7 +203,17 @@ const Wa = {
                     cookingExperience: "Cooking Experience",
                     brewingExperience: "Brewing Experience",
                     alchemyExperience: "Alchemy Experience",
-                    enhancingExperience: "Enhancing Experience"
+                    enhancingExperience: "Enhancing Experience",
+                    "milkingEssenceFind": "Milking Essence Find",
+                    "foragingEssenceFind": "Foraging Essence Find",
+                    "woodcuttingEssenceFind": "Woodcutting Essence Find",
+                    "cheesesmithingEssenceFind": "Cheesesmithing Essence Find",
+                    "craftingEssenceFind": "Crafting Essence Find",
+                    "tailoringEssenceFind": "Tailoring Essence Find",
+                    "cookingEssenceFind": "Cooking Essence Find",
+                    "brewingEssenceFind": "Brewing Essence Find",
+                    "alchemyEssenceFind": "Alchemy Essence Find",
+                    "enhancingEssenceFind": "Enhancing Essence Find"
                 },
                 home: {
                     nav: {
@@ -378,10 +391,13 @@ const Wa = {
                     logoutConfirmation: "Are you sure you want to logout?",
                     refreshPrompt: " Please refresh.",
                     gameServerRestarted: "Game server has been restarted. Please refresh the page.",
-                    captchaRequired: "Please complete the captcha.",
+                    captchaRequired: "Click Verify to confirm you're not a bot.",
                     captchaVerificationFailed: "Captcha verification failed. Please try again.",
                     captchaFailed: "Captcha failed. Please try again.",
-                    captchaBlocked: "Captcha verification blocked by browser privacy setting. Please adjust your browser privacy setting and refresh the page."
+                    captchaBlocked: "Captcha verification blocked by browser privacy setting. Please adjust your browser privacy setting and refresh the page.",
+                    "serverOffline": "The server is temporarily offline.",
+                    "serverMessage": "Server message:",
+                    "captchaVerifyButton": "Verify"
                 },
                 header: {
                     flee: "Flee",
@@ -432,7 +448,9 @@ const Wa = {
                     remove: "remove",
                     moveActionToFrontConfirm: "Run this action now? The current action will pause and continue after.",
                     clearQueue: "Clear Queue",
-                    clearQueueConfirm: "Are you sure you want to clear all queued actions?"
+                    clearQueueConfirm: "Are you sure you want to clear all queued actions?",
+                    "moveUp": "Move up",
+                    "moveDown": "Move down"
                 },
                 navigationBar: {
                     myStuff: "My Stuff",
@@ -442,7 +460,7 @@ const Wa = {
                     combat: "Combat",
                     shop: "Shop",
                     cowbellStore: "Cowbell Store",
-                    lootTracker: "Loot Tracker",
+                    lootTracker: "Loot & XP Log",
                     social: "Social",
                     guild: "Guild",
                     leaderboard: "Leaderboard",
@@ -475,7 +493,7 @@ const Wa = {
                     combatTooltip: "Fight monsters. Your combat level represents your overall combat effectiveness based on the combination of individual combat skill levels",
                     shopTooltip: "Purchase items from the vendor.",
                     cowbellStoreTooltip: "Purchase and spend cowbells.",
-                    lootTrackerTooltip: "Track the loot from your recent actions.",
+                    lootTrackerTooltip: "Track the loot and experience from your recent actions.",
                     achievements: "Achievements",
                     achievementsTooltip: "Track your collection log, bestiary, and achievements.",
                     socialTooltip: "Friends, referrals, and block list.",
@@ -568,7 +586,21 @@ const Wa = {
                     expired: "Expired",
                     listingsCount: "{{currentListings}} / {{listingCap}} Listings",
                     mispriceWarningLine1: "Your listing price differs significantly from current market rates.",
-                    mispriceWarningLine2: "Are you sure you want to {{action}} {{quantity}} {{itemName}} at {{price}} coins each?"
+                    mispriceWarningLine2: "Are you sure you want to {{action}} {{quantity}} {{itemName}} at {{price}} coins each?",
+                    "outsideTradableRange": "Outside current tradable range",
+                    "pegSellNotice": "Current min price: {{boundary}}; moves down to {{price}}.",
+                    "pegBuyNotice": "Current max price: {{boundary}}; moves up to {{price}}.",
+                    "pegWaitEstimate": "Estimated wait: {{hours}}h",
+                    "rangeLimitedSellTooltip": "Limited to the tradable range. Automatically moves down as the range falls, to your minimum of {{limit}}.",
+                    "rangeLimitedBuyTooltip": "Limited to the tradable range. Automatically moves up as the range rises, to your maximum of {{limit}}.",
+                    "itemLocked": "This item is locked and cannot be sold.",
+                    "minPrice": "Min",
+                    "maxPrice": "Max",
+                    "tradableRangeLabel": "Tradable range:",
+                    "exceedsMaxListingTotal": "Listing total is too large",
+                    "maxListingTotalHint": "Max total per listing: {{max}} coins",
+                    "priceBandHint": "Tradable range: {{min}} – {{max}}",
+                    "parsedPricePreview": "→ {{value}}"
                 },
                 marketListingLink: {
                     buying: "Buying",
@@ -897,7 +929,7 @@ const Wa = {
                     cancel: "Cancel",
                     createParty: "Create Party",
                     save: "Save",
-                    linkToChat: "Link To Chat",
+                    linkToChat: "Link to Chat",
                     consumables: "Consumables",
                     abilities: "Abilities",
                     profile: "Profile",
@@ -905,7 +937,8 @@ const Wa = {
                     kick: "Kick",
                     ready: "Ready",
                     unready: "Unready",
-                    queueReady: "Queue Ready"
+                    queueReady: "Queue Ready",
+                    "viewLoadout": "View Loadout"
                 },
                 partyRoles: {
                     any_role: "Any Role",
@@ -945,7 +978,9 @@ const Wa = {
                     combatLevel: "Combat Level: {{level}}",
                     experience: "Experience: {{experience}}",
                     drops: "Drops:",
-                    rareDrops: "Rare Drops:"
+                    rareDrops: "Rare Drops:",
+                    "boss": "Boss",
+                    "guildTrialPartyScaling": "Stronger with each participant: +{{hp}} HP, +{{speed}} attack and cast speed, +{{haste}} ability haste"
                 },
                 monsterWeaknesses: {
                     "/monsters/shadow_archer": "Weak to stab and slash melee",
@@ -1023,7 +1058,8 @@ const Wa = {
                         addToQueue: "Add Queue #{{count}}",
                         findParty: "Find Party",
                         queueFull: "Queue Full"
-                    }
+                    },
+                    "maxLevel": "Max Level"
                 },
                 shopPanel: {
                     minQuantity: "Minimum quantity: 1",
@@ -1033,7 +1069,9 @@ const Wa = {
                     buyItem: "Buy Item",
                     quantity: "Quantity",
                     buy: "Buy",
-                    shop: "Shop"
+                    shop: "Shop",
+                    "enhancementLevel": "Enhancement Level",
+                    "enhancementLevelRange": "Enhancement level: 0-{{max}}"
                 },
                 cowbellStorePanel: {
                     buyCowbells: "Buy Cowbells",
@@ -1131,7 +1169,7 @@ const Wa = {
                     customAvatarInfo: "You can request a custom avatar for the cost of {{supporterPoints}} Supporter Points and {{cowbellCost}} Cowbells. The avatar can be requested via #new-ticket on Discord. The avatar will be based on a concept or image you provide and will be designed by our artist to fit the style and color theme of the game. It must not contain copyrighted content. Supporter Points and Cowbell costs are deducted from a character of your choice when the avatar is granted.",
                     avatarOutfitsInfo: "Click any of the outfits to see a preview with your avatar. Unlocked outfits can be changed in Settings -> Profile.",
                     customAvatarOutfitInfo: "You can request a custom avatar outfit for the cost of {{supporterPoints}} Supporter Points and {{cowbellCost}} Cowbells. The outfit can be requested via #new-ticket on Discord. The outfit will be based on a concept or image you provide and will be designed by our artist to fit the style and color theme of the game. It must not contain copyrighted content. Supporter Points and Cowbell costs are deducted from a character of your choice when the outfit is granted.",
-                    communityBuffsInfo: "Community buffs are bonuses granted to all players on the server. You can purchase them with Cowbells or Supporter Points. For every 1 Cowbell or 10 Supporter Points spent on community buffs, you will gain 1 fame point. Fame points are ranked on the leaderboard.",
+                    communityBuffsInfo: "Community buffs are bonuses granted to all players on the server. You can purchase them with Cowbells. For every 1 Cowbell spent on community buffs, you will gain 1 fame point. Fame points are ranked on the leaderboard.",
                     paymentMethod: "Payment Method",
                     cowbells: "Cowbells",
                     supporterPointsOption: "Supporter Points",
@@ -1153,7 +1191,14 @@ const Wa = {
                     creatorCodeSave: "Add",
                     creatorCodeSaving: "Adding...",
                     creatorCodePurchaseTitle: "Thank You!",
-                    creatorCodePurchaseMessage: "Purchase completed! Thanks for supporting {{creatorName}} (code: {{code}})"
+                    creatorCodePurchaseMessage: "Purchase completed! Thanks for supporting {{creatorName}} (code: {{code}})",
+                    "avatarBackgrounds": "Avatar Backgrounds",
+                    "avatarBorders": "Avatar Borders",
+                    "buyAvatarBackground": "Buy Avatar Background",
+                    "buyAvatarBorder": "Buy Avatar Border",
+                    "avatarBackgroundsInfo": "Avatar backgrounds are displayed behind your avatar. Unlocked backgrounds can be changed in Settings -> Profile.",
+                    "avatarBordersInfo": "Avatar borders replace the default border around your avatar. Unlocked borders can be changed in Settings -> Profile.",
+                    "exchangeSupporterPoints": "Exchange Supporter Points"
                 },
                 paymentSuccessPage: {
                     paymentSuccess: "Payment Successful",
@@ -1164,10 +1209,12 @@ const Wa = {
                     closeTabMessage: "You can close this tab and go back to the game."
                 },
                 lootLogPanel: {
-                    lootTracker: "Loot Tracker",
+                    lootTracker: "Loot & XP Log",
                     refresh: "Refresh",
                     startTime: "Start Time",
-                    duration: "Duration"
+                    duration: "Duration",
+                    "experience": "Experience",
+                    "loot": "Loot"
                 },
                 collection: {
                     linkToChat: "Link to Chat"
@@ -1231,11 +1278,13 @@ const Wa = {
                     reward: "Reward: {{quantity}}",
                     claim: "Claim",
                     referralInstructions: "When someone signs up using your referral link, you'll be eligible for the following rewards:",
-                    referralInstructionBullets: "<ul><li>{{firstLevelCowbells}}<cowbellIcon /> if they reach Total Level {{firstTotalLevel}}.</li><li>Additional {{secondLevelCowbells}}<cowbellIcon /> if they reach Total Level {{secondTotalLevel}}.</li><li>{{purchaseCowbellPercent}} of any Cowbells they purchase.</li></ul>",
+                    referralInstructionBullets: "<ul><li>{{firstLevelCowbells}}<cowbellIcon /> if they reach Total Level {{firstTotalLevel}}.</li><li>Additional {{secondLevelCowbells}}<cowbellIcon /> if they reach Total Level {{secondTotalLevel}}.</li><li>{{purchaseCowbellPercent}} of any Cowbells they purchase.</li><li>{{purchaseSupporterPointPercent}} of the Supporter Points from any purchase they make.</li></ul>",
                     referralLinkCopied: "Link Copied",
                     copyLink: "Copy Link",
                     referralCount: "So far, <span>{{count}}</span> players have signed up using your referral link",
-                    socialTitle: "Social"
+                    socialTitle: "Social",
+                    "rewardCowbellsAndSupporterPoints": "Reward: {{quantity}}<cowbellIcon /> + {{points}} Supporter Points",
+                    "rewardSupporterPoints": "Reward: {{points}} Supporter Points"
                 },
                 guildPanel: {
                     overview: "Overview",
@@ -1284,9 +1333,149 @@ const Wa = {
                     offline: "Offline",
                     disbandInstructions: "You can disband if there are no other members or open invites.",
                     disbandGuild: "Disband Guild",
-                    leaveInstructions: "You can leave the guild. There are no penalties for leaving.",
+                    leaveInstructions: "You can leave the guild at any time. Your shrine buff levels are kept, but buffs are inactive without a guild and capped by your guild's shrine levels.",
                     leaveGuild: "Leave Guild",
-                    guild: "Guild"
+                    guild: "Guild",
+                    "combatTrial": "Combat Trial",
+                    "skillingTrial": "Skilling Trial",
+                    "trialScheduled": "Scheduled",
+                    "trialCompleted": "Completed",
+                    "setTrialTime": "Set Time",
+                    "setTrialRequirements": "Set Level Requirements",
+                    "trialRequirements": "Level Requirements",
+                    "trialRequirementsTrialHeader": "Trial",
+                    "trialMinLevel": "Min Level",
+                    "trialRequirementsEdit": "Edit",
+                    "trialRequirementsSave": "Save",
+                    "trialTierLine": "Lv.{{level}}",
+                    "trialTierProgressLine": "Lv.{{level}} +{{percent}}%",
+                    "trialProgressOnlyLine": "+{{percent}}%",
+                    "trialPointsEarned": "{{points}} pts",
+                    "rosterCount": "{{count}}/{{capacity}} signed up",
+                    "trialRole": "Role",
+                    "unselectedRole": "Unselected",
+                    "challenge": "Challenge",
+                    "difficulty": "Difficulty",
+                    "signUps": "Sign-ups",
+                    "roles": "Roles",
+                    "signUp": "Sign Up",
+                    "cancelSignup": "Cancel Signup",
+                    "viewLoadout": "View Loadout",
+                    "removeSignup": "Remove Signup",
+                    "confirmRemoveSignup": "Remove {{name}}'s signup for {{trial}}?",
+                    "signedUp": "Signed Up",
+                    "trialNotLive": "No guild trial is active for you right now.",
+                    "trialPreparing": "Preparing the next tier...",
+                    "trialStats": "Stats",
+                    "trialStatsNotCompleted": "Stats are available after this trial is completed.",
+                    "trialStatsEmpty": "No participants recorded.",
+                    "trialStatsMember": "Member",
+                    "trialStatsDamage": "Damage",
+                    "trialStatsHealing": "Healing",
+                    "trialStatsDamageTaken": "Damage Taken",
+                    "trialStatsDamageTakenTooltip": "Total damage taken before mitigation.",
+                    "trialStatsWork": "Work",
+                    "formerMember": "Former member",
+                    "buildings": "Buildings",
+                    "buildingsInstruction": "Guild Points can be used to upgrade Guild Buildings. Buildings can only be upgraded by the guild's Leader and Generals",
+                    "shop": "Shop",
+                    "shrines": "Shrines",
+                    "shrinesInstruction": "Each shrine level unlocks higher levels of its shrine buffs",
+                    "max": "Max",
+                    "levelOfMax": "Lv. {{level}} / {{maxLevel}}",
+                    "level": "Level {{level}}",
+                    "upgrade": "Upgrade",
+                    "upgradeCost": "Cost: {{cost}} pts",
+                    "cost": "Cost",
+                    "noUpgradePermission": "You do not have permission to upgrade guild buildings",
+                    "shrineUnlocksBuffs": "Members can buy these buffs in the Guild Shop, up to the shrine's level:",
+                    "buildingEffectMemberSlots": "Max Members: {{value}}",
+                    "buildingEffectGuildPoints": "Guild Points: {{value}}",
+                    "buildingEffectGuildTokens": "Guild Token Rewards: {{value}}",
+                    "buildingEffectGuildExp": "Guild Experience: {{value}}",
+                    "buildingEffectSkillingTrialSlots": "Skilling Trial Slots: {{value}}",
+                    "buildingEffectCombatTrialSlots": "Combat Trial Slots: {{value}}",
+                    "buildingEffectTrialBuffs": "Boosts members only during this guild's trials:",
+                    "guildBuffs": "Shrine Buffs",
+                    "guildBuffsInstruction": "The maximum level of each buff is based on the level of the corresponding shrine in your guild's buildings",
+                    "viewBuffs": "View Buffs",
+                    "none": "None",
+                    "combat": "Combat",
+                    "skilling": "Skilling",
+                    "domainWithMaxLevel": "{{domain}} (Max Level {{value}})",
+                    "buffCappedByShrine": "Capped at Lv. {{level}} by {{shrineName}}",
+                    "buffStrandedByShrine": "Only Lv. {{level}} active here (limited by {{shrineName}})",
+                    "refundBuffLevel": "Refund",
+                    "refundWarning": "Refunding returns {{percent}}% of the guild tokens and credits spent.",
+                    "confirmRefundBuff": "Confirm Refund",
+                    "build": "Build",
+                    "cancel": "Cancel",
+                    "getGuildCredits": "Guild Credits",
+                    "creditsInstruction": "Exchange items for guild credits, which are used to buy shrine buffs. Exchanged items also count toward unlocking guild icons",
+                    "exchange": "Exchange",
+                    "selectItem": "Select Item",
+                    "itemsToGiveMax": "You give (Max: {{max}})",
+                    "creditsToReceive": "You receive",
+                    "youGive": "You give: {{count}} {{itemName}}",
+                    "youReceive": "You receive: {{count}} {{itemName}}",
+                    "confirmExchangeEnhanced": "This converts +{{enhancementLevel}} equipment at the base item's rate. Continue?",
+                    "icon": "Icons",
+                    "iconTabInstruction": "Items exchanged for guild credits are tallied here. An item's icon unlocks as a guild icon at 1,000 exchanged, then gains a different glow color at 10K, 100K, and so on up to 1000M. The guild leader can change the guild's icon in the Overview tab.",
+                    "iconTier": "Tier {{tier}}",
+                    "iconMaxTier": "Max Tier",
+                    "showIncompleteIcons": "Show incomplete icons",
+                    "noDonationsYet": "No items have been exchanged yet. Exchange items for guild credits in the Shop tab to start the tally.",
+                    "noUnlockedIcons": "No icons unlocked yet. An icon unlocks once the guild has exchanged 1,000 of an item.",
+                    "changeIcon": "Change Icon",
+                    "changeName": "Change Name",
+                    "newGuildName": "New Guild Name:",
+                    "confirmRenameGuild": "Rename the guild to \"{{name}}\" for {{cost}} Guild Points?",
+                    "guildPointCost": "Cost: {{cost}} Guild Points",
+                    "applications": "Applications",
+                    "trials": "Trials",
+                    "trialsResetPending": "Weekly rewards are being calculated. Check back soon.",
+                    "lifetimeGuildPoints": "Lifetime Guild Points: {{lifetimeGuildPoints}}",
+                    "guildPointsTotal": "Guild Points: {{totalGuildPoints}}",
+                    "weeklyGuildPoints": "Weekly Guild Points: {{points}}",
+                    "trialsOverview": "Each character can sign up for one skilling and one combat trial. They start automatically at the scheduled time (skilling first, then combat), each lasting up to an hour. Tiers get progressively harder but grant more Guild Points. Once all trials finish, every eligible member receives Guild Tokens equal to half of the base Guild Points earned, and those who participate in at least one trial receive {{participantBonusPercent}}% more.",
+                    "trialInProgress": "In Progress",
+                    "reset": "Reset: ",
+                    "trialsLockedUntilReset": "New members cannot participate in guild trials until the next weekly reset.",
+                    "linkToChat": "Link to Chat",
+                    "applicationsOpen": "Applications Open",
+                    "on": "On",
+                    "off": "Off",
+                    "applicationsAutoAccept": "Auto-Accept",
+                    "applicationsMinTotalLevel": "Min Total Level",
+                    "applicationsMinTotalLevelSave": "Save",
+                    "noticeBoard": "Notice Board",
+                    "publicMessage": "Profile Message (Public)",
+                    "viewProfile": "View Profile",
+                    "acceptApplication": "Accept",
+                    "rejectApplication": "Reject",
+                    "applicationsHeader": "Applications ({{currentCount}}/{{maxCount}})",
+                    "decision": "Decision",
+                    "confirmScheduleTrialInPast": "That start time has already passed this week, so the trial will start immediately. Are you sure?",
+                    "guildType": "Change Guild Type",
+                    "guildTypeCasualLeaderNotice": "Your guild is Casual: you can recruit players of any game mode.",
+                    "commitGuildType": "Change Guild Type",
+                    "commitRequiresAllStandard": "All current members must be Standard characters.",
+                    "commitRequiresAllIroncow": "All current members must be Ironcow characters.",
+                    "confirmSetGuildType": "Set this guild to the {{type}} type? This is permanent and can never be changed.",
+                    "confirmSetGuildTypeFinal": "Are you absolutely sure? Setting the guild type is permanent and can never be undone.",
+                    "guildTypeLabel": "Guild Type",
+                    "changeGuildType": "Change Type",
+                    "guildApplication": "Guild Application: ",
+                    "withdraw": "Withdraw",
+                    "claimLeadership": "Claim Leadership",
+                    "confirmClaimLeadership": "Confirm Claim Lead",
+                    "leaderInactiveClaimNotice": "The guild leader has been inactive for {{days}} days. You're eligible to claim leadership.",
+                    "viewMemberStatus": "Status",
+                    "viewMemberContributions": "Contributions",
+                    "weeklyGuildExp": "Weekly XP",
+                    "weeklyGuildExperience": "Weekly Guild Experience",
+                    "trialSignups": "Trial Signups",
+                    "trialTiers": "Trial Tiers"
                 },
                 leaderboardPanel: {
                     leaderboard: "Leaderboard",
@@ -1303,7 +1492,15 @@ const Wa = {
                     bestiaryPoints: "Bestiary Points",
                     labyrinthPoints: "Labyrinth Points",
                     floor: "Floor",
-                    rooms: "Rooms"
+                    rooms: "Rooms",
+                    "filterAll": "All",
+                    "totalLevel": "Total Level",
+                    "guildPoints": "Guild Points",
+                    "weeklyPoints": "Weekly Points",
+                    "totalTiers": "Total Tiers",
+                    "tierCompleted": "Tier Completed",
+                    "nextTierProgress": "Next Tier Progress",
+                    "weeklyTrialTab": "Weekly {{name}}"
                 },
                 leaderboardTypeNames: {
                     standard: "Standard",
@@ -1453,7 +1650,36 @@ const Wa = {
                     installApp: "Install App:",
                     installAppInstall: "Install",
                     installAppShowInstructions: "Show Instructions",
-                    installAppIosInstructions: 'To install: tap the Share button in your browser, then tap "Add to Home Screen".'
+                    installAppIosInstructions: 'To install: tap the Share button in your browser, then tap "Add to Home Screen".',
+                    "chat": "Chat",
+                    "unlockAvatarBackgrounds": "Unlock Avatar Backgrounds",
+                    "unlockAvatarBorders": "Unlock Avatar Borders",
+                    "avatarBackground": "Avatar Background:",
+                    "avatarBorder": "Avatar Border:",
+                    "none": "None",
+                    "actionQueueControls": "Action Queue Reordering:",
+                    "actionQueueControlsDragAndDrop": "Drag and Drop",
+                    "actionQueueControlsArrowButtons": "Up/Down Buttons",
+                    "navigationMenu": "Navigation Menu:",
+                    "navigationMenuTitle": "Navigation Menu",
+                    "navigationMenuInstructions": "Drag and drop to reorder the navigation menu.",
+                    "nonCombatSkills": "Non-combat Skills",
+                    "customizeOrder": "Customize Order",
+                    "resetToDefault": "Reset to Default",
+                    "globalChat": "Global Chat:",
+                    "languageChat": "Language Chat:",
+                    "languageChat2": "Language Chat 2:",
+                    "chatTranslationLanguage": "Chat Translation:",
+                    "chatTranslationLanguageOff": "Off",
+                    "chatTranslationPrimaryHint": "Translate to this language",
+                    "chatTranslationKnownHint": "Understand without translating",
+                    "chatTranslationChannels": "Translate Channels:",
+                    "chatTranslationChannelsAll": "All",
+                    "chatTranslationChannelsCustom": "Custom",
+                    "chatTranslationChannelsPublic": "Public",
+                    "chatTranslationReloadMessage": "Refresh the page to update translation of existing chat messages.",
+                    "chatTranslationDontReload": "Don't refresh",
+                    "reloadPage": "Refresh"
                 },
                 browserNotifications: {
                     idleTitle: "Character Idle",
@@ -1530,7 +1756,35 @@ const Wa = {
                         underage: "Admission of being underage, which is defined as 12 years old or younger.",
                         inappropriateName: "Inappropriate character name.",
                         other: "Other issues not covered by the above categories."
-                    }
+                    },
+                    "globalTip": "Tip: The Global channel is for game discussions and friendly conversations. Any language can be used and will be auto-translated into over 10 languages. To maintain a positive and respectful atmosphere, please adhere to the <gameRulesLink>Game Rules</gameRulesLink>.",
+                    "cannotWhisperSelf": "Cannot Whisper Self",
+                    "notInGuild": "Not In A Guild",
+                    "notInParty": "Not In A Party",
+                    "pinGuildChannelOnly": "Guild Chat Only",
+                    "pinNoPermission": "No Pin Permission",
+                    "nothingPinned": "No Pinned Message",
+                    "pinnedBannerLabel": "Pinned by {{name}}:",
+                    "pinConfirm": "Pin this message for all guild members?",
+                    "unpinConfirm": "Unpin the current guild message?",
+                    "pinButtonTooltip": "Pin the typed message for the whole guild",
+                    "pinnedCollapseTooltip": "Click to collapse",
+                    "pinnedExpandTooltip": "Show pinned message",
+                    "unpinButton": "Unpin",
+                    "muteContext": "Duration: {{duration}}, Reason: {{reason}}",
+                    "penaltyReason": {
+                        "sexual": "Automod - Sexual Content",
+                        "harassment": "Automod - Harassment/Personal Attack",
+                        "violence": "Automod - Violent Content",
+                        "offensive_language": "Automod - Offensive Language",
+                        "illegal_activity": "Automod - Illegal Activity",
+                        "politics": "Automod - Political/Divisive Topic",
+                        "community_guidelines_violation": "Automod - Community Guidelines Violation"
+                    },
+                    "deleteReason": {
+                        "self": "Deleted by sender"
+                    },
+                    "globalChatRestriction": "You need at least {{globalChatMinLevel}} total level or {{globalChatMinExp}} XP to use global chat"
                 },
                 chatMessage: {
                     whisper: "Whisper",
@@ -1548,7 +1802,9 @@ const Wa = {
                     moderator: "Moderator",
                     privateModeratorTo: "(Private) Moderator to {{receiverName}}",
                     toPlayer: "to {{receiverName}}",
-                    messageDeleted: "Message Deleted"
+                    messageDeleted: "Message Deleted",
+                    "original": "[Original]",
+                    "translate": "[Translate]"
                 },
                 characterName: {
                     customIcon: "Custom Icon"
@@ -1561,20 +1817,29 @@ const Wa = {
                     equipment: "Equipment",
                     abilities: "Abilities",
                     house: "House",
-                    loadouts: "Loadouts"
+                    loadouts: "Loadouts",
+                    "talismans": "Talismans"
                 },
                 inventory: {
                     openedLootHeader: "Opened Loot",
                     foundItemsLabel: "You found:",
                     grantedBuffsLabel: "Buffs Granted:",
                     closeButton: "Close",
-                    itemFilterPlaceholder: "Item Filter"
+                    itemFilterPlaceholder: "Item Filter",
+                    "totalMarketValue": "Total Market Value: <color>{{value}}</color>",
+                    "marketValueInventory": "Inventory: {{value}}",
+                    "marketValueEquipment": "Equipment: {{value}}",
+                    "marketValueMarketplace": "Marketplace: {{value}}",
+                    "marketValueTotal": "Total: {{value}}",
+                    "allItemsTab": "All Items",
+                    "favorites": "Favorites"
                 },
                 equipmentPanel: {
                     title: "Equipment",
                     viewStats: "View Stats",
                     combatStats: "Combat Stats",
-                    nonCombatStats: "Non-combat Stats"
+                    nonCombatStats: "Non-combat Stats",
+                    "statsTitle": "Equipment Stats"
                 },
                 abilitiesPanel: {
                     title: "Abilities",
@@ -1616,7 +1881,8 @@ const Wa = {
                     equipLoadout: "Equip Loadout",
                     equipment: "Equipment",
                     abilities: "Abilities",
-                    consumables: "Consumables"
+                    consumables: "Consumables",
+                    "talismans": "Talismans"
                 },
                 offlineProgressModal: {
                     welcomeBack: "Welcome Back!",
@@ -1654,7 +1920,10 @@ const Wa = {
                     bestiaryPoints: "Bestiary Points",
                     famePoints: "Fame Points",
                     noCompletedAchievements: "No achievements completed in this tier",
-                    close: "Close"
+                    close: "Close",
+                    "loadoutTitle": "{{name}}'s Loadout",
+                    "noLoadoutSelected": "No loadout selected",
+                    "shrines": "Shrines"
                 },
                 skill: {
                     level: "Level: {{level}}",
@@ -1675,10 +1944,25 @@ const Wa = {
                     openLootWithKeys: "Open {{count}} (Keys: {{keyCount}})",
                     viewMarketplace: "View Marketplace",
                     viewCowbellStore: "View Cowbell Store",
-                    linkToChat: "Link To Chat",
+                    linkToChat: "Link to Chat",
                     openItemDictionary: "Open Item Dictionary",
                     sellFor: "Sell For {{count}} Coins",
-                    confirmSellFor: "Confirm Sell For {{count}} Coins"
+                    confirmSellFor: "Confirm Sell For {{count}} Coins",
+                    "favorite": "Favorite",
+                    "unfavorite": "Unfavorite",
+                    "lock": "Lock",
+                    "unlock": "Unlock",
+                    "favorited": "Favorited",
+                    "locked": "Locked",
+                    "favoritedRanges": "Favorited: {{ranges}}",
+                    "lockedRanges": "Locked: {{ranges}}",
+                    "markScopeThisLevel": "+{{level}} only",
+                    "markScopeAllLevels": "All enhancement levels",
+                    "markRangeSingle": "+{{level}}",
+                    "markRangeSpan": "+{{min}} to +{{max}}",
+                    "markRangeAndUp": "+{{level}} and up",
+                    "markRangeAll": "All levels",
+                    "favoriteOrLock": "Favorite / Lock"
                 },
                 itemTooltipText: {
                     amount: "Amount: {{amount}}",
@@ -1696,7 +1980,9 @@ const Wa = {
                     cooldownInCombat: "Cooldown(in combat): {{seconds}}s",
                     hpRestore: "HP Restore: {{amount}} HP",
                     mpRestore: "MP Restore: {{amount}} MP",
-                    overDuration: "over {{duration}}"
+                    overDuration: "over {{duration}}",
+                    "marketPrice": "Market Price: {{price}}",
+                    "marketPriceUnknown": "Market Price: Unknown"
                 },
                 equipmentStatsText: {
                     weaken: "Weaken: When attacked by enemy, reduce enemy's damage by {{value}} for 15s, stacking up to 5 times.",
@@ -1707,7 +1993,12 @@ const Wa = {
                     pierce: "Pierce: On successful auto-attack, {{value}} chance to auto-attack next enemy. Can chain multiple times.",
                     ripple: "Ripple: On ability cast, {{value}} chance to reduce all ability cooldowns by 2s and restore 10 MP.",
                     bloom: "Bloom: On ability cast, {{value}} chance to heal lowest HP% ally for 10HP+15% magic damage.",
-                    blaze: "Blaze: On ability cast, {{value}} chance to attack all enemies for 30% magic damage."
+                    blaze: "Blaze: On ability cast, {{value}} chance to attack all enemies for 30% magic damage.",
+                    "smite": "Smite: Deals {{value}} more damage to bosses.",
+                    "shatter": "Shatter: Critical hits gain {{value}} armor and resistance penetration.",
+                    "overkill": "Overkill: On a killing blow, stores {{value}} of the excess damage and adds it as true damage to the first target of your next successful direct attack.",
+                    "echo": "Echo: On ability cast, {{value}} chance to repeat the ability's damage or healing at half strength.",
+                    "fortify": "Fortify: When hit, gain {{value}} armor and resistances for 5s, stacking up to 4 times."
                 },
                 itemSelector: {
                     count: "Count",
@@ -1725,7 +2016,12 @@ const Wa = {
                     name: "Guild Shrines",
                     force: "force",
                     tempo: "tempo",
-                    spirit: "spirit"
+                    spirit: "spirit",
+                    "/guild_shrines/force": "Shrine of Force",
+                    "/guild_shrines/tempo": "Shrine of Tempo",
+                    "/guild_shrines/spirit": "Shrine of Spirit",
+                    "/guild_shrines/rarity": "Shrine of Rarity",
+                    "/guild_shrines/scholar": "Shrine of Scholar"
                 },
                 itemDictionary: {
                     gatheredFrom: "Gathered From:",
@@ -1768,13 +2064,14 @@ const Wa = {
                     anyLowLevelMonster: "Any low level monster in normal combat.",
                     anyMediumLevelMonster: "Any medium level monsters in normal combat.",
                     anyHighLevelMonster: "Any high level monsters in normal combat.",
-                    recommendedLevel: "Level {{level}} <Icon /> Recommended"
+                    recommendedLevel: "Level {{level}} <Icon /> Recommended",
+                    "guildCreditExchange": "Guild Credit Exchange:"
                 },
                 ability: {
                     level: "Level: {{level}}",
                     totalExperience: "Total Experience: {{totalExperience}}",
                     expToLevelUp: "Exp to Level Up: {{remainingExperience}}",
-                    linkToChat: "Link To Chat",
+                    linkToChat: "Link to Chat",
                     lv: "Lv.{{level}}",
                     ability: "Ability"
                 },
@@ -1866,7 +2163,7 @@ const Wa = {
                     mooPassTaskSlotLimit: "+{{count}} Task Slot Limit",
                     mooPassFreeTaskRerolls: "+{{count}} Free Task Reroll (per task)",
                     mooPassLabyrinthPathLimit: "+{{count}} Labyrinth Path Length",
-                    mooPassLootTracker: "Loot Tracker of last {{count}} activities",
+                    mooPassLootTracker: "Loot & XP Log of last {{count}} activities",
                     mooPassAvatarBorder: "Golden Avatar Border"
                 },
                 personalBuffs: {
@@ -1881,7 +2178,8 @@ const Wa = {
                     max: " (Max)",
                     usableIn: "Usable:",
                     contributor: "{{name}}: {{minutes}} minutes",
-                    moreContributors: "(+{{count}} more contributors)"
+                    moreContributors: "(+{{count}} more contributors)",
+                    "marketTaxContributor": "Marketplace taxes: {{minutes}} minutes"
                 },
                 systemChatMessage: {
                     communityBuffAdded: "{{name}} has added {{minutes}} minutes of community buff: $t(communityBuffTypeNames.{{buffHrid}})!",
@@ -1901,7 +2199,22 @@ const Wa = {
                     partyBattleStarted: "Battle started: $t(actionNames.{{actionHrid}})",
                     partyBattleEnded: "Battle ended: $t(actionNames.{{actionHrid}})",
                     partyKeyCount: "Key counts: {{keyCountString}}",
-                    partyWaveFailed: "Party failed on wave {{wave}}."
+                    partyWaveFailed: "Party failed on wave {{wave}}.",
+                    "guildBuildingUpgraded": "{{senderName}} has upgraded $t(guildBuildingNames.{{buildingHrid}}) to level {{level}}!",
+                    "guildShrineUpgraded": "{{senderName}} has upgraded $t(guildShrineNames.{{buildingHrid}}) to level {{level}}!",
+                    "guildIconChanged": "{{senderName}} has set the guild icon to $t(itemNames.{{itemHrid}})!",
+                    "guildNameChanged": "{{senderName}} has renamed the guild to {{name}}!",
+                    "guildTrialScheduleSet": "{{name}} set the guild trial start time to {{time}}.",
+                    "guildTrialStarted": "The guild trials have begun!",
+                    "guildTrialEnded": "Guild trials complete! {{points}} Guild Points earned, and {{members}} members each received {{tokens}} $t(itemNames.{{itemHrid}}).",
+                    "guildTrialEndedParticipantBonus": "Guild trials complete! {{points}} Guild Points earned. {{eligibleMembers}} eligible members each received {{baseTokens}} $t(itemNames.{{itemHrid}}), and {{participants}} participants each received an additional {{bonusTokens}} $t(itemNames.{{itemHrid}}).",
+                    "communityBuffTaxAdded": "Marketplace taxes added {{minutes}} minutes to all community buffs!",
+                    "guildPublicMessageUpdated": "Guild public message has been updated by {{name}}.",
+                    "guildMessagePinned": "{{name}} pinned a message: {{message}}",
+                    "guildMessageUnpinned": "{{name}} unpinned the guild message.",
+                    "guildLeadershipClaimed": "{{name}} has claimed leadership from the inactive leader.",
+                    "guildLeadershipAutoAssigned": "With no leader, {{name}} has become the guild leader.",
+                    "guildTrialSignupRemoved": "{{actor}} removed {{name}}'s signup for {{trialName}}."
                 },
                 infoNotification: {
                     addedFriend: "Added friend: {{name}}",
@@ -1964,7 +2277,16 @@ const Wa = {
                     mooPassGranted: "Granted: {{days}} days of MooPass",
                     updateSuccessful: "Update successful",
                     creatorCodeSet: "Creator code applied: {{code}}",
-                    labyrinthShroudFailed: "Shroud failed! The room level exceeds the shroud's effective range."
+                    labyrinthShroudFailed: "Shroud failed! The room level exceeds the shroud's effective range.",
+                    "listingPegged": "$t(itemNames.{{itemHrid}}){{enhancement}} currently listed at {{boundary}}\nYour chosen limit: {{limit}}",
+                    "avatarBackgroundUnlocked": "Unlocked new avatar background",
+                    "avatarBorderUnlocked": "Unlocked new avatar border",
+                    "guildMessagePinned": "New guild pinned message",
+                    "guildTrialSignupRemoved": "Your signup for {{trialName}} was removed by {{actor}}",
+                    "removedGuildTrialSignup": "Removed {{name}}'s signup for {{trialName}}",
+                    "guildApplicationSent": "Applied to guild: {{guildName}}",
+                    "guildApplicationAccepted": "Your application was accepted by {{guildName}}",
+                    "guildTrialStarted": "Your guild trial has started!"
                 },
                 errorNotification: {
                     unexpectedError: "Unexpected error",
@@ -2004,7 +2326,30 @@ const Wa = {
                     partySlotUnavailable: "Party slot no longer available",
                     currentPasswordIncorrect: "Current password is incorrect",
                     emailAlreadyRegistered: "This email address has already been registered on another account",
-                    invalidCreatorCode: "Invalid creator code. Please check and try again."
+                    invalidCreatorCode: "Invalid creator code. Please check and try again.",
+                    "maxListingsPerItem": "You can only have 3 active buy and 3 active sell listings for the same item",
+                    "guildNotFound": "Guild no longer exists",
+                    "guildApplicationCooldown": "You must wait 3 days before applying to this guild again",
+                    "guildApplicationListFull": "Application list for this guild is full. Try again later.",
+                    "guildApplicationsClosed": "This guild is no longer accepting applications.",
+                    "guildApplicationMinLevelNotMet": "You do not meet the minimum total level for this guild.",
+                    "guildTrialMinLevelNotMet": "You do not meet the minimum level for this trial.",
+                    "guildPinnedMessageCooldown": "Please wait a moment before changing the pinned message again",
+                    "guildNoticeMessageCooldown": "Please wait a moment before changing the notice board again",
+                    "guildPublicMessageCooldown": "Please wait a moment before changing the profile message again",
+                    "guildIsFull": "Guild is full",
+                    "guildTypeMismatch": "This guild does not accept characters of that game mode",
+                    "guildTypeAlreadySet": "This guild's type has already been set and cannot be changed",
+                    "guildTypeRequiresAllStandard": "The Standard guild type requires every member to be a Standard character",
+                    "guildTypeRequiresAllIroncow": "The Ironcow guild type requires every member to be an Ironcow character",
+                    "incorrectLogin": "Incorrect email/username or password",
+                    "accountAlreadyLinkedToSteam": "This account is already linked to a Steam account",
+                    "passwordResetRateLimited": "You can only request a password reset once per hour. Please check your inbox and spam folder.",
+                    "partyMinLevelExceedsMaxLevel": "Minimum combat level cannot be greater than maximum combat level",
+                    "regexCannotBeEmpty": "Regex cannot be empty",
+                    "invalidRegex": "Invalid regex",
+                    "itemIsLocked": "This item is locked",
+                    "itemMarkLimitReached": "Favorite/lock limit reached"
                 },
                 guideTooltip: {
                     milkingTitle: "Milking",
@@ -2030,7 +2375,7 @@ const Wa = {
                     combatTitle: "Combat",
                     combatContent: "Fighting monsters will earn you experience and item drops. Your combat stats are based on a combination of your combat skill levels and your equipment bonuses.\nYou can bring food to recover HP or MP, drinks to give you buffs, and abilities that can be cast. You can change the automation configuration from the settings icon below them.\nIf you are defeated in combat, your character will wait through a respawn timer before automatically continuing combat.",
                     marketplaceTitle: "Marketplace",
-                    marketplaceContent: 'The marketplace allows players to make buy or sell listings for any tradable item. You can click on any item listed to view existing listings or to create your own.\nNew listings will always be fulfilled by the best matching prices on market when possible. If no immediate fulfillment is possible, the listing will appear on the marketplace.\nWhen a trade is successful, a tax of 2% coins is taken and the received items can be collected from "My Listings" tab.\nAsks: existing sell listings.\nBids: existing buy listings.',
+                    marketplaceContent: "The marketplace lets players buy and sell tradable items with coins.\nEach item has an estimated market value and a tradable range. Trades execute only inside that range.\nA sell below the minimum or buy above the maximum starts at the nearest edge and moves with the range toward your chosen limit. A sell above the maximum or buy below the minimum waits until it becomes tradable.\nSuccessful trades are taxed 4%. Collect received items or coins from $t(marketplacePanel.myListings).",
                     combatStatsTitle: "Combat Stats",
                     combatStatsContent: "Attack Interval: How fast you can auto-attack.\nAbility Haste: Reduces ability cooldown.\nAccuracy: Increases chance to successfully attack.\nDamage: Auto-attack damage is random between 1 and the maximum damage.\nCritical Hit: Always rolls maximum damage. Ranged style has passive critical chance.\nTask Damage: Increases damage to monsters assigned as tasks.\nAmplify: Increases damage of that type.\nEvasion: Increases chance to dodge an attack.\nArmor: Mitigates % of physical damage.\nResistance: Mitigates % of elemental damage.\nPenetration: Ignores % of armor/resistance.\nLife Steal: Heal for % of auto-attack.\nMana Leech: Leeches for % of auto-attack.\nThorn: When attacked, deals a percentage of your defensive damage back to the attacker. Damage is increased by 1% per armor or resistance.\nRetaliation: When attacked, reflects a percentage of (defensive damage + incoming damage) as a smash attack back to the attacker.\nTenacity: Reduces chance of being blinded, silenced, or stunned.\nThreat: Increases chance of being targeted by monsters.\nRegen: Recover % of Max HP/MP per 10s.\nFood Haste: Reduces food cooldown.\nDrink Concentration: Increases drink effect. Reduces duration and cooldown.",
                     noncombatStatsTitle: "Non-combat Stats",
@@ -2048,7 +2393,13 @@ const Wa = {
                     achievementsTitle: "Achievements",
                     achievementsContent: "Achievements: Goals spanning many areas of the game. Completing all in a tier grants buffs for the character.\nCollection: Tracks all items obtained outside of Marketplace and General Shop.\nBestiary: Tracks all monsters defeated. Higher tier monsters grant 1 extra credit per tier. Party combat gives fractional credit based on party size.\n\nEach item/monster earns points based on how many you've collected/defeated (1\u2192+1pt, 10\u2192+2pt, 100\u2192+3pt, etc).",
                     labyrinthTitle: "Labyrinth",
-                    labyrinthContent: "The Labyrinth consists of floors of skilling and combat challenges. Bring torches, shrouds, beacons, and crates as supplies.\nEarn Labyrinth Tokens to buy upgrades and rewards from the Labyrinth Shop."
+                    labyrinthContent: "The Labyrinth consists of floors of skilling and combat challenges. Bring torches, shrouds, beacons, and crates as supplies.\nEarn Labyrinth Tokens to buy upgrades and rewards from the Labyrinth Shop.",
+                    "talismansTitle": "Talismans",
+                    "talismansContent": "Equip a belt to unlock talisman slots. Only equipped talismans grant their bonuses.\nCircle color shows the number of modifiers: green for 1, blue for 2, purple for 3, and gold for 4. Each modifier has a grade; higher grades give stronger bonuses.\nSelect an orb to reroll unlocked modifiers. The orb determines the maximum grade and is consumed when you roll. Choose to keep your current modifiers or use the new roll.\nUpgrading adds a random modifier without changing existing modifiers.",
+                    "guildTitle": "Guild",
+                    "guildContent": "Guilds are groups of players who play, chat, and progress together.\nTake part in weekly guild trials to earn Guild Points for guild buildings and Guild Tokens for personal shrine buffs.\nExchange items for guild credits to buy shrine buffs and unlock guild icons.",
+                    "itemMarksTitle": "Favorite / Lock",
+                    "itemMarksContent": "Favorite pins this item to the Favorites tab and to the top of your inventory.\nLock prevents this item from being sold to the shop or listed on the market. It can still be used, equipped, enhanced, or alchemized.\nFor enhanceable items, choose whether the mark applies to this enhancement level only or to all levels."
                 },
                 newsPanel: {
                     news: "News"
@@ -2081,6 +2432,46 @@ const Wa = {
                     17348256e5: {
                         heading: "Skilling Expansion Part 2 - Celestial Tools and Skilling Outfits",
                         content: "<div>\n                    We're excited to release the second part of the skilling expansion, introducing Celestial Tools and Skilling Outfits! After using Holy tools for such a long time, skilling specialists can finally get their hands on some upgrades. These items are not easy to acquire, but those who are dedicated (or wealthy) enough to obtain them will be rewarded with a significant boost. Dive in and take your skilling to the next level!\n\t\t\t\t</div>"
+                    },
+                    "1790557200000": {
+                        "heading": "Inventory Improvements and More",
+                        "content": "<div>\n\t\t\t\t\tThis update adds inventory organization tools. Items can now be marked as Favorite or Locked from the item menu. Favorites are pinned to the top of your inventory and to a new Favorites tab. Locked items cannot be sold to the shop or listed on the market, so accidental sales of valuable gear are no longer possible. The inventory also has a tab for each item category.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tThe marketplace has also received further adjustments. Based on collected game data, the rate of coin sink from the market tax is a little higher than our intended target, so the standard market tax has been lowered from 5% to 4%. We do not expect any further changes to the tax rate. Community buff tooltips now show how much buff time came from taxes. Price increments have been reworked so that the gap between listing prices is consistent at every price level, 0.33% to 0.44% apart instead of the previous 0.17% to 0.5%. Enhanced items have much lower liquidity, so they now use price increments 5x larger to avoid excessive undercutting.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tReferrers now receive 20% of the Supporter Points from purchases made by referred players, in addition to the existing 10% Cowbell bonus. Points from past referred purchases have been credited retroactively.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tVisit the Patch Notes for the full list of changes.\n\t\t\t\t</div>"
+                    },
+                    "1786669200000": {
+                        "heading": "Marketplace Integrity Update and Guild Trial Rebalance",
+                        "content": "<div>\n\t\t\t\t\tThis update introduces a marketplace integrity system. We regularly see problematic behavior such as an alt buying a low-value item from its main for a large amount of coins, coin farming accounts clearing both buy and sell listings on some items to disguise wealth transfers, and various abuses of player loans. Based on past transaction reviews, the overwhelming majority of trades more than 20% away from estimated market value are either loans or involve accounts penalized for boosting or market manipulation.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tEvery established item and enhancement level now has an estimated market value based on real trades and listings, with an immediate tradable range of about 20% between the maximum and minimum price. New items use a wider range while their price is being established. Listings outside the range are still allowed: a buy above the maximum or a sell below the minimum starts at the nearest edge and moves toward your chosen price as the market value changes. Leaving such listings on the market is also the quickest way to signal that the estimated value should move. As a rough estimate, each additional 5% outside the range takes about one 6-hour market update, and anyone can fill your listing during that time. Nearly all resources and more than 95% of unenhanced equipment already trade within the new range, so the impact on normal trading activity should be minimal.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tThe standard market tax has increased from 2% to 5%. This makes repeated wash trades and market manipulation more expensive while providing an increased coin sink to slow the growth of the total coin supply.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tTo allow better price competition and reduce the impact of huge buy or sell walls, the marketplace now uses much smaller price increments at 1/10 the previous size. This way, players can outbid each other at a much smaller cost.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tPlayer loans are no longer possible. Loans were allowed when the game had fewer players and much lower market liquidity, but nearly all resources and items are now readily available, and loans today mostly create unfair temporary advantages and unnecessary noise when reviewing suspicious transactions. If you had an outstanding loan that could not be returned before this update, contact game staff to assist with the return so it is not detected as boosting.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tAlongside the marketplace changes, guild combat trials have been rebalanced to be a bit more accessible to smaller guilds. Trials also count unfinished tier progress for partial rewards, show per-member stats after each trial, support minimum sign-up levels, and now correctly benefit from shrine buffs.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tVisit the Patch Notes for the full list of changes.\n\t\t\t\t</div>"
+                    },
+                    "1783897200000": {
+                        "heading": "Guild Expansion, Additional Localizations, and QOL Improvements",
+                        "content": "<div>\n\t\t\t\t\tThe guild expansion has arrived! Guilds now run weekly Guild Trials: cooperative skilling and combat challenges where the whole guild climbs tiers of increasing difficulty together. Trials use a snapshot of your chosen loadout and run alongside your regular actions, so participating never interrupts your progress or uses up your supplies. Clearing tiers earns Guild Points for the guild and Guild Tokens for yourself, and when all trials finish for the week, every member receives bonus tokens based on the guild's overall progress.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tGuild Points can be spent on 23 guild buildings and 5 shrines. Buildings expand member capacity, boost trial rewards, and strengthen members during trials, while shrines unlock Shrine Buffs, which are permanent personal buffs purchased with Guild Tokens and Guild Credits. Guild Credits are earned by exchanging items with your guild, and those exchanges also unlock guild icons as your guild's lifetime totals grow. The update also adds guild types (Casual, Standard, and Ironcow), public guild profiles with applications, a member contributions view, new guild leaderboard categories, and leadership claiming for guilds with inactive leaders. Check out the new Guild tab in the Game Guide for all the details.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tIn other news, the game is now officially available in 7 additional languages: Español, Français, Português, 繁體中文, 日本語, 한국어, and Русский. Every language went through extensive review with feedback from native speakers and players, and we want to thank everyone who contributed. Chat has better language support too: the new Chat Translation feature can automatically translate chat messages into your language, General chat has been renamed to Global alongside a new English language channel, and you can now join a second language channel.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tThis update also includes a number of QOL improvements. You can now reorder queued actions and loadouts with drag-and-drop, customize the order of the navigation menu, and track per-skill experience in the Loot & XP Log (previously the Loot Tracker). The Cowbell Store has some new additions as well, including two new cosmetic types (Avatar Backgrounds and Avatar Borders), equipment-themed avatar outfits, and the option to exchange Supporter Points for Cowbells.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tVisit the Patch Notes for the full list of changes.\n\t\t\t\t</div>"
+                    },
+                    "1777165200000": {
+                        "heading": "Labyrinth Improvements, Steam Client Update, and More!",
+                        "content": "<div>\n\t\t\t\t\tWe've made a number of improvements to the Labyrinth based on player feedback. The biggest change is that scrolls will no longer provide buffs in the Labyrinth, and instead, 9 new permanent buff upgrades are available in the Labyrinth Shop. Scrolls were originally designed to be used outside the Labyrinth, but as players started bringing them along, they became all but required for any serious run, adding significant cost to actively manage them. Permanent upgrades are healthier long-term: progress carries forward, there's no need to actively manage scroll usage, and your strength scales with time invested. Players will be slightly weaker until they accumulate enough new upgrades, but this is a one-time transition. To help bridge the gap, existing scrolls can now be decomposed into 5 Labyrinth Tokens each via Alchemy.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tWe've also added a 1000+ total level requirement to enter the Labyrinth for the first time. Looking at our data, only a handful of players below this level have engaged with the Labyrinth with reasonable success, and many newer players were getting confused or frustrated trying it too early. Gating the entry encourages newer players to focus on their core progression first and approach the Labyrinth when they're more prepared for it. Existing characters who have already entered the Labyrinth are unaffected.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tFor high-level players who can reach floor 12 or higher, we've heard feedback that Labyrinth runs take too much total time. The permanent buff upgrades will reduce overall run time by a moderate amount, and we'll continue to monitor this issue to determine if any additional adjustments are needed.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tIn other news, the Steam client's built-in extension manager has been completely redesigned. The new manager behaves much like a browser extension manager: paste a userscript URL to install or update an extension, and most browser-compatible scripts should run unchanged. This addresses the compatibility issues and manual setup overhead of the previous version.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tWe've also looked at some of the underperforming combat builds and decided to give Bulwark and Crossbow setups some buffs in this update.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tVisit the Patch Notes for the full list of changes.\n\t\t\t\t</div>"
+                    },
+                    "1771718400000": {
+                        "heading": "Labyrinth and QOL Improvements",
+                        "content": "<div>\n\t\t\t\t\tThe Labyrinth is here! Take on floors of skilling and combat challenges with increasing difficulty. Navigate through grids of rooms, bring supplies, earn Labyrinth Tokens, Purdora's Boxes, and Labyrinth Refinement Chests, and spend your tokens in the Labyrinth Shop on upgrades and unique new items including Skilling Capes, Combat Boots, and Scrolls. Set up per-room loadouts and full automation to optimize your runs, and compete on the Labyrinth Points leaderboard. Check out the Game Guide in-game for all the details.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tThis update also brings several highly requested QOL improvements. \"Start Now\" can now optionally insert actions to the front of your action queue instead of replacing it. Queue Party Ready can be queued after solo actions, allowing you to automatically return to party combat without needing to be present. Browser notifications are now available for those who play from Steam or browser, allowing you to be notified of in-game events (not available on mobile).\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tLastly, we are introducing a creator code program for revenue sharing with partnered content creators. If you are a content creator and are interested in promoting the game, email contact@milkywayidle.com or contact us on Discord.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tVisit the Patch Notes for more details.\n\t\t\t\t</div>"
+                    },
+                    "1764979200000": {
+                        "heading": "Achievements, Collection, Bestiary, And More!",
+                        "content": "<div>\n\t\t\t\t\tWe are excited to introduce our latest feature allowing you to earn achievements for reaching various goals across many areas of the game. Completing full tiers of achievements grants permanent buffs, giving you more reasons to push for those goals. Track your progress in the new Achievements tab and show off your accomplishments on your profile.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tAlongside achievements, we are launching the Collection and Bestiary features. Collection lets you track every item you have obtained, earn collect points, and compete on a new leaderboard. Bestiary tracks the monsters you have defeated.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tWe are also introducing the Philosopher's Mirror, a new enhancing item that allows you to more consistently upgrade your equipment at the highest enhancement levels. For example, a Philosopher's Mirror combined with a +14 item and a +13 item will guarantee a +15 item.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tLastly, we wanted to let everyone know that we will be ending custom cosmetic requests at the end of the year. While we have enjoyed creating personalized cosmetics for supporters, it has become a significant time investment that takes away from other development work. We will continue to accept requests until the end of the year! Supporter points can now be used for community buffs, and more use cases for supporter points are planned in the near future.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tVisit the Patch Notes for more details.\n\t\t\t\t</div>"
+                    },
+                    "1755558000000": {
+                        "heading": "Combat Rework, Charms, and Refined Equipment",
+                        "content": "<div>\n\t\t\t\t\tThis update introduces a major overhaul to the combat system, alongside new features such as charms, refined dungeon equipment, and expanded combat difficulty tiers.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tOver time, we identified long-term balance issues between the three combat styles (Melee, Ranged, and Magic). These issues made it very difficult to balance experience and income for different combat styles and across different states of progression. Some of the biggest issues included:\n\t\t\t\t\t<br />\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Uneven skill requirements: Melee players relies on an extra Attack skill, leading to imbalance in experience distribution and coffee boosts.</li>\n\t\t\t\t\t\t<li>Magic ability scaling: Because magic does not auto attack, magic damaging abilities were granting roughly twice as much DPS increase per level compared to other styles, making it hard to balance damage outputs fairly across all levels of progression.</li>\n\t\t\t\t\t\t<li>Experience imbalances: XP formulas unintentionally favored certain strategies, even when DPS was the same.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\t<br />\n\t\t\t\t\tThe rework addresses these issues and sets up combat for long-term balance. The key changes include:\n\t\t\t\t\t<br />\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>All combat styles now require Attack skill for accuracy. Players will immediately receive Attack XP based on 15% of their Ranged and 12% of Magic experience as it's needed to be viable. The attack experience ratio is based on leaderboard data to allow total experience to catch up with Melee.</li>\n\t\t\t\t\t\t<li>Magic ability damage scaling per level decreased to 0.5% per level.</li>\n\t\t\t\t\t\t<li>Additional bonuses are added to ranged and magic equipment to maintain similar damage output as before.</li>\n\t\t\t\t\t\t<li>Bulwark reworked and significantly increased damage output to be more comparable to other combat styles.</li>\n\t\t\t\t\t\t<li>Aura system rework with new scaling mechanics based on skill levels, and a one-time XP refund via books.</li>\n\t\t\t\t\t\t<li>New combat XP system tied to monsters defeated, with Charms allowing you to distribute training XP toward specific skills.</li>\n\t\t\t\t\t\t<li>Party system update: XP divided equally, with decreased experience and drops for large level differences.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\t<br />\n\t\t\t\t\tAlong with the combat rework, we are introducing additional combat difficulty tiers. Combat zones now scale from T0 up to T5, and the new charm equipment can be found in higher difficulty zones. T1 and T2 dungeons are also added, where refinement shards can be obtained to refine your T95 and back slot items.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tVisit the Patch Notes for more details.\n\t\t\t\t</div>"
+                    },
+                    "1747609200000": {
+                        "heading": "MooPass and Other News",
+                        "content": "<div>\n\t\t\t\t\tThe MooPass is here, an optional membership that provides a variety of helpful but non-essential perks!\n\t\t\t\t\tAll characters can claim 14 days of MooPass for free, and an additional 14 days have been granted to all existing characters.\n\t\t\t\t\tFor more details, check out the Patch Notes or directly in Cowbell Store.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tAs with any new form of monetization, we understand there are concerns about the game's future direction and the potential for pay-to-win.\n\t\t\t\t\tWe want to reassure you that we have no plans to introduce any monetization that could be considered predatory.\n\t\t\t\t\tWe've carefully considered community feedback and designed the MooPass to be affordable and fair for both paying and free-to-play players.\n\t\t\t\t\tIt introduces no content paywalls and has no impact on core gameplay, ensuring a level playing field.\n\t\t\t\t\tBy offering recurring value, MooPass also helps maintain demand for Cowbells beyond one-time convenience upgrades and cosmetics,\n\t\t\t\t\twhich supports the long-term sustainability of Milky Way Idle.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tIn other news, the continued growth of our playerbase has posed new challenges for our moderation team.\n\t\t\t\t\tOur current system depends on volunteer moderators actively monitoring the in-game chat.\n\t\t\t\t\tWe've seen feedback both regarding moderation strictness and inappropriate messages being missed during low-coverage times.\n\t\t\t\t\tTo address this, we're developing a new system that will rely more heavily on player reports,\n\t\t\t\t\tgiving players more control over their chat experience. For example, when moderators are unavailable,\n\t\t\t\t\tmessages that receive enough reports will be subject to automated moderation.\n\t\t\t\t\tThis also allows our moderators to take a less proactive role and instead focus on messages that have been flagged by the community.\n\t\t\t\t\tWe expect to release this system within the next week or two.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tLastly, a reminder to follow our rules regarding the single-account policy and trade boosting.\n\t\t\t\t\tWith many new players joining, some may not be familiar with our stance on funenlng wealth from alt accounts or coin purchases from gold sellers.\n\t\t\t\t\tWe regularly conduct ban waves. For example, over the past couple of weeks,\n\t\t\t\t\twe've issued temporary or permanent bans to 500+ main accounts and thousands of alt accounts.\n\t\t\t\t\tPlayers receiving temp bans also had 2–3x the boosted wealth removed, totaling over 100 billion coins.\n\t\t\t\t\tCheating is not worth the risk, and we will continue to improve our detection systems.\n\t\t\t\t</div>"
+                    },
+                    "1744930800000": {
+                        "heading": "Pirate Cove Dungeon, 4th Character Slot, and Custom Cosmetic Policy Update",
+                        "content": "<div>\n\t\t\t\t\tThe Pirate Cove Dungeon is now open for exploration! This new dungeon features a variety of new T95 weapons and armors, as well as new abilities. We've also made some adjustments to existing items and abilities to improve balance and gameplay. Check out the full patch notes for all the details!\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tIn other news, we've added a new 4th character slot for players, allowing everyone the same opportunity of having up to 1 Standard and 3 Ironcow characters.\n\t\t\t\t\t<br />\n\t\t\t\t\t<br />\n\t\t\t\t\tWe are also updating our custom cosmetic policy and pricing. While the feature started as nice gift to show our appreciation to our supporters, it's now too overwhelming with the huge increase in playerbase. We've spent 150-200 hours to work on about 100 requests in the past month, and we need to be able to allocate more time for other development tasks. Starting May 1st, custom cosmetics will require spending supporter points and cowbells. Any requests initiated before the end of April will be granted based on the previous supporter point requirements.\n\t\t\t\t</div>"
+                    },
+                    "1734825600000": {
+                        "heading": "Skilling Expansion Part 2 - Celestial Tools and Skilling Outfits",
+                        "content": "<div>\n                    We're excited to release the second part of the skilling expansion, introducing Celestial Tools and Skilling Outfits! After using Holy tools for such a long time, skilling specialists can finally get their hands on some upgrades. These items are not easy to acquire, but those who are dedicated (or wealthy) enough to obtain them will be rewarded with a significant boost. Dive in and take your skilling to the next level!\n\t\t\t\t</div>"
                     }
                 },
                 patchNotesPanel: {
@@ -2146,6 +2537,86 @@ const Wa = {
                     17378856e5: {
                         heading: "Minor Patch",
                         content: "<div>\n\t\t\t\tSpring Festival:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tSpring festival chat icon, avatar, and avatar outfits available in Cowbell Store until the update after at least 3 weeks. You can continue to use them after the event ends.\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t\tUI:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tSend a system message every 25 skill levels at or above level 100 instead of only for levels 100 and 125.\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t\tBug Fix:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tLeaderboard guild names should not be clickable.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tImproved chat message URL link parsing to be more accurate.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tFixed an issue where players get logged out if the database goes offline during maintenance.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tFixed an issue where some uncommon conditions cause player combat to not correctly stop after running out of offline progress.\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t\tOther:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tAdded @mod and @mods chat commands to notify moderators for emergencies.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tImplemented authentication and payment changes in the background to support upcoming Steam release.\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t</div>"
+                    },
+                    "1790557200000": {
+                        "heading": "Minor Patch - Inventory Improvements and More",
+                        "content": "<div>\n\t\t\t\t\tInventory:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Items can now be marked as Favorite or Locked from the item menu. Favorites are pinned to the top of your inventory. Locked items cannot be sold to the shop or listed on the market, but can still be used, equipped, enhanced, or alchemized.</li>\n\t\t\t\t\t\t<li>For enhanceable items, a mark can apply to a single enhancement level or to all levels.</li>\n\t\t\t\t\t\t<li>The inventory now has tabs: All, Favorites, and one per item category. The selected tab is remembered per character.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tReferrals:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Referrers now also receive 20% of the Supporter Points from purchases made by referred players, in addition to the existing 10% Cowbell bonus. MooPass purchases are included. Points from past referred purchases have been credited retroactively.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tHalloween:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>New Halloween seasonal cosmetics available from Oct 17 to Nov 14.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tMarketplace:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>The standard market tax has been lowered from 5% to 4%.</li>\n\t\t\t\t\t\t<li>Price increments have been adjusted to be more consistent: listing prices are now 0.33% to 0.44% apart at every price level, compared to 0.17% to 0.5% previously.</li>\n\t\t\t\t\t\t<li>Enhanced items (+1 and above) have lower liquidity, so they now use price increments 5x larger (1.67% to 2.22% apart) to avoid excessive undercutting.</li>\n\t\t\t\t\t\t<li>Community buff tooltips now show the buff time contributed by marketplace taxes.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tGuilds:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Leaders and Generals can remove another member's trial sign-up while the trial is still scheduled.</li>\n\t\t\t\t\t\t<li>The guild notice board and profile message are now automatically translated into your chat translation language. Existing text is translated the next time it is edited.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tLoadouts:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Added a View Loadout option to the party member menu and the guild trial roster, showing the loadout that player has selected for the party or trial.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tChat:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>You can now delete your own messages in the Trade and Recruit channels.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</div>"
+                    },
+                    "1786712400000": {
+                        "heading": "Hotfix - Marketplace Improvements",
+                        "content": "<div>\n\t\t\t\t\tMarketplace:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Market tax now funds community buffs. Collected tax is converted once per day into all five community buffs at 00:05 UTC time. This is roughly 150 minutes per day based on current trade volume.</li>\n\t\t\t\t\t\t<li>Market values now update every hour instead of every 6 hours, moving up to 1% per hour, so prices react to supply and demand shifts much more quickly.</li>\n\t\t\t\t\t\t<li>Trading ranges are slightly wider by one price increment on each side, giving cheap items a proportionally wider range.</li>\n\t\t\t\t\t\t<li>Listings outside the trading range can now be bought/sold from the order book with an estimated time delay. Your fill order will show the estimated wait time.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</div>"
+                    },
+                    "1786669200000": {
+                        "heading": "Medium Patch - Marketplace Update and Guild Trial Rebalance",
+                        "content": "<div>\n\t\t\t\t\tMarketplace:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Every established item and enhancement level now has an estimated market value based on real trades and listings.</li>\n\t\t\t\t\t\t<li>Established items now trade within a range of about 20% between the maximum and minimum price. New items use a wider range while their price is being established.</li>\n\t\t\t\t\t\t<li>Listings outside the range are still allowed. Less competitive listings behave the same as previously. Listings with better offer than the trading range will start at the boundary of the range and move toward your chosen price as the market value shifts. Range-limited listings are marked with an asterisk.</li>\n\t\t\t\t\t\t<li>The market tax has increased from 2% to 5%.</li>\n\t\t\t\t\t\t<li>Max listing price raised 100B → 1T.</li>\n\t\t\t\t\t\t<li>Listings can now be priced at 1/10 smaller increments compared to before.</li>\n\t\t\t\t\t\t<li>Prices can now be typed directly, including compact numbers such as 5k or 1.2m.</li>\n\t\t\t\t\t\t<li>Item tooltips now show market values, and the inventory shows the total estimated market value of your items with a breakdown tooltip.</li>\n\t\t\t\t\t\t<li>See the new Marketplace tab in the Game Guide for details.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tGuild Trials:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Trial monster base attack speed, cast speed, and ability haste significantly reduced. Instead it will scale by 2% attack speed and cast speed and 2 ability haste per participant. This should allow smaller guilds to take less damage.</li>\n\t\t\t\t\t\t<li>Moderately increased HP and defenses of the badger, chameleon, and jellyfish.</li>\n\t\t\t\t\t\t<li>When a trial run ends, the unfinished tier grants up to 50% rewards proportional to the progress percentage.</li>\n\t\t\t\t\t\t<li>Leaders and Generals can now set a minimum level requirement for each trial's sign-ups.</li>\n\t\t\t\t\t\t<li>Shrine buffs: Rare Find increased from 1% to 1.5% per level, and Essence Find from 2% to 3% per level.</li>\n\t\t\t\t\t\t<li>Bug Fix: Shrine buffs now correctly apply during guild trials.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tQOL:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Guild leaders and generals can pin a message in guild chat, shown to all members as a collapsible banner.</li>\n\t\t\t\t\t\t<li>After a trial ends, a Stats button shows each participant's contributions.</li>\n\t\t\t\t\t\t<li>Added a View Buffs button in the Guild Shop that lists active shrine buffs, grouped into Skilling and Combat.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tUI:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Chat tabs now show a separate badge for unread mentions of your character name.</li>\n\t\t\t\t\t\t<li>Improved guild credit exchange interface.</li>\n\t\t\t\t\t\t<li>Player profiles now include a Shrines tab showing active shrine buff levels.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tOther:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Player loans are no longer possible. Contact a game staff if you have loans that you were not able to return before the update.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</div>"
+                    },
+                    "1784113200000": {
+                        "heading": "Minor Patch - QOL Improvements and Bug Fixes",
+                        "content": "<div>\n\t\t\t\t\tGuild Trials:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Guild Tokens are now granted equally to all participants in the trials.</li>\n\t\t\t\t\t\t<li>Every eligible member receives Guild Tokens equal to 50% of the total base Guild Points earned, increased by the Treasury bonus.</li>\n\t\t\t\t\t\t<li>Members who signed up for at least one trial receive an additional 50% of the eligible-member payout as a participation bonus.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tQOL:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Added a Translate Channels setting in Settings -> Chat. Guild, Party, and Whisper messages can now be excluded from translation. Public channels are always translated.</li>\n\t\t\t\t\t\t<li>Added an option in Settings -> Game to reorder queued actions with up/down buttons instead of drag-and-drop.</li>\n\t\t\t\t\t\t<li>In a party, a weaker player's aura or debuff no longer replaces a stronger one. The strongest active source of a buff takes effect, and when it expires the next strongest takes over.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tUI:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Guild trial sign-up lists now show each member's level for that trial (combat level for combat trials, the trial skill's level for skilling trials), sorted by level. Names can be clicked to view the player's profile.</li>\n\t\t\t\t\t\t<li>Guild trial schedule times now follow the game's display language instead of the browser's, which also decides the 12-hour or 24-hour clock.</li>\n\t\t\t\t\t\t<li>Running a queued action immediately no longer asks for confirmation.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tBug Fix:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Fixed several chat translation issues.</li>\n\t\t\t\t\t\t<li>Fixed guild trial and skilling party layouts.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</div>"
+                    },
+                    "1783897200000": {
+                        "heading": "Major Patch - Guild Expansion, Additional Localizations, and QOL Improvements",
+                        "content": "<div>\n\t\t\t\t\tGuilds:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tGuild Trials: weekly cooperative challenges for the whole guild.\n\t\t\t\t\t\t\t<ol>\n\t\t\t\t\t\t\t\t<li>Each week your guild receives 4 random skilling trials and 2 random combat trials. The guild week resets every Friday at 00:00 UTC.</li>\n\t\t\t\t\t\t\t\t<li>Each member can sign up for one skilling and one combat trial. Trials start automatically at the scheduled time (skilling first, then combat), each lasting up to an hour.</li>\n\t\t\t\t\t\t\t\t<li>Trials run alongside your regular actions without interrupting them, using a snapshot of your selected loadout. No consumables are used.</li>\n\t\t\t\t\t\t\t\t<li>Trials climb tiers starting at level 100, with each tier 10 levels higher and progressively harder, up to level 300.</li>\n\t\t\t\t\t\t\t\t<li>Combat trials feature 5 encounter types: Badger, Chameleon, Jellyfish, Hedgehog, and Swarm. Difficulty scales with the number of participants.</li>\n\t\t\t\t\t\t\t\t<li>Clearing tiers earns Guild Points for the guild and Guild Tokens for participants. When all trials finish, every eligible member receives bonus Guild Tokens based on the guild's overall trial progress.</li>\n\t\t\t\t\t\t\t</ol>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tGuild Buildings: 23 buildings upgradable with Guild Points, up to level 20 each.\n\t\t\t\t\t\t\t<ol>\n\t\t\t\t\t\t\t\t<li>Guild Hall increases max members. Builder's Hall, Treasury, and Archives boost Guild Points, Guild Token rewards, and Guild Experience.</li>\n\t\t\t\t\t\t\t\t<li>Skilling and Combat Encampments add trial sign-up slots.</li>\n\t\t\t\t\t\t\t\t<li>17 trial buildings boost members' skills and combat attributes during your guild's trials.</li>\n\t\t\t\t\t\t\t</ol>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tShrines and Shrine Buffs:\n\t\t\t\t\t\t\t<ol>\n\t\t\t\t\t\t\t\t<li>5 shrines (Force, Tempo, Spirit, Rarity, Scholar), each unlocking one skilling and one combat buff. Each shrine level raises the max level of its buffs.</li>\n\t\t\t\t\t\t\t\t<li>Shrine buffs are permanent personal buffs purchased in the Guild Shop with Guild Tokens and Guild Credits. Refunding a level returns 80% of its cost.</li>\n\t\t\t\t\t\t\t\t<li>Buff levels stay with your character, but are capped by your current guild's shrine levels and inactive without a guild.</li>\n\t\t\t\t\t\t\t</ol>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>Guild Credits: exchange items for 8 colors of Guild Credits in the Guild Shop, each color converted from a different item category (skilling resources, combat materials, consumables, essences, equipment, rare items, and more).</li>\n\t\t\t\t\t\t<li>Guild Icons: exchanged items also unlock guild icons. An item's icon unlocks at 1,000 exchanged and gains glow colors at 10K, 100K, and beyond. The leader can set the guild's icon for 100 Guild Points or rename the guild for 5,000 Guild Points.</li>\n\t\t\t\t\t\t<li>Guild Types: guilds are Casual by default and can recruit players of any game mode. The leader can permanently commit to the Standard or Ironcow type, restricting recruitment to matching characters and increasing the Guild Hall bonus from 2 to 5 member slots per level.</li>\n\t\t\t\t\t\t<li>Guild Applications: guilds now have public profiles with a recruitment message, minimum Total Level requirement, and optional auto-accept. Players can apply directly from a guild's profile.</li>\n\t\t\t\t\t\t<li>Members tab: new Contributions view showing each member's guild XP, weekly XP, trial sign-ups, and trial tiers cleared.</li>\n\t\t\t\t\t\t<li>Guilds leaderboard: new Buildings, Shrines, and Guild Points categories.</li>\n\t\t\t\t\t\t<li>Leadership: if the guild leader has been inactive for 30+ days, the next member in line can claim leadership.</li>\n\t\t\t\t\t\t<li>View the Guild tab in the Game Guide for more details.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tCowbell Store:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>New cosmetic types: Avatar Backgrounds and Avatar Borders, displayed behind and around your avatar. 7 of each are available in the Cowbell Store, purchasable with Cowbells and Supporter Points.</li>\n\t\t\t\t\t\t<li>Added 7 equipment-themed avatar outfits to the Cowbell Store.</li>\n\t\t\t\t\t\t<li>Added the Labyrinth chat icon to the Cowbell Store.</li>\n\t\t\t\t\t\t<li>Supporter Points can now be exchanged for Cowbells in the Cowbell Store: 10 points for a Cowbell, or 200 points for a tradable Bag Of 10 Cowbells.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tLocalization:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>The game is now available in 7 additional languages: Español, Français, Português, 繁體中文, 日本語, 한국어, and Русский. Thanks to all the players who contributed translation feedback!</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tChat:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Chat Translation: chat messages can now be automatically translated into your language. Set your translation language in Settings -> Chat, and mark languages you understand to leave them untranslated.</li>\n\t\t\t\t\t\t<li>Renamed General chat to Global and added an English language channel.</li>\n\t\t\t\t\t\t<li>You can now join a second language channel.</li>\n\t\t\t\t\t\t<li>Chat settings moved to their own tab in Settings.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tQOL:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Reorder queued actions with drag-and-drop.</li>\n\t\t\t\t\t\t<li>Reorder loadouts with drag-and-drop.</li>\n\t\t\t\t\t\t<li>Customize the order of the navigation menu in Settings -> Game -> Navigation Menu.</li>\n\t\t\t\t\t\t<li>The Loot Tracker is now the Loot & XP Log and tracks experience gained per skill alongside loot.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</div>"
+                    },
+                    "1777165200000": {
+                        "heading": "Medium Patch - Labyrinth Improvements, Steam Client Update, and More!",
+                        "content": "<div>\n\t\t\t\t\tLabyrinth:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Added 9 permanent Labyrinth Shop buff upgrades.</li>\n\t\t\t\t\t\t<li>Scroll buffs no longer function inside the Labyrinth.</li>\n\t\t\t\t\t\t<li>Scrolls can now be decomposed into 5 Labyrinth Tokens with Alchemy.</li>\n\t\t\t\t\t\t<li>Labyrinth full automation upgrade limit increased from 12 to 15.</li>\n\t\t\t\t\t\t<li>Labyrinth now requires a total level of 1000+ to enter. Existing characters who have entered labyrinth previously are unaffected.</li>\n\t\t\t\t\t\t<li>Travel time between rooms reduced from 3s to 1s.</li>\n\t\t\t\t\t\t<li>Rush to exit now takes a more optimal route that also tries to maximize the number of visible rooms revealed.</li>\n\t\t\t\t\t\t<li>Enhancing rooms now have a fixed target of +5, making difficulty consistent with other skilling rooms.</li>\n\t\t\t\t\t\t<li>Labyrinth item and XP gains are now included in offline progress tracking.</li>\n\t\t\t\t\t\t<li>Loot tracker for Labyrinth condensed to 1 row per full run.</li>\n\t\t\t\t\t\t<li>\"Dungeon Refiner\" achievement renamed to \"Refiner\" and now includes labyrinth items. (Anyone who qualifies will be granted the achievement.)</li>\n\t\t\t\t\t\t<li>Mimic minimum attack interval lowered from 1s to 0.5s, allowing Bulwark to be more effective against it.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tSteam Client:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tRedesigned the built-in extension manager for installing and updating userscripts. It should support all browser extensions directly now.\n\t\t\t\t\t\t\t<ol>\n\t\t\t\t\t\t\t\t<li>Note: You have to reinstall existing extensions due to format changes. Your previous scripts can still be found under %APPDATA%\\milky-way-idle\\scripts\\ if you need to reference them.</li>\n\t\t\t\t\t\t\t</ol>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>Steam client remembers window position and size across restarts.</li>\n\t\t\t\t\t\t<li>Fixed a rare issue where some players could see a white screen due to an anti-virus or computer security policy false positive.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tRebalance:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Sinister Cape: Defensive Damage 6% added.</li>\n\t\t\t\t\t\t<li>Anchorbound Plate Body: Defensive Damage 6% added.</li>\n\t\t\t\t\t\t<li>Anchorbound Plate Legs: Defensive Damage 5% added.</li>\n\t\t\t\t\t\t<li>Fighter Necklace: Defensive Damage 4% added.</li>\n\t\t\t\t\t\t<li>Philosopher's Necklace: Defensive Damage 4% added.</li>\n\t\t\t\t\t\t<li>Sundering Crossbow: Ranged Accuracy increased from 145% to 160%, Ranged Damage increased from 118% to 120%.</li>\n\t\t\t\t\t\t<li>Soul Hunter Crossbow: Ranged Accuracy increased from 132% to 140%.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tQOL:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>The game can be added to the home screen and launched like an app.</li>\n\t\t\t\t\t\t<li>Allow queuing Party Ready multiple times for certain rare use cases.</li>\n\t\t\t\t\t\t<li>Zero-cooldown abilities are now automatically placed in the last ability slot in battle so they don't block other abilities if positioned incorrectly.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tUI:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Added a global Help chat channel.</li>\n\t\t\t\t\t\t<li>Misclick Warnings: warns if the protection item used is priced much higher than the cheapest valid option, and warns if coinifying an expensive item at a loss.</li>\n\t\t\t\t\t\t<li>Queueing actions will no longer open the full action list (which could get in the way).</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tOther:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Added Rule 2.4 forbidding coordinated market manipulation (such as pump and dump schemes).</li>\n\t\t\t\t\t\t<li>Expanded FAQ in Game Guide with a Support section and additional questions.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tBug Fix:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Defensive damage from Defense Coffee now updates on the first battle instead of the second.</li>\n\t\t\t\t\t\t<li>Correctly validate whether the character has enough items to initiate enhancing when the protection item and the cost item are the same.</li>\n\t\t\t\t\t\t<li>Header success rate display now correctly reads 100% when using Philosopher's Mirror.</li>\n\t\t\t\t\t\t<li>Personal buff expiration no longer briefly displays 0s for a few extra minutes.</li>\n\t\t\t\t\t\t<li>Can now add labyrinth to the action queue when only party combat is running.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</div>"
+                    },
+                    "1773043200000": {
+                        "heading": "Minor Patch - QOL Improvements and Bug Fixes",
+                        "content": "<div>\n\t\t\t\t\tQOL:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Added option to rush for exit up to floor X in automation tab.</li>\n\t\t\t\t\t\t<li>Added labyrinth setting to allow manual pathing to ignore skip thresholds.</li>\n\t\t\t\t\t\t<li>Increased labyrinth max entries from 3 to 5.</li>\n\t\t\t\t\t\t<li>Increased torch upgrade cap to level 15 (400 max).</li>\n\t\t\t\t\t\t<li>Increased full automation cap to level 12.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tUI:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Marketplace can now open in a popup when accessed from other pages.</li>\n\t\t\t\t\t\t<li>Seals are renamed to Scrolls.</li>\n\t\t\t\t\t\t<li>Moved scrolls to separate category in inventory with more informative tooltips.</li>\n\t\t\t\t\t\t<li>Adjusted escape button layout and added extra confirmation to reduce misclicks. Confirmation will appear if additional progress is still possible (have torches, clearable rooms, etc).</li>\n\t\t\t\t\t\t<li>Added labyrinth timer to top progress bar.</li>\n\t\t\t\t\t\t<li>Added buffed combat level to labyrinth info.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tRebalance:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Gourmet Scrolls bonus changed from 16% to 10%. They now also grant double progress to cooking/brewing in labyrinth.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tCosmetics:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Added chat icons for labyrinth monsters.</li>\n\t\t\t\t\t\t<li>Added siren avatar and outfit.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tBug Fix:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Correctly grant labyrinth entry immediately when cooldown upgrade is purchased with less than 4 hours until next entry.</li>\n\t\t\t\t\t\t<li>Skill level ups inside labyrinth now correctly show chat level up message.</li>\n\t\t\t\t\t\t<li>Fixed mobile item tooltips appearing unnecessarily when tapping to open the item menu.</li>\n\t\t\t\t\t\t<li>Labyrinth skilling room timer will correctly sync with server time when displayed.</li>\n\t\t\t\t\t\t<li>Fixed uncommon issue where using shroud may cause regular combat battle to be stopped.</li>\n\t\t\t\t\t\t<li>Personal buff expiration now updates in real time instead of sometimes having a short delay.</li>\n\t\t\t\t\t\t<li>Pathfinder boots tailoring XP now matches other boots.</li>\n\t\t\t\t\t\t<li>Fixed translation inconsistencies related to labyrinth content.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</div>"
+                    },
+                    "1771822800000": {
+                        "heading": "Hotfix",
+                        "content": "<div>\n\t\t\t\t\tBug Fix:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Allow queuing party ready to correctly include loadouts.</li>\n\t\t\t\t\t\t<li>Correctly remove personal buffs when expired in combat.</li>\n\t\t\t\t\t\t<li>Crate costs and XP rates were miscalculated and significantly differed from other Labyrinth supplies. Food Crates have increased by 6x in cost and Tea and Coffee Crates by 3.3x. Existing items will be reduced proportionally and rounded up to maintain the same total value as before. XP and action times have also been adjusted to match the XP rates of other labyrinth supplies. Marketplace sell listings for crates are immediately set to expired since they are no longer priced correctly, and unclaimed items are also adjusted by the same proportion.</li>\n\t\t\t\t\t\t<li>Newly purchased Moo Pass should correctly grant +3 labyrinth path length.</li>\n\t\t\t\t\t\t<li>Correctly calculate effective combat level in labyrinth. Previously it was using an incorrect formula that is slightly different from actual combat level.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tRebalance:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Lowered Mimic HP by 8% and Smash evasion by 15%.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tUI:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Added labyrinth monster weakness to their tooltips.</li>\n\t\t\t\t\t\t<li>Added confirmation dialog when descending to the next labyrinth floor to avoid misclicks.</li>\n\t\t\t\t\t\t<li>Minor improvements to labyrinth instruction and game guide.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</div>"
+                    },
+                    "1771718400000": {
+                        "heading": "Major Patch - Labyrinth and QOL Improvements",
+                        "content": "<div>\n\t\t\t\t\tLabyrinth\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tThe Labyrinth consists of floors of skilling and combat challenges with increasing difficulty. Navigate through a grid of rooms to progress, collect loot, and advance to deeper floors.\n\t\t\t\t\t\t\t<ol>\n\t\t\t\t\t\t\t\t<li>Each floor contains skilling challenges, combat encounters, treasure rooms, and a floor exit.</li>\n\t\t\t\t\t\t\t\t<li>Bring supplies into each run: Torches, Shrouds, Beacons, and Crates. Each comes in three tiers.</li>\n\t\t\t\t\t\t\t\t<li>Earn Labyrinth Tokens, Purdora's Boxes, and Labyrinth Refinement Chests. Rewards increase with floor depth. Spend tokens in the Labyrinth Shop on upgrades and unique items.</li>\n\t\t\t\t\t\t\t\t<li>Item rewards include: 4 Skilling Capes, 3 Combat Boots, and Scrolls which is a new type of item that grant timed personal buffs.</li>\n\t\t\t\t\t\t\t\t<li>Automation system with per-room loadouts, skip thresholds, and full auto-pathing.</li>\n\t\t\t\t\t\t\t\t<li>4 new achievements related to the Labyrinth. Achievement tier buffs will require the completion of newly added achievements, although they should not be too difficult for those who have the rest of the tier completed.</li>\n\t\t\t\t\t\t\t\t<li>New collection items and bestiary entries for labyrinth monsters and items.</li>\n\t\t\t\t\t\t\t\t<li>Labyrinth points and labyrinth depth leaderboard.</li>\n\t\t\t\t\t\t\t\t<li>See the Game Guide for more details.</li>\n\t\t\t\t\t\t\t</ol>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tSeasonal:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>New Spring Festival seasonal cosmetics: chat icon, avatar, and avatar outfit.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tQOL:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Browser notifications for various events for Steam and browser players (not available on mobile). Configurable in Settings.</li>\n\t\t\t\t\t\t<li>Allow \"Start Now\" to optionally insert actions to the front of the action queue instead of replacing it. Enable this in Settings -> Game.</li>\n\t\t\t\t\t\t<li>Queue Party Ready can now be queued after solo actions, so you can automatically return to party combat without being present.</li>\n\t\t\t\t\t\t<li>Unrefine alchemy action: converts refined equipment back to its base version, preserving enhancement level and returning half of the refinement shards.</li>\n\t\t\t\t\t\t<li>Party combat experience debuff now requires a minimum of 10 level gap before it can take effect. This prevents low level players partying together from being debuffed.</li>\n\t\t\t\t\t\t<li>Increased the number of buyable loadout slots by 10.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tUI:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Special chat icons now display in most places with character names, not only in chat.</li>\n\t\t\t\t\t\t<li>Level up messages in general chat now only show for level 150+ or TL2000+, as lower level messages were too spammy.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tOther:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Creator code program: revenue share for partnered content creators. If you are a content creator and are interested in promoting the game, email contact@milkywayidle.com or contact us on Discord.</li>\n\t\t\t\t\t\t<li>Hourly marketplace.json API data now includes volume and average price.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</div>"
+                    },
+                    "1765252800000": {
+                        "heading": "Bug Fixes",
+                        "content": "<div>\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Correctly calculate bestiary points at breakpoints.</li>\n\t\t\t\t\t\t<li>Correctly grant achievement buffs when completing achievements while offline.</li>\n\t\t\t\t\t\t<li>Add T90 pouch to collection for ironcows who have it as it was missed in the ironcow backfill previously.</li>\n\t\t\t\t\t\t<li>Fix house build button position.</li>\n\t\t\t\t\t\t<li>Translate achievement tier labels in profile.</li>\n\t\t\t\t\t\t<li>Fix some other minor bugs.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</div>"
+                    },
+                    "1764979200000": {
+                        "heading": "Major Patch - Achievements, Collection, Bestiary, And More",
+                        "content": "<div>\n\t\t\t\t\tFeatures and Content:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tAchievements:\n\t\t\t\t\t\t\t<ol>\n\t\t\t\t\t\t\t\t<li>73 Achievements spanning 6 tiers of difficulty.</li>\n\t\t\t\t\t\t\t\t<li>Completing each tier grants permanent buffs.</li>\n\t\t\t\t\t\t\t\t<li>Achievements are synced with Steam achievements when playing from Steam client.</li>\n\t\t\t\t\t\t\t\t<li>View other players' achievements on their profile.</li>\n\t\t\t\t\t\t\t\t<li>Most achievements are not retroactive and must be earned again.</li>\n\t\t\t\t\t\t\t\t<li>Ironcow-only: Elite and Champion tier item-related achievements will be retroactive if you have earned the item previously.</li>\n\t\t\t\t\t\t\t</ol>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tCollection:\n\t\t\t\t\t\t\t<ol>\n\t\t\t\t\t\t\t\t<li>Track all items you have collected throughout your adventure.</li>\n\t\t\t\t\t\t\t\t<li>Collecting 1, 10, 100, 1K, 10K, etc of each item grants increasing collect points.</li>\n\t\t\t\t\t\t\t\t<li>Earn milestone rewards based on collection points.</li>\n\t\t\t\t\t\t\t\t<li>Collection progress is displayed on leaderboards.</li>\n\t\t\t\t\t\t\t\t<li>Share collected items in chat by linking them.</li>\n\t\t\t\t\t\t\t\t<li>Marketplace and General Shop purchased items do not count toward collection.</li>\n\t\t\t\t\t\t\t\t<li>Task badges and back slot items owned will be retroactively added to your collection.</li>\n\t\t\t\t\t\t\t\t<li>Ironcow-only: a number of rare items owned will be retroactively added to your collection.</li>\n\t\t\t\t\t\t\t</ol>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tBestiary:\n\t\t\t\t\t\t\t<ol>\n\t\t\t\t\t\t\t\t<li>Track all monsters you have defeated.</li>\n\t\t\t\t\t\t\t\t<li>Defeating 1, 10, 100, 1K, 10K, etc of each monster grants increasing bestiary points.</li>\n\t\t\t\t\t\t\t\t<li>Earn milestone rewards based on bestiary points.</li>\n\t\t\t\t\t\t\t\t<li>Bestiary progress is displayed on leaderboards.</li>\n\t\t\t\t\t\t\t\t<li>Higher tier monsters count as 1 extra defeat per tier.</li>\n\t\t\t\t\t\t\t\t<li>When in a party, bestiary credit is divided among party members.</li>\n\t\t\t\t\t\t\t</ol>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tPhilosopher's Mirror: Allows merging equipment to enhance with 100% success. (ex: +13 item, +14 item, and Philosopher's Mirror -> +15 item)\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tCommunity buffs can now be purchased using supporter points.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tQOL:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Loadouts are now editable - modify saved loadouts directly without recreating them.</li>\n\t\t\t\t\t\t<li>Combat triggers can now be saved and loaded with combat loadouts.</li>\n\t\t\t\t\t\t<li>Click your avatar in the top right corner for a quick menu for faster navigation.</li>\n\t\t\t\t\t\t<li>Market listings now show all of your own listings even if they are below the top 20.</li>\n\t\t\t\t\t\t<li>Added real-time market price warnings when creating listings significantly above estimated fair price. (experimental)</li>\n\t\t\t\t\t\t<li>Added double confirmation for unreadying from party combat.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tBug Fix:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Fixed loadout visual bug incorrectly displaying missing item.</li>\n\t\t\t\t\t\t<li>Fixed various localization and translation issues.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tOther:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>Custom cosmetic requests will no longer be available after end of the year.</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</div>"
+                    },
+                    "1760396400000": {
+                        "heading": "Minor Patch - Halloween, QOL, and Miscellaneous Updates",
+                        "content": "<div>\n\t\t\t\t\tFeatures and Content:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tAdded Halloween cosmetics to the Cowbell Store. Seasonal cosmetics now display remaining duration in the store.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tAdded new chat icons to the Cowbell Store: Jackalope, Magician, Enchanted Queen, and Anchor Shark.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tIncreased the number of buyable loadout slots with additional lower-priced options.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tUI:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tMooPass icon now displays the number of days remaining until expiration. A red border will appear when less than 1 day remains.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tAdded a trade rules acknowledgment popup when first visiting the marketplace.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tSmall adjustments to UI including tab design and layout.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tAdded captcha verification that may occasionally appear when connecting to the game as an anti-goldfarm measure.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tQOL:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tLoadouts can now automatically equip the highest enhanced item of the same type. This option is enabled by default.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tTrainee Charm now has a sell value of 250,000 coins but can no longer be coinified. This allows players to sell their excess charms after enhancing.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tBug Fix:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tFixed an issue where the whisper command would be unexpectedly cleared.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tFixed various other minor visual and localization bugs.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tOther:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tRemoved Guardian Aura to Mystic Aura exchange from the Cowbell Store.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tBackend preparations for upcoming Achievement and Labyrinth features.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tReduced the size of locally saved browser data and added detection for when localStorage is full (often caused by browser extensions). A warning will display at 75% capacity, and the game will automatically delete large fields (over 1MB) at 95% capacity to maintain functionality.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tCombat consumables and combat trigger data are now included in shareable character profiles for exporting to combat simulation tools. This data is not displayed in the profile UI.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tOptimized server restart speed.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</div>"
+                    },
+                    "1755644400000": {
+                        "heading": "Hotfix",
+                        "content": "<div>\n\t\t\t\t\tBug Fix:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tFixed combat level calculated incorrectly in battle under certain conditions, occasionally resulting in incorrect debuffs for party members.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tMagician's Hat ★ now has the correct level requirement of 110.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tBalancing:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tEnchanted Bishop's defensive damage reduced as the retaliation damage was still too high making it more difficult than it should be.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tRefined equipment bonus increased from 5% to 8% (16% for back slot equipment) to allow it to be cost effective for more players.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</div>"
+                    },
+                    "1755558000000": {
+                        "heading": "Major Patch - Combat Rework, Charms, and Refined Equipment",
+                        "content": "<div>\n\t\t\t\t\tCombat Rework\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tAll combat styles now require the Attack skill for accuracy.\n\t\t\t\t\t\t\tPlayers will now receive Attack experience equal to 15% of their existing Ranged experience and 12% of their Magic experience.\n\t\t\t\t\t\t\tThis adjustment is based on leaderboard data to ensure comparable total experience across the three combat styles.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tBonus magic evasion from the Ranged skill and bonus resistances from the Magic skill have been moved to the Defense skill.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tThe Power skill has been renamed to Melee.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tThe Regal Sword can now parry damage for party members.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tPestilent Shot has been reworked to debuff Armor/Resistances instead of HP/MP regeneration.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tCritical rate and other buffs have been added to Ranged equipment to compensate for the loss of accuracy.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tMagic damaging abilities now scale by 0.5% per ability level instead of 1%.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tRippling Trident now restores 10 MP when Ripple activates.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tAbility damage and other buffs have been added to Magic equipment to compensate for the loss of accuracy and reduced ability scaling.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tBulwark:\n\t\t\t\t\t\t\t<ol>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tBulwark has been reworked to include a new stat, Defensive Damage, significantly increasing its damage output.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tSpiked Shell has been reworked to include both physical and elemental thorns, scaling based on both Defensive Damage and Armor/Resistances.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tArcane Reflection has been converted to Retribution, granting a Retaliation buff that reflects a percentage of incoming damage as a Smash attack.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tShield Bash's Armor scaling has been increased from 60% to 70%.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t</ol>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tAuras:\n\t\t\t\t\t\t\t<ol>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tAqua and Flame Auras have been converted into Mystic Aura, which grants an amplify bonus to all elements.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tSylvan Aura has been converted into Guardian Aura, which grants healing amplify, evasion, Armor, and Resistances. Guardian Aura can temporarily be traded into Mystic Aura in the Shop.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tBase Aura stats have been adjusted.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tEach Aura now additionally scales with the caster's corresponding skill:  \n\t\t\t\t\t\t\t\t\tSpeed Aura → Attack, Guardian Aura → Defense, Fierce Aura → Melee, Critical Aura → Ranged, Mystic Aura → Magic.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tAll blue ability experience will be reverted into books at a rate of 1 book per 500 experience.\n\t\t\t\t\t\t\t\t\tAny remaining experience below 500 will stay on the ability.\n\t\t\t\t\t\t\t\t\tThis is a one-time conversion.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t</ol>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tA fixed amount of combat experience is now granted based on the monster defeated, with an increasing Survival XP bonus the longer the fight lasts.\n\t\t\t\t\t\t\t30% of the experience is granted to the primary training skill determined by your weapon.\n\t\t\t\t\t\t\tThe distribution of the remaining 70% can be chosen using the new Charm equipment.\n\t\t\t\t\t\t\tThis system allows players to optimize their experience distribution across preferred skills.\n\t\t\t\t\t\t\tExperience rates are balanced so that players can gain more in their primary skill, but potentially less total experience overall.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tMonsters no longer have base regeneration.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tMonsters will now enrage every 3 minutes, increasing their accuracy and damage by 10% (stacking up to 10 times).\n\t\t\t\t\t\t\tBosses use a 10-minute timer instead of 3 minutes.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tSome monster stats have been adjusted to balance around these changes.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tCombat level formula has been updated.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tParty combat experience is now divided equally among all party members, regardless of damage contribution.\n\t\t\t\t\t\t\tParty members who are both at least 20% below and at least 10 levels below the highest combat level will receive an experience and drop debuff, increasing by 3% for each 1% level difference beyond the threshold.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tAll combat styles have been balanced to deal comparable damage and achieve similar experience rates.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tFeatures and Content:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tCombat Zones now have selectable difficulty tiers ranging from T0 to T5.\n\t\t\t\t\t\t\tT0 corresponds to the previous normal zones, while T2 is slightly above the previous Elite zones.\n\t\t\t\t\t\t\tHigher difficulty grants additional experience, increased drops, and some unique drops.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tCharms:\n\t\t\t\t\t\t\t<ol>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tCharms are new equipment that can be equipped in the Charm slot to grant bonus experience to a specific skill.\n\t\t\t\t\t\t\t\t\tThey can also be used to focus experience toward that skill in combat.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tTrainee Charms can be purchased from the Shop for 250K.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tHigher-tier non-combat Charms can be crafted using Skilling Essences.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tHigher-tier combat Charms can be obtained as drops from higher-tier combat zones.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tCharms can be combined into higher tiers using the Crafting skill.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tCharms can be enhanced and grant 5x the normal enhancement bonus, like other jewelry equipment.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t</ol>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tDungeons now have higher difficulty tiers, up to T2.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tRefinement:\n\t\t\t\t\t\t\t<ol>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tT1 and T2 dungeons drop Refinement Chests, which are opened using the same Chest Keys to obtain Refinement Shards.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tRefinement Shards can be used to upgrade Lv.95 equipment and back-slot items from their respective dungeons.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tRefined equipment grants +5% extra stats (+10% for back-slot items) and increases weapon special effects.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tRefining an existing item will transfer 100% of enhancement levels.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t</ol>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tEnhancement scaling has been moderately increased for +11 and higher.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tSupporter chat icons (different tiers of Cowbells) have been added to the Cowbell Store.\n\t\t\t\t\t\t\tThey can be purchased with supporter points and will display as a special second icon.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tDefault loadout slot count increased from 2 to 3.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tOther:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tOfficial market data now updates every 1 hour instead of every 6 hours.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</div>"
+                    },
+                    "1749250800000": {
+                        "heading": "Medium Patch - Chat Report System and QOL Improvements",
+                        "content": "<div>\n\t\t\t\t\tFeatures and Content:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tChat Report System:\tPlayers can now report rule-breaking messages in the chat.\n\t\t\t\t\t\t\t<ol>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tReports are sent to moderators for review and potential action.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tAutomod may be applied to messages that receive enough reports. Penalty can still be adjusted after manual review.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tSending correct reports will increase the weight of your future reports and incorrect reports will significantly reduce it.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t</ol>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tYou can now delete character in Settings.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tAdded special icons (Contributor, Bug Finder, etc) that can be granted to players for significant contributions. They will display as a second icon.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tQOL:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tYou can now reorder action queues.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tYou can now link market listings in chat. This should improve trade chat experience with different languages.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tOther:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tAdded official market data that can be accessed at <a href=\"https://www.milkywayidle.com/game_data/marketplace.json\" target=\"_blank\">https://www.milkywayidle.com/game_data/marketplace.json</a>.\n\t\t\t\t\t\t\tThis is updated every 6 hours (with some randomness and delay to prevent manipulation) and contains a snapshot of the top ask and bid prices for each item.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tRemoved @mod command from the chat as it is no longer needed.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tServer optimizations to improve backend performance and support additional players.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</div>"
+                    },
+                    "1747609200000": {
+                        "heading": "Medium Patch - MooPass and Other Improvements",
+                        "content": "<div>\n\t\t\t\t\tFeatures and Content:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tMooPass: an optional membership that grants a number of helpful but non-essential perks.\n\t\t\t\t\t\t\t<ol>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tAvailable for purchase in the Cowbell Store with either Cowbells or real money.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tAll characters can claim 14 days of MooPass for free. Additional 14 days granted to all existing characters.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\t+5% XP buff. This is limited to Standard characters only to allow Ironcow characters to not be significantly affected by paid content.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\t+10 Hour Offline Progress Limit\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\t+6 Market Listing Limit\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\t+1 Action Queue Limit\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\t+8 Task Slot Limit\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\t+1 Free Task Reroll (per task)\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tLoot Tracker of last 20 activities. This is found below the Cowbell Store in the menu.\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\t\tGolden Avatar Border\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t</ol>\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tSteam:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tUpdated Steam client and moved local save data to a more stable file location.\n\t\t\t\t\t\t\tFor the first time after patching, wou may need to re-login and reconfigure extensions.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tQOL:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tMarket listing max price increased from 10B to 100B.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tMarket listing prices that are in shortened format will now be color coded based on their primary unit (K, M, B, T) to reduce chance of misreading prices.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tAdded /r chat command to reply to the last whisper.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tAdded stricter spam protection for excessive duplicate chat messages from 1 or more players.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tBug Fixes:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tFixed issue where enhancing essence drop rate was 33% lower than displayed. (I buffed it at some point but only updated the client and forgot the backend)\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tFixed issue with unread whispers count not showing up when reentering the game.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tCheese type Plate Body Auto Attack Damage now correctly match Plate Legs bonuses. Special equipment are unaffected.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tCorrectly translate party chat links for Chinese language.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tAllow leaderboard tabs on mobile to wrap to second line so the Steam categories do not cause display overflow.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t\tOther:\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tRemoved seasonal Anniversary Purple and OG Jerry chat icons.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tRemoved Brown/White Key Fragment exchange from the dungeon shop as it was meant to be temporary.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\tMarket taxes now round up instead of round down to reduce monopolization of low-value item trading.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</div>"
+                    },
+                    "1744930800000": {
+                        "heading": "Major Patch - Pirate Cove Dungeon and More",
+                        "content": "<div>\n\t\t\t\tFeatures and Content:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tPirate Cove Dungeon:\n\t\t\t\t\t\t<ol>\n\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\tNew T95 Magic Weapons: Rippling Trident, Blooming Trident, Blazing Trident.\n\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\tNew T95 Armors: Anchorbound Plate Body/Legs, Maelstrom Plate Body/Legs, Kraken Tunic/Chaps, Corsair Helmet, Marksman Bracers.\n\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\tNew Abilities: Shield Bash (also added to Chimerical Den), Fracturing Impact, Life Drain.\n\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\tAlchemy recipes added for the new items. All dungeon ability book transmutes have been normalized to 50% success.\n\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t</ol>\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tFurious Spear: New T95 spear added to Enchanted Fortress.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tUpgrading equipment with production skills will now save 70% of the enhancement levels. Some T95 equipment recipes are adjusted to be upgraded from lower tier variants.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tAdded 4th character slot. You can only have up to 3 Ironcows.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tAdded Steam leaderboard for characters created after the Steam release and is also linked to Steam. This is only visible on qualifying characters.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tIncreased guild member slots from 25 + level/4 to 30 + level/3.\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t\tCosmetics:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tSeasonal(2 year anniversary): Anniversary Purple, OG Jerry chat icons.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tAdded new chat icons based on a small selection of dungeon bosses.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tAdded 2 new Pirate Cove themed avatars and outfits.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tCustom cosmetics are changed to require spending supporter points and cowbells.\n\t\t\t\t\t\tWe are simply overwhelmed by requests due to the huge increase in player count and unfortunately cannot continue supporting them as gifts.\n\t\t\t\t\t\tThe new pricing will take effect on May 1st. Any requests initiated before end of April will be granted based on the previous supporter point requirements.\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t\tRebalancing:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tAdjusted recipe of Chimerical Chest Key and Enchanted Chest Key so that their Brown and White Key Fragments are swapped.\n\t\t\t\t\t\tThis prevents Enchanted Fortress and Pirate Cove from sharing 3/4 key fragments.\n\t\t\t\t\t\tYou can temporarily freely swap between Brown and White Key Fragments in the dungeon shop until the next patch.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tAdded auto attack damage to all melee armor to bring melee damage closer to the other styles.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tIncreased bulwark accuracy and damage\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tAdded melee accuracy to Colossus Plate Body/Legs\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tCrippling Slash: Reworked to damage all enemies.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tMaim: Damaged over time duration reduced from 15s to 9s. Damage taken debuff increased from 0% to 8%.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tFrost Surge: Evasion debuff lowered from 15% to 10%.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tFirestorm: Damage over time duration reduced from 10s to 6s.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tSmoke Burst: Accuracy debuff lowered from 20% to 15%. Evasion debuff increased from 0% to 15%.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tGolem Cave: Monster defense level reduced by 10-20.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tTwilight Zone: Monster fire resistance reduced by 20.\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t\tUI:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tAdded a new setting to hide General chat system messages.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tDisabled party linking in General, Trade, and Beginner chat.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tAdded double confirmation to some buttons that are troublesome when misclicked.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tAdded inactive days count to guild and friend list.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tChanged \"Start\" button text on alchemy and enhancing to be more obvious about what action it is.\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t\tBug Fixes:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tDo not prevent making an instant market order when you have 3 open listings on the item.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tFixed issue that may cause small number of player's actions to stop after a server restart.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tFixed a rare bug that may cause server crash.\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t\tOther:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tBlocking characters will prevent party join (based on leader) and guild invite.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tServer and client optimizations to speed up server restart, task generation, scroll performance, and more.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tAdded a feature to allow admin to post an announcement bar for important messages.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tLocalization improvements.\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t</div>"
+                    },
+                    "1741906800000": {
+                        "heading": "Minor Patch - Anti-Fraud Measures and Bug Fixes",
+                        "content": "<div>\n\t\t\t\tAnti-Fraud:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tDue to a few instances of recent fraudulent purchases, added anti-fraud measure where player's first time Cowbell purchase may trigger a 72-hour restriction on selling Bags of Cowbells on the market. You will be notified prior to purchasing.\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t\tBug Fix:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tFixed an issue where under extremely rare conditions a player may get stuck in a nonexistent party combat action.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tFixed additional translation inconsistencies with some item names and their corresponding actions.\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t\tOther:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tBackend changes to improve database connection stability.\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t</div>"
+                    },
+                    "1740913200000": {
+                        "heading": "Major Patch - Chinese Localization and Final Preparations for Steam Early Access Release",
+                        "content": "<div>\n\t\t\t\tUI:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tAdded Chinese localization.\n\t\t\t\t\t\t<ol>\n\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\tThe language will be automatically selected based on your browser language.\n\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\tPlayers can also manually change the display language in [Settings] -> [Game] or from the home page.\n\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\tA few items have not yet been translated, including most of news/patch notes, terms of use, and privacy policy.\n\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t\tIf you see any translation issues or bugged display text, please report them in the #bug-reports channel on Discord.\n\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t</ol>\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tUpdated popup modals to all be centered on the entire game screen.\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t\tOther:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tRemoved seasonal Spring Festival cosmetics from the Cowbell Store.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tAdditional adjustments to Steam integration.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tPrivacy policy have been updated to include language for use of analytical and marketing cookies. This allows us to optimize marketing campaigns when attempting to run ads for Milky Way Idle on other platforms.\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t</div>"
+                    },
+                    "1737885600000": {
+                        "heading": "Minor Patch",
+                        "content": "<div>\n\t\t\t\tSpring Festival:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tSpring festival chat icon, avatar, and avatar outfits available in Cowbell Store until the update after at least 3 weeks. You can continue to use them after the event ends.\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t\tUI:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tSend a system message every 25 skill levels at or above level 100 instead of only for levels 100 and 125.\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t\tBug Fix:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tLeaderboard guild names should not be clickable.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tImproved chat message URL link parsing to be more accurate.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tFixed an issue where players get logged out if the database goes offline during maintenance.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tFixed an issue where some uncommon conditions cause player combat to not correctly stop after running out of offline progress.\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t\tOther:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tAdded @mod and @mods chat commands to notify moderators for emergencies.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tImplemented authentication and payment changes in the background to support upcoming Steam release.\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t</div>"
                     }
                 },
                 gameGuidePanel: {
@@ -2153,7 +2624,7 @@ const Wa = {
                 },
                 gameGuideContent: {
                     faq: "FAQ",
-                    faqContent: '<heading>General</heading>\n\t\t\t<question>Q: How does offline progress work?</question>\n\t\t\t<answer>A: Your character continues to make progress even when you\'re offline. A new player gets up to 10 hours of offline progress anytime you close the browser or go offline. You can extend this time with convenience upgrades available in the Cowbell Store or through MooPass.</answer>\n\t\t\t<question>Q: Can I log in from another device?</question>\n\t\t\t<answer>A: If you have registered an account, you can log in from any device using your email and password. If you are playing as a guest, you can find your guest password in Settings and use it to log in with your username.</answer>\n\t\t\t<question>Q: Can I play the game without an internet connection or as a single player?</question>\n\t\t\t<answer>A: No, you must be connected to the internet to play the game. However, you do continue to make progress while offline for up to 10 hours by default. If you prefer to not interact with other players, you can collapse the chat and choose not to use the marketplace.</answer>\n\t\t\t<question>Q: Can I change my username?</question>\n\t\t\t<answer>A: Yes, you can change your username by going to the Cowbell Store and clicking on the "Name Change" tab. It costs 500 Cowbells to change your username. Your immediate previous name will be reserved to your character.</answer>\n\t\t\t<question>Q: How can I get a chat icon or different name color?</question>\n\t\t\t<answer>A: You can purchase chat icons and name colors from the Cowbell Store using Cowbells. You can change your displayed icon and color in Settings.</answer>\n\t\t\t<question>Q: How do I send a private message to another player?</question>\n\t\t\t<answer>A: To send a private message to another player, click on their name next to their chat message and click "Whisper". You can also use the chat command "/w playerName chatMessage".</answer>\n\t\t\t<question>Q: How do I block another player?</question>\n\t\t\t<answer>A: To block a player and stop seeing their chat messages, click on their name in the chat and click "Block". You can also use the chat command "/block playerName". You can find your block list in the Settings menu and unblock players from the list.</answer>\n\t\t\t<question>Q: My guild leader is no longer active, can we transfer ownership?</question>\n\t\t\t<answer>A: Yes! Let us know on the official Discord or at contact@milkywayidle.com. If your guild leader has been inactive for at least 30 days, we\'ll transfer ownership to the most senior active guild member.</answer>\n\t\t\t<question>Q: How can I delete my account and its associated data?</question>\n\t\t\t<answer>A: Account and data deletion can be requested by emailing contact@milkywayidle.com from the email address associated with the account.</answer>\n\t\t\t<heading>Gameplay</heading>\n\t\t\t<question>Q: What is the action queue?</question>\n\t\t\t<answer>A: The action queue is a feature that allows you to set up a sequence of actions for your character to perform. To use it, click the "Add Queue" button instead of "Start". You can reorder your queue in the menu next to your action bar at the top. Additional queue slots can be unlocked or upgraded from the Cowbell Store.</answer>\n\t\t\t<question>Q: What are Cowbells and how can I get more?</question>\n\t\t\t<answer>\n\t\t\tA: Cowbells are the premium currency in the game. They allow players to purchase convenience upgrades, cosmetics, community buffs that benefit the whole server, and name changes. There are four ways to get Cowbells:\n\t\t\t\t<ul>\n\t\t\t\t\t<li>Finish the tutorial: You will receive 80 Cowbells as a reward.</li>\n\t\t\t\t\t<li>Rare drops: You have a chance to get Cowbells from rare loot boxes found while skilling or defeating enemies in combat.</li>\n\t\t\t\t\t<li>Purchase from Cowbell Store: You can purchase Cowbells with real money from the Cowbell Store to help support the game. They will appear as "Bag of 10 Cowbells" in your inventory.</li>\n\t\t\t\t\t<li>Buy from the marketplace: You can buy tradable "Bag of 10 Cowbells" with coins from other players in the Marketplace.</li>\n\t\t\t\t</ul>\n\t\t\t</answer>\n\t\t\t<question>Q: What are rare drops?</question>\n\t\t\t<answer>\n\t\t\t\tA: Rare drops are loot boxes that can be obtained while engaging in different activities in the game:\n\t\t\t\t<ul>\n\t\t\t\t\t<li>Gathering skills: You get Meteorite Caches which contain star fragments.</li>\n\t\t\t\t\t<li>Production skills, alchemy, and enhancing: You get Artisan\'s Crates which contain shards of protection and gems.</li>\n\t\t\t\t\t<li>Combat: You get Treasure Chests which contain gems.</li>\n\t\t\t\t</ul>\n\t\t\t\tAll boxes also contain coins and occasionally Cowbells. You get larger loot boxes when doing higher-level skills or from higher-level enemies. The Rare Find stat increases the drop rate of loot boxes.\n\t\t\t</answer>\n\t\t\t<question>Q: What are gems used for?</question>\n\t\t\t<answer>A: Gems can be used to craft different jewelry that grants small bonuses. Additionally, you can crush gems into smaller pieces with the Crafting skill and use them to brew stronger versions of coffee and tea. Gems can be obtained from Treasure Chests in combat.</answer>\n\t\t\t<question>Q: Where do I get tea leaves?</question>\n\t\t\t<answer>A: You can get tea leaves from defeating enemies in combat. When viewing combat zones, you can hover over an enemy (long press on mobile) to see what items it drops. Tea leaves are an essential ingredient for brewing tea, which can buff non-combat skills.</answer>\n\t\t\t<question>Q: What are essences?</question>\n\t\t\t<answer>A: Essences are used to enhance special equipment with the Enhancing skill. Enemies from each combat zone drop a different type of essence.</answer>\n\t\t\t<question>Q: Where do I get a cape?</question>\n\t\t\t<answer>A: You can find gear for the Back slot by completing the Labyrinth (skilling capes) or Dungeons (combat capes). All capes are untradeable.</answer>\n\t\t\t<question>Q: What does it mean when a recipe requires a decimal amount of an item?</question>\n\t\t\t<answer>A: You need the amount rounded up to start the action, but have a chance (equal to the decimal portion) to use one less. Example: if a craft requires 11.3 cheese, you need 12, but have a 30% chance of only using 11.</answer>\n\t\t\t<question>Q: What should I do? What\'s the best way to get started?</question>\n\t\t\t<answer>A: If you aren\'t sure where to start, working through the achievements is a great approach \u2014 they give you a well-rounded set of goals across every skill in the game.</answer>\n\t\t\t<heading>Support</heading>\n\t\t\t<question>Q: How do I contact a moderator or admin?</question>\n\t\t\t<answer>A: You can contact us by opening a ticket in the #new-ticket channel on our Discord server. Alternatively, you can also email contact@milkywayidle.com from the email address associated with your account. Please include your character name and a clear description of the issue.</answer>\n\t\t\t<question>Q: How do I report a bug or suggest a feature?</question>\n\t\t\t<answer>A: Bug reports are best posted in the #bug-reports channel on our Discord. Please follow the bug report template in the channel. Screenshots or short clips are very helpful. You can also email us at contact@milkywayidle.com.</answer>\n\t\t\t<question>Q: I lost items or coins because of a mistake. Can I get them back?</question>\n\t\t\t<answer>\n\t\t\tA: As a general rule, we do not reverse losses caused by player mistakes. That said, there are some exceptions where it\'s worth reporting the incident to us:\n\t\t\t\t<ul>\n\t\t\t\t\t<li>Accidental trades involving excessive wealth transfer: Please report these to us. Reporting helps us confirm the trade was not an intentional attempt to break the rules (such as real-money trading or account boosting), which helps avoid penalties on the accounts involved. For very large losses, we may also assist with contacting the other party in the trade to try to reverse it, though there are no guarantees.</li>\n\t\t\t\t\t<li>Exceptionally large non-market losses (usually in the billions): You may request a review of the events. If we confirm it was a genuine mistake, we can reverse the loss for a fee of 500M coins. The fee is there to discourage requests for minor losses and keep volume manageable. For losses that involve randomness, the eligible amount is discounted based on how suboptimal the action was. For example, a regular enhancing failure while using the optimal enhancing method will never qualify, since that outcome is a normal part of the system.</li>\n\t\t\t\t</ul>\n\t\t\t</answer>\n\t\t\t<br />',
+                    faqContent: "<heading>General</heading>\n\t\t\t<question>Q: How does offline progress work?</question>\n\t\t\t<answer>A: Your character continues to make progress even when you're offline. A new player gets up to 10 hours of offline progress anytime you close the browser or go offline. You can extend this time with convenience upgrades available in the Cowbell Store or through MooPass.</answer>\n\t\t\t<question>Q: Can I log in from another device?</question>\n\t\t\t<answer>A: If you have registered an account, you can log in from any device using your email and password. If you are playing as a guest, you can find your guest password in Settings and use it to log in with your username.</answer>\n\t\t\t<question>Q: Can I play the game without an internet connection or as a single player?</question>\n\t\t\t<answer>A: No, you must be connected to the internet to play the game. However, you do continue to make progress while offline for up to 10 hours by default. If you prefer to not interact with other players, you can collapse the chat and choose not to use the marketplace.</answer>\n\t\t\t<question>Q: Can I change my username?</question>\n\t\t\t<answer>A: Yes, you can change your username by going to the Cowbell Store and clicking on the \"Name Change\" tab. It costs 500 Cowbells to change your username. Your immediate previous name will be reserved to your character.</answer>\n\t\t\t<question>Q: How can I get a chat icon or different name color?</question>\n\t\t\t<answer>A: You can purchase chat icons and name colors from the Cowbell Store using Cowbells. You can change your displayed icon and color in Settings.</answer>\n\t\t\t<question>Q: How do I send a private message to another player?</question>\n\t\t\t<answer>A: To send a private message to another player, click on their name next to their chat message and click \"Whisper\". You can also use the chat command \"/w playerName chatMessage\".</answer>\n\t\t\t<question>Q: How do I block another player?</question>\n\t\t\t<answer>A: To block a player and stop seeing their chat messages, click on their name in the chat and click \"Block\". You can also use the chat command \"/block playerName\". You can find your block list in the Settings menu and unblock players from the list.</answer>\n\t\t\t<question>Q: My guild leader is no longer active, can we transfer ownership?</question>\n\t\t\t<answer>A: Yes! If your guild leader has been inactive for at least 30 days, the most senior active member can claim leadership directly from the guild's Members tab. Each additional 2 days of inactivity extends eligibility to the next member in line.</answer>\n\t\t\t<question>Q: How can I delete my account and its associated data?</question>\n\t\t\t<answer>A: Account and data deletion can be requested by emailing contact@milkywayidle.com from the email address associated with the account.</answer>\n\t\t\t<heading>Gameplay</heading>\n\t\t\t<question>Q: What is the action queue?</question>\n\t\t\t<answer>A: The action queue is a feature that allows you to set up a sequence of actions for your character to perform. To use it, click the \"Add Queue\" button instead of \"Start\". You can reorder your queue in the menu next to your action bar at the top. Additional queue slots can be unlocked or upgraded from the Cowbell Store.</answer>\n\t\t\t<question>Q: What are Cowbells and how can I get more?</question>\n\t\t\t<answer>\n\t\t\tA: Cowbells are the premium currency in the game. They allow players to purchase convenience upgrades, cosmetics, community buffs that benefit the whole server, and name changes. There are four ways to get Cowbells:\n\t\t\t\t<ul>\n\t\t\t\t\t<li>Finish the tutorial: You will receive 80 Cowbells as a reward.</li>\n\t\t\t\t\t<li>Rare drops: You have a chance to get Cowbells from rare loot boxes found while skilling or defeating enemies in combat.</li>\n\t\t\t\t\t<li>Purchase from Cowbell Store: You can purchase Cowbells with real money from the Cowbell Store to help support the game. They will appear as \"Bag of 10 Cowbells\" in your inventory.</li>\n\t\t\t\t\t<li>Buy from the marketplace: You can buy tradable \"Bag of 10 Cowbells\" with coins from other players in the Marketplace.</li>\n\t\t\t\t</ul>\n\t\t\t</answer>\n\t\t\t<question>Q: What are rare drops?</question>\n\t\t\t<answer>\n\t\t\t\tA: Rare drops are loot boxes that can be obtained while engaging in different activities in the game:\n\t\t\t\t<ul>\n\t\t\t\t\t<li>Gathering skills: You get Meteorite Caches which contain star fragments.</li>\n\t\t\t\t\t<li>Production skills, alchemy, and enhancing: You get Artisan's Crates which contain shards of protection and gems.</li>\n\t\t\t\t\t<li>Combat: You get Treasure Chests which contain gems.</li>\n\t\t\t\t</ul>\n\t\t\t\tAll boxes also contain coins and occasionally Cowbells. You get larger loot boxes when doing higher-level skills or from higher-level enemies. The Rare Find stat increases the drop rate of loot boxes.\n\t\t\t</answer>\n\t\t\t<question>Q: What are gems used for?</question>\n\t\t\t<answer>A: Gems can be used to craft different jewelry that grants small bonuses. Additionally, you can crush gems into smaller pieces with the Crafting skill and use them to brew stronger versions of coffee and tea. Gems can be obtained from Treasure Chests in combat.</answer>\n\t\t\t<question>Q: Where do I get tea leaves?</question>\n\t\t\t<answer>A: You can get tea leaves from defeating enemies in combat. When viewing combat zones, you can hover over an enemy (long press on mobile) to see what items it drops. Tea leaves are an essential ingredient for brewing tea, which can buff non-combat skills.</answer>\n\t\t\t<question>Q: What are essences?</question>\n\t\t\t<answer>A: Essences are used to enhance special equipment with the Enhancing skill. Enemies from each combat zone drop a different type of essence.</answer>\n\t\t\t<question>Q: Where do I get a cape?</question>\n\t\t\t<answer>A: You can find gear for the Back slot by completing the Labyrinth (skilling capes) or Dungeons (combat capes). All capes are untradeable.</answer>\n\t\t\t<question>Q: What does it mean when a recipe requires a decimal amount of an item?</question>\n\t\t\t<answer>A: You need the amount rounded up to start the action, but have a chance (equal to 1 minus the decimal portion) to use one less. Example: if a craft requires 11.3 cheese, you need 12, but have a 70% chance of only using 11.</answer>\n\t\t\t<question>Q: What should I do? What's the best way to get started?</question>\n\t\t\t<answer>A: If you aren't sure where to start, working through the achievements is a great approach — they give you a well-rounded set of goals across every skill in the game.</answer>\n\t\t\t<heading>Support</heading>\n\t\t\t<question>Q: How do I contact a moderator or admin?</question>\n\t\t\t<answer>A: You can contact us by opening a ticket in the #new-ticket channel on our Discord server. Alternatively, you can also email contact@milkywayidle.com from the email address associated with your account. Please include your character name and a clear description of the issue.</answer>\n\t\t\t<question>Q: How do I report a bug or suggest a feature?</question>\n\t\t\t<answer>A: Bug reports are best posted in the #bug-reports channel on our Discord. Please follow the bug report template in the channel. Screenshots or short clips are very helpful. You can also email us at contact@milkywayidle.com.</answer>\n\t\t\t<question>Q: I lost items or coins because of a mistake. Can I get them back?</question>\n\t\t\t<answer>\n\t\t\tA: As a general rule, we do not reverse losses caused by player mistakes. That said, there are some exceptions where it's worth reporting the incident to us:\n\t\t\t\t<ul>\n\t\t\t\t\t<li>Accidental trades involving excessive wealth transfer: Please report these to us. Reporting helps us confirm the trade was not an intentional attempt to break the rules (such as real-money trading or account boosting), which helps avoid penalties on the accounts involved. For very large losses, we may also assist with contacting the other party in the trade to try to reverse it, though there are no guarantees.</li>\n\t\t\t\t\t<li>Exceptionally large non-market losses (usually in the billions): You may request a review of the events. If we confirm it was a genuine mistake, we can reverse the loss for a fee of 500M coins. The fee is there to discourage requests for minor losses and keep volume manageable. For losses that involve randomness, the eligible amount is discounted based on how suboptimal the action was. For example, a regular enhancing failure while using the optimal enhancing method will never qualify, since that outcome is a normal part of the system.</li>\n\t\t\t\t</ul>\n\t\t\t</answer>\n\t\t\t<br />",
                     gathering: "Gathering",
                     gatheringContent: "<heading>Milking</heading>\n\t\t\t<text>\n\t\t\t\tMilking magical cows yields different types of milk, which can be used in a various ways:\n\t\t\t\t<ul>\n\t\t\t\t\t<li>Cheesesmithing: Milk can be turned into cheese, which can then be used to craft melee equipment or skilling tools.</li>\n\t\t\t\t\t<li>Cooking: Milk is an essential ingredient for many recipes.</li>\n\t\t\t\t\t<li>Brewing: Milk is used in a small number of coffee and tea recipes.</li>\n\t\t\t\t</ul>\n\t\t\t</text>\n\t\t\t<text>You can help magical cows produce milk faster by equipping a brush.</text>\n\t\t\t<br />\n\t\t\t<heading>Foraging</heading>\n\t\t\t<text>Foraging allows you to gather different resources from various areas. You can forage for a specific item in an area or forage the entire area to get a bit of everything.</text>\n\t\t\t<text>\n\t\t\t\tForaged resources can be used in:\n\t\t\t\t<ul>\n\t\t\t\t\t<li>Cooking: Eggs, wheat, sugar, berries, and fruits are essential ingredients for many recipes.</li>\n\t\t\t\t\t<li>Brewing: Berries, fruits, and coffee beans are used to brew coffee and tea.</li>\n\t\t\t\t\t<li>Tailoring: Flax, bamboo branches, cocoons, and other materials can be processed into fabric to make magical clothing.</li>\n\t\t\t\t</ul>\n\t\t\t</text>\n\t\t\t<text>You can increase foraging speed by equipping shears.</text>\n\t\t\t<br />\n\t\t\t<heading>Woodcutting</heading>\n\t\t\t<text>You can chop logs from different kinds of trees.</text>\n\t\t\t<text>\n\t\t\t\tLogs can be used in:\n\t\t\t\t<ul>\n\t\t\t\t\t<li>Cheesesmithing: Logs are part of the recipe for making a number of melee weapons and skilling tools.</li>\n\t\t\t\t\t<li>Crafting: Logs can be processed into lumber to craft ranged and magic weapons.</li>\n\t\t\t\t</ul>\n\t\t\t</text>\n\t\t\t<text>You can increase woodcutting speed by equipping a hatchet.</text>\n\t\t\t<br />\n\t\t\t<heading>Level Bonus</heading>\n\t\t\t<text>You gain 1% efficiency bonus for each level you have above the action's level requirement.</text>\n\t\t\t<br />",
                     production: "Production",
@@ -2165,44 +2636,52 @@ const Wa = {
                     combat: "Combat",
                     combatContent: "<heading>Combat</heading>\n\t\t\t<text>Fighting aliens can earn you coins, tea leaves, hides, essences, ability books, gems, and special items, as well as more common resources. There are enemies of varying difficulty located in different combat areas.<br /></text>\n\t\t\t<br />\n\t\t\t<heading>Equipment</heading>\n\t\t\t<text>Wearing equipment will boost your stats in combat. You can equip items directly from the inventory or by clicking equipment slots in the equipment tab next to the inventory.</text>\n\t\t\t<br />\n\t\t\t<heading>Consumables</heading>\n\t\t\t<text>Food can be consumed to recover your HP or MP. Drinks provide limited duration buffs. Upgrading your pouch allows you to carry more food and drinks into battle.</text>\n\t\t\t<br />\n\t\t\t<heading>Abilities</heading>\n\t\t\t<text>You can learn abilities and use them in combat at the cost of MP. To unlock new abilities, you must learn them from ability books. Abilities get stronger as you level them up. You gain 0.1 XP every time it's used in combat. You can also gain a large amount of XP by consuming duplicate ability books.</text>\n\t\t\t<text>When multiple abilities are available for use during combat, they will be prioritized in the same order you have set them.</text>\n\t\t\t<text>Your Intelligence level determines how many abilities you can bring with you.</text>\n\t\t\t<br />\n\t\t\t<heading>Combat Triggers</heading>\n\t\t\t<text>Both consumables and abilities have default settings for when they will be automatically used. The settings are referred to as combat triggers, and they can be modified by clicking the gear icon below before entering the battle.</text>\n\t\t\t<br />\n\t\t\t<heading>Defeat and Respawning</heading>\n\t\t\t<text>When defeated in combat, your character will have to wait through a respawn timer before fully recovering and resuming combat automatically.</text>\n\t\t\t<br />\n\t\t\t<heading>Group Combat</heading>\n\t\t\t<text>You can create or join a party to battle in zones with multiple monsters. When all party members have pressed \"Ready,\" the party will automatically travel to battle. Monsters will randomly attack any of the party members, and those with a higher threat stat will be targeted more frequently. Monster experience and drops will be divided with an equal chance among all players. Players who are both more than 20% lower and at least 10 levels below the highest combat level player will receive less experience and drops.</text>\n\t\t\t<br />\n\t\t\t<heading>Dungeons</heading>\n\t\t\t<text>Dungeons consists of multiple waves of higher tier elite monsters and unique dungeon bosses. They can be accessed with dungeon keys, which can be crafted after finding key fragments from bosses in regular combat zones.</text>\n\t\t\t<text>Up to five players can be in a dungeon party. Each person must have a key, which will be consumed after beating the final boss for the dungeon reward chest. If you complete a dungeon with fewer players, you will have a chance of looting an additional chest at the cost of an extra key. If the dungeon is not completed, you will keep your dungeon key.</text>\n\t\t\t<text>Deaths in dungeons will not trigger a respawn timer. You can only be revived by a party member. If all party members are dead, the dungeon run is considered failed and you will restart at wave 1.</text>\n\t\t\t<br />\n\t\t\t<heading>Skills</heading>\n\t\t\t<text>You have 7 combat skills that can be leveled up:</text>\n\t\t\t<ul>\n\t\t\t<li>Stamina: Increases max HP by 10 per level.</li>\n\t\t\t<li>Intelligence: Increases max MP by 10 per level.</li>\n\t\t\t<li>Attack: Increases your accuracy, attack speed, and cast speed.</li>\n\t\t\t<li>Defense: Increases your evasion, armor, elemental resistances, and defensive damage.</li>\n\t\t\t<li>Melee: Increases your melee damage.</li>\n\t\t\t<li>Ranged: Increases your ranged damage.</li>\n\t\t\t<li>Magic: Increases your magic damage.</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<heading>Status Effects</heading>\n\t\t\t<text>There are status effects that can temporarily prevent you from taking certain actions:</text>\n\t\t\t<ul>\n\t\t\t<li>Blind: Prevents using auto attacks.</li>\n\t\t\t<li>Silence: Prevents using abilities.</li>\n\t\t\t<li>Stun: Prevents using auto attacks, abilities, and consumables.</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<heading>Stats</heading>\n\t\t\t<text>You also have secondary combat stats that are affected by your skill levels, equipment, and buffs:</text>\n\t\t\t<ul>\n\t\t\t<li>Combat style: Each attack has a specific style - stab, slash, smash, ranged, or magic.</li>\n\t\t\t<li>Damage Type: Each attack deals a specific type of damage - physical, water, nature, or fire.</li>\n\t\t\t<li>Attack Interval: How fast you can auto-attack.</li>\n\t\t\t<li>Ability Haste: Reduces ability cooldown.</li>\n\t\t\t<li>Accuracy: Increases your chance to successfully attack.</li>\n\t\t\t<li>Damage: The maximum damage if an attack is successful. Auto-attack damage is random between 1 and the maximum damage.</li>\n\t\t\t<li>Critical Hit: Critical hits always rolls maximum damage. Ranged style has passive critical chance.</li>\n\t\t\t<li>Amplify: Increases the damage you deal.</li>\n\t\t\t<li>Penetration: Ignores a percentage of enemy armor or resistance when attacking.</li>\n\t\t\t<li>Evasion: Increases your chance to dodge an attack.</li>\n\t\t\t<li>Armor: Mitigates a percentage of physical damage.</li>\n\t\t\t<li>Resistance: Mitigates a percentage of water, nature, or fire damage.</li>\n\t\t\t<li>Life Steal: Heals you based on the percentage of auto-attack damage you deal.</li>\n\t\t\t<li>Mana Leech: Leeches mana based on the percentage of auto-attack damage you deal.</li>\n\t\t\t<li>Thorn: When attacked, deals a percentage of your defensive damage back to the attacker. Damage is increased by 1% per armor or resistance (corresponding to the attack type).</li>\n\t\t\t<li>Retaliation: When attacked, reflects a percentage of (defensive damage + incoming damage) as a smash attack back to the attacker.</li>\n\t\t\t<li>Tenacity: Reduces chance of being blinded, silenced, or stunned.</li>\n\t\t\t<li>Threat: Increases chance of being targeted by monsters.</li>\n\t\t\t<li>HP/MP Regen: Recovers a percentage of your maximum HP/MP every 10 seconds.</li>\n\t\t\t<li>Food Haste: Reduces food cooldown.</li>\n\t\t\t<li>Drink Concentration: Increases drink effect. Reduces duration and cooldown.</li>\n\t\t\t<li>Combat Drop Rate: Increases the drop rate of regular items. This cannot go above 100%.</li>\n\t\t\t<li>Combat Drop Quantity: Increases quantity of regular item drops.</li>\n\t\t\t<li>Combat Rare Find: Increases rare item drop rate.</li>\n\t\t\t<li>Primary Training: 30% of combat experience is distributed to the primary training skill determined by your weapon.</li>\n\t\t\t<li>Focus Training: 70% of combat experience is distributed to the focus training skill determined by your charm.</li>\n\t\t\t<li>Combat Level: This is only for display and represents your overall combat effectiveness based on the combination of combat skill levels.</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<heading>Formulas</heading>\n\t\t\t<text>For those who enjoy math, here are the formulas for the secondary stats:</text>\n\t\t\t<ul>\n\t\t\t<li>Max HP = 10 * (10 + Stamina)</li>\n\t\t\t<li>Max MP = 10 * (10 + Intelligence)</li>\n\t\t\t<li>Attack Interval = BaseInterval / (1 + (Attack / 2000)) / (1 + AttackSpeedBonus)</li>\n\t\t\t<li>Cast Time = BaseCastTime / (1 + (Attack / 2000) + CastSpeedBonus)</li>\n\t\t\t<li>Ability Cooldown = BaseCooldown * 100 / (100 + AbilityHaste)</li>\n\t\t\t<li>Accuracy = (10 + Attack) * (1 + Bonus%)</li>\n\t\t\t<li>Damage = (10 + [Melee|Ranged|Magic|Defense]) * (1 + Bonus%)</li>\n\t\t\t<li>Bulwark Smash Damage = SmashDamage + DefensiveDamage</li>\n\t\t\t<li>Thorn Damage = DefensiveDamage * (1 + [Armor|Resistance] / 100) * Thorn%</li>\n\t\t\t<li>Retaliation Damage = (DefensiveDamage + MIN(AttackerPremitigatedDamage, 5 * DefensiveDamage)) * Retaliation%</li>\n\t\t\t<li>Hit Chance = (MyAccuracy ^ 1.4) / (MyAccuracy ^ 1.4 + EnemyEvasion ^ 1.4)</li>\n\t\t\t<li>Ranged Bonus Critical Rate = 0.3 * Hit Chance</li>\n\t\t\t<li>Evasion = (10 + Defense) * (1 + Bonus%)</li>\n\t\t\t<li>Armor = 0.2 * Defense + Bonus</li>\n\t\t\t<li>Percent Physical Damage Taken = 100 / (100 + Armor)<br />If Armor is negative then it's = (100 - Armor) / 100</li>\n\t\t\t<li>Resistance = 0.2 * Defense + Bonus</li>\n\t\t\t<li>Percent Elemental Damage Taken = 100 / (100 + Resistance)<br />If Resistance is negative then it's = (100 - Resistance) / 100</li>\n\t\t\t<li>Blind/Silence/Stun Chance = Base Chance * 100 / (100 + Tenacity)</li>\n\t\t\t<li>Targeted By Monster Chance = MyThreat / (TeamTotalThreat)</li>\n\t\t\t<li>Combat Level = 0.1 * (Stamina + Intelligence + Attack + Defense + MAX(Melee, Ranged, Magic)) + 0.5 * MAX(Attack, Defense, Melee, Ranged, Magic)</li>\n\t\t\t</ul>\n\t\t\t<br />",
                     labyrinth: "Labyrinth",
-                    labyrinthContent: "<heading>Labyrinth</heading>\n\t\t\t<text>The Labyrinth consists of floors of skilling and combat challenges. Each run takes you through floors of increasing difficulty, each consisting of a grid of rooms. Clear rooms to progress, collect loot, and advance to deeper floors.</text>\n\t\t\t<text>The Labyrinth unlocks at total level 1000. It is recommended to have levels in many different skills and combat styles to attempt at least half of the room types to effectively run the Labyrinth.</text>\n\t\t\t<br />\n\t\t\t<heading>Entries & Cooldown</heading>\n\t\t\t<text>You can hold up to 5 entries at a time. Entries regenerate one at a time on a cooldown timer (base 72 hours, reducible to 48 hours via upgrades). Each run costs 1 entry.</text>\n\t\t\t<br />\n\t\t\t<heading>Floors & Grid</heading>\n\t\t\t<text>Each floor is a grid of rooms. The grid size grows with floor depth:</text>\n\t\t\t<ul>\n\t\t\t<li>Floor 1: 4x4 grid</li>\n\t\t\t<li>Floor 2: 5x5 grid</li>\n\t\t\t<li>Floor 3: 6x6 grid</li>\n\t\t\t<li>Floor 4: 7x7 grid</li>\n\t\t\t<li>Floor 5+: 8x8 grid</li>\n\t\t\t</ul>\n\t\t\t<text>You start at the top-left corner and the Floor Exit is at the bottom-right. Room levels are based on the floor: starting at 20-40 and increasing by 20 levels per floor.</text>\n\t\t\t<br />\n\t\t\t<heading>Room Types</heading>\n\t\t\t<text>\n\t\t\t<ul>\n\t\t\t<li>Start Room: Your starting position on each floor.</li>\n\t\t\t<li>Skilling Rooms: Challenge one of 10 non-combat skills. About half of challenge rooms are skilling.</li>\n\t\t\t<li>Combat Rooms: Solo battles against labyrinth monsters. About half of challenge rooms are combat.</li>\n\t\t\t<li>Treasure Rooms: Grant bonus Labyrinth Tokens and loot. The number of treasure rooms equals the floor number (capped at 6).</li>\n\t\t\t<li>Floor Exit: Grants larger rewards. Unlocks the next floor.</li>\n\t\t\t</ul>\n\t\t\t</text>\n\t\t\t<br />\n\t\t\t<heading>Supplies</heading>\n\t\t\t<text>You bring supplies into each run. Supply caps can be upgraded from the Labyrinth Shop.</text>\n\t\t\t<ul>\n\t\t\t<li>Torches: One torch is consumed per room entered. Higher tier torches have a chance to be preserved (Basic: 0%, Advanced: 10%, Expert: 20%). You cannot enter rooms without torches. Produced with Crafting.</li>\n\t\t\t<li>Shrouds: Instantly clear a visible challenge room without receiving XP or rewards from it. Basic Shrouds work up to level 50, Advanced up to level 100, and Expert has no level cap. Shrouds have a 2% fail chance per level above their cap. Produced with Tailoring.</li>\n\t\t\t<li>Beacons: Reveal hidden rooms in an area. Basic reveals up to 5 rooms, Advanced up to 9 rooms, and Expert up to 13 rooms. Produced with Cheesesmithing.</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<heading>Crates</heading>\n\t\t\t<text>One crate of each type can be consumed on entry and the buffs last the entire run:</text>\n\t\t\t<ul>\n\t\t\t<li>Tea Crate: Buffs all skilling skills. Available in 3 tiers (Basic, Advanced, Expert). Produced with Brewing.</li>\n\t\t\t<li>Coffee Crate: Buffs all combat skills. Available in 3 tiers. Produced with Brewing.</li>\n\t\t\t<li>Food Crate: Adds HP and MP regen. Available in 3 tiers. Produced with Cooking.</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<heading>Skilling Rooms</heading>\n\t\t\t<text>Skilling rooms have a 2 minute time limit and 10 seconds per action (base, before speed bonuses). Enhancing rooms have an 8 second base action time. You must fill a progress bar to clear the room.</text>\n\t\t\t<ul>\n\t\t\t<li>Success Rate: 80% base, multiplicatively adjusted by -1% per level below or +0.5% per level above the room. Skill level bonuses, tea crate buffs, and other bonuses increase your effective level.</li>\n\t\t\t<li>Double Progress Chance: Chance to double progress on a success. Equal to crate buff + gathering buff (Milking, Foraging, Woodcutting) + upgrade buff.</li>\n\t\t\t<li>Progress: Based on work power, which is your effective skill level x (1 + efficiency).</li>\n\t\t\t<li>Enhancing rooms are special: each success adds +1 enhancement level, failures subtract -1 level. You must reach the target enhancement level to clear.</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<heading>Combat Rooms</heading>\n\t\t\t<text>Combat rooms are solo battles with a 2 minute time limit. You fight one labyrinth monster scaled to the room's level.</text>\n\t\t\t<ul>\n\t\t\t<li>Shadow Archer: Ranged attacker dealing physical damage. Weak to stab and slash melee.</li>\n\t\t\t<li>Pyre Hunter: Ranged attacker dealing fire damage. Weak to slash and smash melee.</li>\n\t\t\t<li>Frost Sniper: Ranged attacker dealing water damage. Weak to smash and stab melee.</li>\n\t\t\t<li>Siren: Magic attacker dealing water damage. Weak to ranged.</li>\n\t\t\t<li>Salamander: Melee attacker dealing fire damage. Weak to ranged.</li>\n\t\t\t<li>Dryad: Magic attacker dealing nature damage. Weak to ranged.</li>\n\t\t\t<li>Giant Scorpion: Melee stab attacker. Weak to water and nature magic.</li>\n\t\t\t<li>Giant Mantis: Melee slash attacker. Weak to nature and fire magic.</li>\n\t\t\t<li>Cyclops: Melee smash attacker. Weak to fire and water magic.</li>\n\t\t\t<li>Mimic: Melee stab attacker with very fast attack speed. Weak to thorn and retaliation.</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<heading>Rewards</heading>\n\t\t\t<text>Rewards increase with floor level. Spend tokens in the Labyrinth Shop on upgrades and items.</text>\n\t\t\t<ul>\n\t\t\t<li>XP: Clearing challenge rooms grants XP in the relevant skill.</li>\n\t\t\t<li>Labyrinth Tokens: Drop from challenge rooms, treasure rooms, and floor exit.</li>\n\t\t\t<li>Purdora's Boxes: Drop from challenge rooms, treasure rooms, and floor exit.</li>\n\t\t\t<li>Labyrinth Refinement Chests: Drop from floor exit (floor 6+).</li>\n\t\t\t<li>Labyrinth Essences: From Purdora's Boxes. Used to enhance labyrinth equipment.</li>\n\t\t\t<li>Scrolls: From Purdora's Boxes. Grant timed personal buffs. (Has no effect in the Labyrinth)</li>\n\t\t\t<li>Lodestones: From Purdora's Boxes. Used to make level 95 boots.</li>\n\t\t\t<li>Skilling Capes: From Purdora's Boxes.</li>\n\t\t\t<li>Refinement Shards: From Labyrinth Refinement Chests. Used to refine labyrinth capes and boots.</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<heading>Labyrinth Shop</heading>\n\t\t\t<text>Spend Labyrinth Tokens in the shop. Available upgrades:</text>\n\t\t\t<ul>\n\t\t\t<li>Cooldown Reduction: -4 hours per level (6 levels max, reduces 72h base cooldown to 48h).</li>\n\t\t\t<li>Torch Capacity: +20 per level (15 levels max).</li>\n\t\t\t<li>Shroud Capacity: +1 per level (8 levels max).</li>\n\t\t\t<li>Beacon Capacity: +1 per level (10 levels max).</li>\n\t\t\t<li>Full Automation: +1 floor per level (15 levels max).</li>\n\t\t\t<li>Skilling Action Speed: +1% per level (12 levels max).</li>\n\t\t\t<li>Skilling Efficiency: +1% per level (12 levels max).</li>\n\t\t\t<li>Skilling Success Rate: +1% per level (12 levels max).</li>\n\t\t\t<li>Skilling Double Progress: +1% per level (12 levels max).</li>\n\t\t\t<li>Combat Damage: +1% per level (12 levels max).</li>\n\t\t\t<li>Attack Speed: +1% per level (12 levels max).</li>\n\t\t\t<li>Cast Speed: +1% per level (12 levels max).</li>\n\t\t\t<li>Critical Rate: +1% per level (12 levels max).</li>\n\t\t\t<li>Experience: +1% per level (12 levels max).</li>\n\t\t\t</ul>\n\t\t\t<text>Shop items include essences, scrolls, lodestones, capes, and refinement shards.</text>\n\t\t\t<br />\n\t\t\t<heading>Automation</heading>\n\t\t\t<text>The Automation tab lets you configure per-room loadouts, skip thresholds, and full automation.</text>\n\t\t\t<ul>\n\t\t\t<li>Per-Room Loadouts: Assign a loadout to each room type (10 skilling + 10 combat). The loadout is automatically equipped when entering that room type.</li>\n\t\t\t<li>Skip Threshold: Set a level threshold for each room type. Rooms where (room level - your effective level) \u2265 the threshold are automatically skipped.</li>\n\t\t\t<li>Max Attempts Per Room: Set how many times the system will attempt a room before it is skipped.</li>\n\t\t\t<li>Full Automation: Must be unlocked from the Labyrinth Shop (+1 floor per level). When enabled, rooms are automatically added to the path one at a time. Priority order: immediately reachable reward rooms first, then the floor exit, then remaining non-skipped rooms. Once all clearable rooms are completed, it advances to the next floor and repeats.</li>\n\t\t\t<li>Shroud Auto-Use: When full automation is enabled, shrouds can be set to \"When Stuck\" or \"Don't Use\" (default). \"When Stuck\" will automatically use a shroud when there is no path to the floor exit without using one, this includes rooms that are auto-skipped or have failed too many times.</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<heading>Labyrinth Points</heading>\n\t\t\t<text>Each room cleared awards points equal to the current floor number. Points accumulate across all runs and are tracked on the leaderboard.</text>\n\t\t\t<br />\n\t\t\t<heading>Formulas</heading>\n\t\t\t<text>Mechanics:</text>\n\t\t\t<ul>\n\t\t\t<li>GridSize = MIN(3 + Floor, 8)</li>\n\t\t\t<li>WorkPower = EffectiveLevel * (1 + Efficiency)</li>\n\t\t\t<li>SkillingSuccessRate = 0.80 * (1 + LevelBonus + Buffs), where LevelBonus is -0.01 per level below RoomLevel or +0.005 per level above</li>\n\t\t\t<li>MonsterLevel = RoomLevel</li>\n\t\t\t<li>MonsterArmorResistances = BaseArmorResistances * (RoomLevel / 100)</li>\n\t\t\t<li>DoubleProgressChance = CrateBuff + GatheringBuff (Milking, Foraging, Woodcutting) + UpgradeBuff</li>\n\t\t\t<li>Experience = RoomLevel * 50</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<text>Challenge Room Rewards:</text>\n\t\t\t<ul>\n\t\t\t<li>Token: MIN(Floor * 5%, 50%) chance to drop 1 token.</li>\n\t\t\t<li>Purdora's Box: MIN(Floor * 1%, 10%) chance to drop 1 box. Skilling rooms drop a Skilling box; combat rooms drop a Combat box.</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<text>Treasure Room Rewards:</text>\n\t\t\t<ul>\n\t\t\t<li>Tokens: 100% chance. Amount = MIN(Floor, 10).</li>\n\t\t\t<li>Purdora's Boxes: MIN(Floor * 5%, 50%) chance to drop 1 of each box type.</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<text>Floor Exit Rewards:</text>\n\t\t\t<ul>\n\t\t\t<li>Tokens: 100% chance. Amount = 5 * Floor.</li>\n\t\t\t<li>Purdora's Boxes: 100% chance, both types (floor 4+). Average quantity of each type = (Floor - 3) / 2.</li>\n\t\t\t<li>Refinement Chest: 100% chance (floor 6+). Average quantity = (Floor - 4) / 2.</li>\n\t\t\t</ul>\n\t\t\t<br />",
+                    labyrinthContent: "<heading>Labyrinth</heading>\n\t\t\t<text>The Labyrinth consists of floors of skilling and combat challenges. Each run takes you through floors of increasing difficulty, each consisting of a grid of rooms. Clear rooms to progress, collect loot, and advance to deeper floors.</text>\n\t\t\t<text>The Labyrinth unlocks at total level 1000. It is recommended to have levels in many different skills and combat styles to attempt at least half of the room types to effectively run the Labyrinth.</text>\n\t\t\t<br />\n\t\t\t<heading>Entries & Cooldown</heading>\n\t\t\t<text>You can hold up to 5 entries at a time. Entries regenerate one at a time on a cooldown timer (base 72 hours, reducible to 48 hours via upgrades). Each run costs 1 entry.</text>\n\t\t\t<br />\n\t\t\t<heading>Floors & Grid</heading>\n\t\t\t<text>Each floor is a grid of rooms. The grid size grows with floor depth:</text>\n\t\t\t<ul>\n\t\t\t<li>Floor 1: 4x4 grid</li>\n\t\t\t<li>Floor 2: 5x5 grid</li>\n\t\t\t<li>Floor 3: 6x6 grid</li>\n\t\t\t<li>Floor 4: 7x7 grid</li>\n\t\t\t<li>Floor 5+: 8x8 grid</li>\n\t\t\t</ul>\n\t\t\t<text>You start at the top-left corner and the Floor Exit is at the bottom-right. Room levels are based on the floor: starting at 20-40 and increasing by 20 levels per floor.</text>\n\t\t\t<br />\n\t\t\t<heading>Room Types</heading>\n\t\t\t<text>\n\t\t\t<ul>\n\t\t\t<li>Start Room: Your starting position on each floor.</li>\n\t\t\t<li>Skilling Rooms: Challenge one of 10 non-combat skills. About half of challenge rooms are skilling.</li>\n\t\t\t<li>Combat Rooms: Solo battles against labyrinth monsters. About half of challenge rooms are combat.</li>\n\t\t\t<li>Treasure Rooms: Grant bonus Labyrinth Tokens and loot. The number of treasure rooms equals the floor number (capped at 6).</li>\n\t\t\t<li>Floor Exit: Grants larger rewards. Unlocks the next floor.</li>\n\t\t\t</ul>\n\t\t\t</text>\n\t\t\t<br />\n\t\t\t<heading>Supplies</heading>\n\t\t\t<text>You bring supplies into each run. Supply caps can be upgraded from the Labyrinth Shop.</text>\n\t\t\t<ul>\n\t\t\t<li>Torches: One torch is consumed per room entered. Higher tier torches have a chance to be preserved (Basic: 0%, Advanced: 10%, Expert: 20%). You cannot enter rooms without torches. Produced with Crafting.</li>\n\t\t\t<li>Shrouds: Instantly clear a visible challenge room without receiving XP or rewards from it. Basic Shrouds work up to level 50, Advanced up to level 100, and Expert has no level cap. Shrouds have a 2% fail chance per level above their cap. Produced with Tailoring.</li>\n\t\t\t<li>Beacons: Reveal hidden rooms in an area. Basic reveals up to 5 rooms, Advanced up to 9 rooms, and Expert up to 13 rooms. Produced with Cheesesmithing.</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<heading>Crates</heading>\n\t\t\t<text>One crate of each type can be consumed on entry and the buffs last the entire run:</text>\n\t\t\t<ul>\n\t\t\t<li>Tea Crate: Buffs all skilling skills. Available in 3 tiers (Basic, Advanced, Expert). Produced with Brewing.</li>\n\t\t\t<li>Coffee Crate: Buffs all combat skills. Available in 3 tiers. Produced with Brewing.</li>\n\t\t\t<li>Food Crate: Adds HP and MP regen. Available in 3 tiers. Produced with Cooking.</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<heading>Skilling Rooms</heading>\n\t\t\t<text>Skilling rooms have a 2 minute time limit and 10 seconds per action (base, before speed bonuses). Enhancing rooms have an 8 second base action time. You must fill a progress bar to clear the room.</text>\n\t\t\t<ul>\n\t\t\t<li>Success Rate: 80% base, multiplicatively adjusted by -1% per level below or +0.5% per level above the room. Skill level bonuses, tea crate buffs, and other bonuses increase your effective level.</li>\n\t\t\t<li>Double Progress Chance: Chance to double progress on a success. Equal to crate buff + gathering buff (Milking, Foraging, Woodcutting) + upgrade buff.</li>\n\t\t\t<li>Progress: Based on work power, which is your effective skill level x (1 + efficiency), rounded down to a whole number.</li>\n\t\t\t<li>Enhancing rooms are special: each success adds +1 enhancement level, failures subtract -1 level. You must reach the target enhancement level to clear.</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<heading>Combat Rooms</heading>\n\t\t\t<text>Combat rooms are solo battles with a 2 minute time limit. You fight one labyrinth monster scaled to the room's level.</text>\n\t\t\t<ul>\n\t\t\t<li>Shadow Archer: Ranged attacker dealing physical damage. Weak to stab and slash melee.</li>\n\t\t\t<li>Pyre Hunter: Ranged attacker dealing fire damage. Weak to slash and smash melee.</li>\n\t\t\t<li>Frost Sniper: Ranged attacker dealing water damage. Weak to smash and stab melee.</li>\n\t\t\t<li>Siren: Magic attacker dealing water damage. Weak to ranged.</li>\n\t\t\t<li>Salamander: Melee attacker dealing fire damage. Weak to ranged.</li>\n\t\t\t<li>Dryad: Magic attacker dealing nature damage. Weak to ranged.</li>\n\t\t\t<li>Giant Scorpion: Melee stab attacker. Weak to water and nature magic.</li>\n\t\t\t<li>Giant Mantis: Melee slash attacker. Weak to nature and fire magic.</li>\n\t\t\t<li>Cyclops: Melee smash attacker. Weak to fire and water magic.</li>\n\t\t\t<li>Mimic: Melee stab attacker with very fast attack speed. Weak to thorn and retaliation.</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<heading>Rewards</heading>\n\t\t\t<text>Rewards increase with floor level. Spend tokens in the Labyrinth Shop on upgrades and items.</text>\n\t\t\t<ul>\n\t\t\t<li>XP: Clearing challenge rooms grants XP in the relevant skill.</li>\n\t\t\t<li>Labyrinth Tokens: Drop from challenge rooms, treasure rooms, and floor exit.</li>\n\t\t\t<li>Purdora's Boxes: Drop from challenge rooms, treasure rooms, and floor exit.</li>\n\t\t\t<li>Labyrinth Refinement Chests: Drop from floor exit (floor 6+).</li>\n\t\t\t<li>Labyrinth Essences: From Purdora's Boxes. Used to enhance labyrinth equipment.</li>\n\t\t\t<li>Scrolls: From Purdora's Boxes. Grant timed personal buffs. (Has no effect in the Labyrinth)</li>\n\t\t\t<li>Lodestones: From Purdora's Boxes. Used to make level 95 boots.</li>\n\t\t\t<li>Skilling Capes: From Purdora's Boxes.</li>\n\t\t\t<li>Refinement Shards: From Labyrinth Refinement Chests. Used to refine labyrinth capes and boots.</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<heading>Labyrinth Shop</heading>\n\t\t\t<text>Spend Labyrinth Tokens in the shop. Available upgrades:</text>\n\t\t\t<ul>\n\t\t\t<li>Cooldown Reduction: -4 hours per level (6 levels max, reduces 72h base cooldown to 48h).</li>\n\t\t\t<li>Torch Capacity: +20 per level (15 levels max).</li>\n\t\t\t<li>Shroud Capacity: +1 per level (8 levels max).</li>\n\t\t\t<li>Beacon Capacity: +1 per level (10 levels max).</li>\n\t\t\t<li>Full Automation: +1 floor per level (15 levels max).</li>\n\t\t\t<li>Skilling Action Speed: +1% per level (12 levels max).</li>\n\t\t\t<li>Skilling Efficiency: +1% per level (12 levels max).</li>\n\t\t\t<li>Skilling Success Rate: +0.5% per level (12 levels max).</li>\n\t\t\t<li>Skilling Double Progress: +1% per level (12 levels max).</li>\n\t\t\t<li>Combat Damage: +1% per level (12 levels max).</li>\n\t\t\t<li>Attack Speed: +1% per level (12 levels max).</li>\n\t\t\t<li>Cast Speed: +1% per level (12 levels max).</li>\n\t\t\t<li>Critical Rate: +1% per level (12 levels max).</li>\n\t\t\t<li>Experience: +1% per level (12 levels max).</li>\n\t\t\t</ul>\n\t\t\t<text>Shop items include essences, scrolls, lodestones, capes, and refinement shards.</text>\n\t\t\t<br />\n\t\t\t<heading>Automation</heading>\n\t\t\t<text>The Automation tab lets you configure per-room loadouts, skip thresholds, and full automation.</text>\n\t\t\t<ul>\n\t\t\t<li>Per-Room Loadouts: Assign a loadout to each room type (10 skilling + 10 combat). The loadout is automatically equipped when entering that room type.</li>\n\t\t\t<li>Skip Threshold: Set a level threshold for each room type. Rooms where (room level - your effective level) ≥ the threshold are automatically skipped.</li>\n\t\t\t<li>Max Attempts Per Room: Set how many times the system will attempt a room before it is skipped.</li>\n\t\t\t<li>Full Automation: Must be unlocked from the Labyrinth Shop (+1 floor per level). When enabled, rooms are automatically added to the path one at a time. Priority order: immediately reachable reward rooms first, then the floor exit, then remaining non-skipped rooms. Once all clearable rooms are completed, it advances to the next floor and repeats.</li>\n\t\t\t<li>Shroud Auto-Use: When full automation is enabled, shrouds can be set to \"When Stuck\" or \"Don't Use\" (default). \"When Stuck\" will automatically use a shroud when there is no path to the floor exit without using one, this includes rooms that are auto-skipped or have failed too many times.</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<heading>Labyrinth Points</heading>\n\t\t\t<text>Each room cleared awards points equal to the current floor number. Points accumulate across all runs and are tracked on the leaderboard.</text>\n\t\t\t<br />\n\t\t\t<heading>Formulas</heading>\n\t\t\t<text>Mechanics:</text>\n\t\t\t<ul>\n\t\t\t<li>GridSize = MIN(3 + Floor, 8)</li>\n\t\t\t<li>WorkPower = EffectiveLevel * (1 + Efficiency)</li>\n\t\t\t<li>SkillingSuccessRate = MAX(5%, 0.80 * (1 + LevelBonus + Buffs)), where LevelBonus is -0.01 per level below RoomLevel or +0.005 per level above</li>\n\t\t\t<li>MonsterLevel = RoomLevel</li>\n\t\t\t<li>MonsterArmorResistances = BaseArmorResistances * (RoomLevel / 100)</li>\n\t\t\t<li>DoubleProgressChance = CrateBuff + GatheringBuff (Milking, Foraging, Woodcutting) + UpgradeBuff</li>\n\t\t\t<li>Experience = RoomLevel * 50</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<text>Challenge Room Rewards:</text>\n\t\t\t<ul>\n\t\t\t<li>Token: MIN(Floor * 5%, 50%) chance to drop 1 token.</li>\n\t\t\t<li>Purdora's Box: MIN(Floor * 1%, 10%) chance to drop 1 box. Skilling rooms drop a Skilling box; combat rooms drop a Combat box.</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<text>Treasure Room Rewards:</text>\n\t\t\t<ul>\n\t\t\t<li>Tokens: 100% chance. Amount = MIN(Floor, 10).</li>\n\t\t\t<li>Purdora's Boxes: MIN(Floor * 5%, 50%) chance to drop 1 of each box type.</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<text>Floor Exit Rewards:</text>\n\t\t\t<ul>\n\t\t\t<li>Tokens: 100% chance. Amount = 5 * Floor.</li>\n\t\t\t<li>Purdora's Boxes: 100% chance, both types (floor 4+). Average quantity of each type = (Floor - 3) / 2.</li>\n\t\t\t<li>Refinement Chest: 100% chance (floor 6+). Average quantity = (Floor - 4) / 2.</li>\n\t\t\t</ul>\n\t\t\t<br />",
                     tasks: "Tasks",
                     tasksContent: "<heading>Tasks Feature</heading>\n\t\t\t<text>After completing the tutorial, you will unlock the tasks feature. The Task Board generates random short to medium-length tasks in different skills. By completing these tasks, you can obtain rewards for your participation.</text>\n\t\t\t<br />\n\t\t\t<heading>Task Board</heading>\n\t\t\t<text>\n\t\t\t<ul>\n\t\t\t\t<li>Frequency: Tasks are assigned periodically, starting at one every 8 hours. Upgrades can reduce the interval to as low as 4 hours.</li>\n\t\t\t\t<li>Variety: Tasks may involve gathering/production skills or defeating monsters. The generated tasks will slightly prioritize skills in which the player has a higher level.</li>\n\t\t\t\t<li>Rerolls: You can reroll tasks using coins or cowbells. The cost doubles (up to a limit) with each reroll.</li>\n\t\t\t\t<li>Capacity: Tasks do not expire, but there's a limit of 8 task slots. The capacity can be increased through upgrades in the cowbell store.</li>\n\t\t\t</ul>\n\t\t\t</text>\n\t\t\t<br />\n\t\t\t<heading>Rewards</heading>\n\t\t\t<text>\n\t\t\t<ul>\n\t\t\t\t<li>Completing tasks rewards you with Coins and Task Tokens. A Task Point is also granted for every Task Token rewarded from tasks.</li>\n\t\t\t\t<li>Accumulating 50 Task Points allows you to claim \"Purple's Gift,\" which can be opened to obtain Coins, Task Tokens, Task Crystals, and various lootboxes.</li>\n\t\t\t</ul>\n\t\t\t</text>\n\t\t\t<br />\n\t\t\t<heading>Task Shop</heading>\n\t\t\t<text>Task Tokens can be spent in the Task Shop for permanent upgrades or items, including:\n\t\t\t<ul>\n\t\t\t\t<li>Task Cooldown: Reduces the cooldown between tasks.</li>\n\t\t\t\t<li>Block Slots: Allows blocking specific skills from being assigned as tasks. Combat blocking has to be unlocked at an additional cost.</li>\n\t\t\t\t<li>Task Crystals: Used for crafting or upgrading task badge with the Crafting skill. Task badges provide multiplicative action speed or damage bonuses while undertaking tasks.</li>\n\t\t\t\t<li>Lootboxes: Large Meteorite Cache, Large Artisan's Crate, and Large Treasure Chest.</li>\n\t\t\t</ul>\n\t\t\t</text>\n\t\t\t<br />",
                     achievements: "Achievements",
                     achievementsContent: "<heading>Achievements</heading>\n\t\t\t<text>Achievements are goals spanning many areas of the game. They are organized into tiers: Beginner, Novice, Adept, Veteran, Elite, and Champion. Completing all achievements in a tier grants buffs for the character.</text>\n\t\t\t<text>Tier buffs:\n\t\t\t<ul>\n\t\t\t\t<li>Beginner: +2% Gathering</li>\n\t\t\t\t<li>Novice: +2% Wisdom</li>\n\t\t\t\t<li>Adept: +2% Efficiency</li>\n\t\t\t\t<li>Veteran: +2% Rare Find</li>\n\t\t\t\t<li>Elite: +2% Combat Damage</li>\n\t\t\t\t<li>Champion: +0.2% Enhancing Success</li>\n\t\t\t</ul>\n\t\t\t</text>\n\t\t\t<text>Note: if new achievements are added along with new major features, they must be completed again to maintain the buff.</text>\n\t\t\t<br />\n\t\t\t<heading>Collection</heading>\n\t\t\t<text>Collection tracks all unique items you have obtained outside of Marketplace and General Shop. It also tracks successful enhancement counts for each item.</text>\n\t\t\t<br />\n\t\t\t<heading>Bestiary</heading>\n\t\t\t<text>Bestiary tracks all monsters you have defeated. It also tracks defeat counts for different tiers of each monster (T0, T1, T2, etc).</text>\n\t\t\t<text>Higher tier monsters grant 1 extra credit per tier (T1 gives +1, T2 gives +2, etc).</text>\n\t\t\t<text>When fighting in a party, you receive fractional credit based on party size.</text>\n\t\t\t<br />\n\t\t\t<heading>Points</heading>\n\t\t\t<text>Both Collection and Bestiary earn points based on how many of each item/monster you have collected/defeated:</text>\n\t\t\t<text>\n\t\t\t<ul>\n\t\t\t\t<li>1 \u2192 +1 point</li>\n\t\t\t\t<li>10 \u2192 +2 points</li>\n\t\t\t\t<li>100 \u2192 +3 points</li>\n\t\t\t\t<li>1,000 \u2192 +4 points</li>\n\t\t\t\t<li>And so on...</li>\n\t\t\t</ul>\n\t\t\t</text>\n\t\t\t<text>Reaching point milestones unlocks rewards.</text>\n\t\t\t<br />",
                     guild: "Guild",
-                    guildContent: "<heading>Guild</heading>\n\t\t\t<text>Discover guilds by navigating to the \"Guild\" feature in the navigation menu. Guilds are formed by groups of players who enjoy playing together. While guilds currently serve as primarily social hubs, upcoming expansions may introduce more group-oriented activities.</text>\n\t\t\t<br />\n\t\t\t<heading>Creating a Guild</heading>\n\t\t\t<text>You can start your own guild by investing 5 million coins and choosing a unique guild name. As the guild's creator, you automatically assume the role of the leader, granting you the highest authority within the guild. Afterward, invite other players to join your guild.</text>\n\t\t\t<br />\n\t\t\t<heading>Joining a Guild</heading>\n\t\t\t<text>You can be invited to join existing guilds. To find a guild to join, you can use the Recruit chat channel, where guilds actively seek new members. You can view your invitations on the Guild page.</text>\n\t\t\t<br />\n\t\t\t<heading>Guild Features</heading>\n\t\t\t<text>Guilds come with several key features:\n\t\t\t<ul>\n\t\t\t\t<li>Guild Chat Channel: A private, self-moderated space for guild members to connect and converse.</li>\n\t\t\t\t<li>Guild Notice Board: A persistent message board editable by the leader or generals to keep everyone informed.</li>\n\t\t\t\t<li>Guild Levels: As members earn experience points (XP) in various skills, the guild accumulates XP at a 1:1000 ratio, contributing to the guild's level. Climb the leaderboard based on your guild's level and experience.</li>\n\t\t\t\t<li>Member Slots: Guilds begin with {{defaultGuildMemberCount}} member slots and gain 1 additional slot for every {{guildLevelsPerMaxMember}} guild levels.</li>\n\t\t\t</ul>\n\t\t\t</text>\n\t\t\t<br />\n\t\t\t<heading>Member Roles</heading>\n\t\t\t<text>Guilds have a structured hierarchy with different roles and permissions. Higher rank roles automatically possess the permission of any lower rank:\n\t\t\t<ul>\n\t\t\t\t<li>Leader\n\t\t\t\t\t<ul>\n\t\t\t\t\t\t<li>Can pass leadership to another member.</li>\n\t\t\t\t\t\t<li>Has the authority to disband the guild entirely when the guild is empty.</li>\n\t\t\t\t\t</ul>\n\t\t\t\t</li>\n\t\t\t\t<li>General\n\t\t\t\t\t<ul>\n\t\t\t\t\t\t<li>Empowered to promote or demote any lower-ranking member.</li>\n\t\t\t\t\t\t<li>Can edit the guild notice board.</li>\n\t\t\t\t\t</ul>\n\t\t\t\t</li>\n\t\t\t\t<li>Officer\n\t\t\t\t\t<ul>\n\t\t\t\t\t\t<li>Can invite new members to join the guild.</li>\n\t\t\t\t\t\t<li>Can kick lower-ranking member out of the guild.</li>\n\t\t\t\t\t</ul>\n\t\t\t\t</li>\n\t\t\t\t<li>Member\n\t\t\t\t\t<ul>\n\t\t\t\t\t\t<li>Can view the guild overview.</li>\n\t\t\t\t\t\t<li>Can view and converse in the guild chat channel.</li>\n\t\t\t\t\t</ul>\n\t\t\t\t</li>\n\t\t\t\t<li>Invited\n\t\t\t\t\t<ul>\n\t\t\t\t\t\t<li>Has no access until they accept the guild invitation</li>\n\t\t\t\t\t</ul>\n\t\t\t\t</li>\n\t\t\t</ul>\n\t\t\t</text>\n\t\t\t<br />",
+                    guildContent: "<heading>Guild</heading>\n\t\t\t<text>Guilds are formed by groups of players who enjoy playing together. Beyond being social hubs, guilds offer weekly Guild Trials, guild buildings, and personal shrine buffs.</text>\n\t\t\t<br />\n\t\t\t<heading>Creating a Guild</heading>\n\t\t\t<text>You can start your own guild by investing 5 million coins and choosing a unique guild name. As the guild's creator, you automatically assume the role of the leader, granting you the highest authority within the guild. Afterward, invite other players to join your guild.</text>\n\t\t\t<br />\n\t\t\t<heading>Joining a Guild</heading>\n\t\t\t<text>You can be invited to join existing guilds, or apply directly to any guild with open applications. To find a guild to join, you can use the Recruit chat channel, where guilds actively seek new members. You can view your invitations and applications on the Guild page.</text>\n\t\t\t<br />\n\t\t\t<heading>Guild Features</heading>\n\t\t\t<text>Guilds come with several key features:\n\t\t\t<ul>\n\t\t\t\t<li>Guild Chat Channel: A private, self-moderated space for guild members to connect and converse.</li>\n\t\t\t\t<li>Guild Notice Board: A persistent message board editable by the leader or generals to keep everyone informed.</li>\n\t\t\t\t<li>Pinned Message: The leader or generals can pin a short announcement above guild chat. Members can collapse it to a small pin icon, and click that icon to read it again.</li>\n\t\t\t\t<li>Guild Levels: As members earn experience in various skills, the guild accumulates XP at a 1:1000 ratio, increased by the Archives building, contributing to the guild's level.</li>\n\t\t\t\t<li>Member Slots: Guilds begin with {{defaultGuildMemberCount}} member slots and gain 1 additional slot for every {{guildLevelsPerMaxMember}} guild levels. The Guild Hall building grants additional slots.</li>\n\t\t\t</ul>\n\t\t\t</text>\n\t\t\t<br />\n\t\t\t<heading>Member Roles</heading>\n\t\t\t<text>Guilds have a structured hierarchy with different roles and permissions. Higher rank roles automatically possess the permission of any lower rank:\n\t\t\t<ul>\n\t\t\t\t<li>Leader\n\t\t\t\t\t<ul>\n\t\t\t\t\t\t<li>Can pass leadership to another member.</li>\n\t\t\t\t\t\t\t<li>Can set the guild's type, icon, and name.</li>\n\t\t\t\t\t\t<li>Has the authority to disband the guild entirely when the guild is empty.</li>\n\t\t\t\t\t</ul>\n\t\t\t\t</li>\n\t\t\t\t<li>General\n\t\t\t\t\t<ul>\n\t\t\t\t\t\t<li>Can promote or demote any lower-ranking member.</li>\n\t\t\t\t\t\t<li>Can edit the guild notice board, pin a guild chat message, and manage application settings.</li>\n\t\t\t\t\t\t<li>Can manage guild buildings and shrines, and set the weekly trial schedule and trial level requirements.</li>\n\t\t\t\t\t</ul>\n\t\t\t\t</li>\n\t\t\t\t<li>Officer\n\t\t\t\t\t<ul>\n\t\t\t\t\t\t<li>Can invite new members and review applications.</li>\n\t\t\t\t\t\t<li>Can kick lower-ranking members out of the guild.</li>\n\t\t\t\t\t</ul>\n\t\t\t\t</li>\n\t\t\t\t<li>Member\n\t\t\t\t\t<ul>\n\t\t\t\t\t\t<li>Can view the guild overview.</li>\n\t\t\t\t\t\t<li>Can view and converse in the guild chat channel.</li>\n\t\t\t\t\t</ul>\n\t\t\t\t</li>\n\t\t\t\t<li>Invited\n\t\t\t\t\t<ul>\n\t\t\t\t\t\t<li>Has no access until they accept the guild invitation</li>\n\t\t\t\t\t</ul>\n\t\t\t\t</li>\n\t\t\t</ul>\n\t\t\t</text>\n\t\t\t<br />\n\t\t\t<heading>Guild Types</heading>\n\t\t\t<text>Guilds come in three types:</text>\n\t\t\t<ul>\n\t\t\t\t<li>Casual: The default type. Characters of any game mode can join. The Guild Hall building grants 2 member slots per level.</li>\n\t\t\t\t<li>Standard: Only Standard characters can join. The Guild Hall building grants 5 member slots per level.</li>\n\t\t\t\t<li>Ironcow: Only Ironcows can join. The Guild Hall building grants 5 member slots per level.</li>\n\t\t\t</ul>\n\t\t\t<text>The leader can permanently change a Casual guild to the Standard or Ironcow type if every current member already matches that type. This can never be reversed.</text>\n\t\t\t<br />\n\t\t\t<heading>Guild Trials</heading>\n\t\t\t<text>Guild Trials are weekly group challenges and the only source of Guild Points and Guild Tokens. The guild week resets every Friday at 00:00 UTC. Each week your guild receives 4 randomly chosen skilling trials and 2 randomly chosen combat trials.</text>\n\t\t\t<ul>\n\t\t\t\t<li>Sign-up: Each member can sign up for at most 1 skilling and 1 combat trial per week.</li>\n\t\t\t\t<li>Capacity: Each trial has a limited number of sign-up slots, which can be raised with the Skilling and Combat Encampment buildings.</li>\n\t\t\t\t<li>Eligibility: Only members who joined before the guild week started may participate.</li>\n\t\t\t\t<li>Schedule: The leader and generals set a weekly start time. Skilling trials run first, and combat trials start once the skilling trials finish.</li>\n\t\t\t\t<li>Duration: Each trial can run for up to 1 hour of active time during the week.</li>\n\t\t\t\t<li>Mechanism: The trials will not interrupt normal character actions.</li>\n\t\t\t</ul>\n\t\t\t<text>Trials climb through tiers of increasing difficulty. The first tier starts at level 100, and each tier is 10 levels higher, up to a maximum of level 300. A trial keeps climbing until the group fails a tier, runs out of time, or clears the highest tier.</text>\n\t\t\t<br />\n\t\t\t<heading>Skilling Trials</heading>\n\t\t\t<text>In a skilling trial, every signed-up member performs actions in the trial's skill, and everyone's progress feeds one shared pool. The tier is cleared when the pool is filled. Higher tiers require more total work, and each signed-up participant increases the work required by 1%.</text>\n\t\t\t<text>Participants use a snapshot of their chosen loadout without consumables.</text>\n\t\t\t<br />\n\t\t\t<heading>Combat Trials</heading>\n\t\t\t<text>In a combat trial, the signed-up party battles one of five encounter types (Badger, Chameleon, Jellyfish, Hedgehog, or Swarm), scaled up to the tier level. Each signed-up participant increases monster HP by 1%, attack and cast speed by 2%, and ability haste by 2. Winning the battle advances the trial to the next tier, while a defeat ends the trial for the week.</text>\n\t\t\t<text>Combat trials grant no XP or regular loot, and food and drinks are replaced by a flat +3% HP and MP regeneration. Each incoming attack can receive at most 5 parry attempts.</text>\n\t\t\t<br />\n\t\t\t<heading>Guild Points and Guild Tokens</heading>\n\t\t\t<text>Every tier cleared awards Guild Points to the guild and increases the Guild Token payout made after all trials finish:</text>\n\t\t\t<ul>\n\t\t\t\t<li>Skilling Base Points = 200 for the first tier + 100 for each additional tier cleared</li>\n\t\t\t\t<li>Combat Base Points = 400 for the first tier + 200 for each additional tier cleared</li>\n\t\t\t\t<li>Guild Points Earned = BasePoints * (1 + BuildersHallBonus)</li>\n\t\t\t\t<li>Eligible Member Tokens = 0.5 * TotalBasePoints * (1 + TreasuryBonus), paid to every eligible member once all trials have finished</li>\n\t\t\t\t<li>Participant Bonus Tokens = EligibleMemberTokens * {{participantBonusPercent}}%</li>\n\t\t\t</ul>\n\t\t\t<text>Guild Points belong to the guild and are spent by the leader and generals on buildings, shrines, and guild customization. Both spendable and lifetime Guild Points are tracked. Lifetime points are ranked on the leaderboard.</text>\n\t\t\t<text>Guild Tokens are yours personally. Spend them on shrine buffs in the Guild Shop, or exchange them for guild credits.</text>\n\t\t\t<br />\n\t\t\t<heading>Buildings and Shrines</heading>\n\t\t\t<text>Guild buildings and shrines are upgraded with Guild Points by the leader and generals, each up to a maximum of level 20.</text>\n\t\t\t<ul>\n\t\t\t\t<li>Guild Hall: Increases member slots.</li>\n\t\t\t\t<li>Builder's Hall: Increases Guild Points earned from trials.</li>\n\t\t\t\t<li>Treasury: Increases Guild Tokens earned from trials.</li>\n\t\t\t\t<li>Archives: Increases guild XP gained from member XP.</li>\n\t\t\t\t<li>Skilling and Combat Encampments: Increase the number of sign-up slots for every skilling or combat trial.</li>\n\t\t\t\t<li>Trial Buildings: One building for each skill, similar to house rooms. Grants buffs during your guild's trials.</li>\n\t\t\t</ul>\n\t\t\t<text>The five shrines have no direct effect. Each shrine level instead raises the maximum level of that shrine's two buffs.</text>\n\t\t\t<br />\n\t\t\t<heading>Guild Credits</heading>\n\t\t\t<text>Guild credits are personal currencies that come in 8 colors. Earn them by exchanging items in the Guild Shop. Each eligible item converts at its own rate into a color themed by the item's purpose:</text>\n\t\t\t<ul>\n\t\t\t\t<li>Green for skilling resources</li>\n\t\t\t\t<li>Brown for combat materials and ability books</li>\n\t\t\t\t<li>White for consumables</li>\n\t\t\t\t<li>Blue for essences</li>\n\t\t\t\t<li>Purple for skilling equipment</li>\n\t\t\t\t<li>Red for combat equipment</li>\n\t\t\t\t<li>Silver for rare items</li>\n\t\t\t\t<li>Gold for very rare items</li>\n\t\t\t</ul>\n\t\t\t<text>Credits are spent together with Guild Tokens on shrine buffs. Guild Tokens can also be exchanged into credits, and exchanged items count toward unlocking guild icons.</text>\n\t\t\t<br />\n\t\t\t<heading>Shrine Buffs</heading>\n\t\t\t<text>Shrine buffs are permanent personal buffs bought with Guild Tokens and guild credits in the Guild Shop, with rising costs per level. Each shrine unlocks one skilling and one combat buff: Force boosts damage and efficiency, Tempo boosts attack and action speed, Spirit boosts HP, MP, and essence find, Rarity boosts rare find, and Scholar boosts XP.</text>\n\t\t\t<ul>\n\t\t\t\t<li>A buff is only active up to your current guild's matching shrine level. If you leave your guild, your buff levels are kept but inactive; in a guild with a lower shrine level, the buff is capped but not lost.</li>\n\t\t\t\t<li>You can refund buff levels for 80% of the tokens and credits spent, starting from the most recently bought level.</li>\n\t\t\t</ul>\n\t\t\t<br />\n\t\t\t<heading>Guild Icons and Customization</heading>\n\t\t\t<text>Items exchanged for guild credits are tallied toward guild icons. An item's icon unlocks once the guild has exchanged 1,000 of it, then gains higher visual tiers at each tenfold milestone after that. The leader can set the guild's icon for 100 Guild Points or rename the guild for 5,000 Guild Points.</text>\n\t\t\t<br />\n\t\t\t<heading>Leadership and Inactivity</heading>\n\t\t\t<text>If the guild leader has been inactive for 30 days, the highest-priority member (by role, then join date) becomes eligible to claim leadership. Each additional 2 days of inactivity extends eligibility to the next member in line. When leadership is claimed, the previous leader is demoted to General.</text>\n\t\t\t<br />",
                     chatCommands: "Chat Commands",
-                    chatCommandsContent: "<heading>Chat Commands</heading>\n\t\t\t<text>\n\t\t\t\t<chatCommand>/w [name] [message]</chatCommand> - whisper another player<br />\n\t\t\t\t<chatCommand>/r</chatCommand> - reply to last whisper<br />\n\t\t\t\t<chatCommand>/profile [name]</chatCommand> - view player profile<br />\n\t\t\t\t<chatCommand>/friend [name]</chatCommand> - add friend<br />\n\t\t\t\t<chatCommand>/block [name]</chatCommand> - block player<br />\n\t\t\t</text>\n\t\t\t<br />",
-                    experienceTable: "Experience Table"
+                    chatCommandsContent: "<heading>Chat Commands</heading>\n\t\t\t<text>\n\t\t\t\t<chatCommand>/w [name] [message]</chatCommand> - whisper another player<br />\n\t\t\t\t<chatCommand>/r</chatCommand> - reply to last whisper<br />\n\t\t\t\t<chatCommand>/profile [name]</chatCommand> - view player profile<br />\n\t\t\t\t<chatCommand>/friend [name]</chatCommand> - add friend<br />\n\t\t\t\t<chatCommand>/block [name]</chatCommand> - block player<br />\n\t\t\t\t<chatCommand>/pin [message]</chatCommand> - pin a guild chat message (leader or general)<br />\n\t\t\t\t<chatCommand>/unpin</chatCommand> - remove the pinned guild message (leader or general)<br />\n\t\t\t</text>\n\t\t\t<br />",
+                    experienceTable: "Experience Table",
+                    "marketplace": "Marketplace",
+                    "marketplaceContent": "<heading>Overview</heading>\n\t\t\t<text>The marketplace lets players buy and sell tradable items with coins. You can trade instantly against existing listings or post your own buy or sell listing at a price of your choice. Listings stay active for up to 30 days, and additional listing slots can be unlocked in the Cowbell Store.</text>\n\t\t\t<text>Collect bought items and sale proceeds from $t(marketplacePanel.myListings).</text>\n\t\t\t<br />\n\t\t\t<heading>Market value</heading>\n\t\t\t<text>Every established item and enhancement level has an estimated market value based on real trades and listings. It is shown in the marketplace and in item tooltips, and your inventory displays the total estimated value of your items.</text>\n\t\t\t<text>\n\t\t\t\tMarket values automatically update every hour:\n\t\t\t\t<ul>\n\t\t\t\t\t<li>Listings more competitive than the market value (buys above it or sells below it) pull the value toward their price. The longer such a listing stands without being taken, the stronger its influence.</li>\n\t\t\t\t\t<li>Completed trades also move the value, but much more slowly than competitive listings do.</li>\n\t\t\t\t\t<li>The value can only move a limited amount per update.</li>\n\t\t\t\t</ul>\n\t\t\t</text>\n\t\t\t<br />\n\t\t\t<heading>Tradable range</heading>\n\t\t\t<text>Each item with a market value has a tradable range around that value, about ±10% for most items. Trades execute only at prices inside the current range.</text>\n\t\t\t<text>Newly valued items start with a much wider range that narrows over a few days. Items without a market value trade freely with no range.</text>\n\t\t\t<br />\n\t\t\t<heading>Price limits</heading>\n\t\t\t<text>\n\t\t\t\t<ul>\n\t\t\t\t\t<li>A sell below the minimum starts at the minimum and falls with the range toward your chosen minimum price.</li>\n\t\t\t\t\t<li>A buy above the maximum starts at the maximum and rises with the range toward your chosen maximum price.</li>\n\t\t\t\t\t<li>A sell above the maximum or a buy below the minimum waits at your price until the range reaches it.</li>\n\t\t\t\t\t<li>An * marks a range-limited listing. Hover or tap the marked price to see your chosen minimum or maximum.</li>\n\t\t\t\t</ul>\n\t\t\t</text>\n\t\t\t<br />\n\t\t\t<heading>Completing trades</heading>\n\t\t\t<text>\n\t\t\t\t<ul>\n\t\t\t\t\t<li>Trades always execute at the price of the listing that was already on the market.</li>\n\t\t\t\t\t<li>Listings trading at the same price fill oldest first. A price limit beyond the range boundary gives no priority over listings already at the boundary.</li>\n\t\t\t\t\t<li>Buy listings reserve coins at your chosen maximum price. If trades complete at a lower price, the difference is returned to you.</li>\n\t\t\t\t\t<li>Successful trades are taxed 4% of the seller's proceeds (18% for Bag of 10 Cowbells).</li>\n\t\t\t\t</ul>\n\t\t\t</text>\n\t\t\t<br />",
+                    "guildBuildingCostHeading": "Guild Building Costs",
+                    "guildBuildingCostText": "Guild Points needed to raise a building or shrine to each level. The Guild Hall, Builder's Hall, Treasury, Archives, and the five shrines use the costs below. The Skilling and Combat Encampments and the Trial Buildings each cost half as much.",
+                    "guildShrineBuffCostHeading": "Shrine Buff Costs",
+                    "guildShrineBuffCostText": "Guild Tokens needed to upgrade a shrine buff to each level, the same for every buff. Each level also costs an increasing amount of Guild Credits, which are not listed here."
                 },
                 gameRulesPanel: {
                     gameRules: "Game Rules"
                 },
                 gameRulesText: {
-                    content: "<div>\n\t\t\t\tThe rules for Milky Way Idle are designed to ensure an enjoyable and fair experience for all players.\n\t\t\t\tBreaking the rules would result in appropriate penalties dependent on the type and severity of the offense.\n\t\t\t\tPenalties include verbal warning, mute, item removal, trading ban, or account ban.<br /><br />\n\t\t\t</div>\n\t\t\t<olMain>\n\t\t\t\t<li><b>Account</b>\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>Single Account Only: </b>\n\t\t\t\t\t\t\tEach person can only play on 1 account. Guests are also considered accounts.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Account Sharing: </b>\n\t\t\t\t\t\t\tDo not share account with other players.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Inappropriate Name: </b>\n\t\t\t\t\t\t\tNames should not be offensive, sexual, impersonating others, or based on well-known real-world individuals. Inappropriate name may result in mutes and forced name change.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>Age 13+ Only: </b>\n\t\t\t\t\t\t\tIn compliance with COPPA(Children's Online Privacy Protection Act), you must be at least age 13+ to register and play.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</li>\n\t\t\t\t<li><b>Trading</b>\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Real World Trading / Cross-Trading: </b>\n\t\t\t\t\t\t\tDo not trade items or services within Milky Way Idle for anything outside of the game.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Boosting: </b>\n\t\t\t\t\t\t\tDo not funnel wealth to other players. Players may receive up to 10M coins in total gifts from others. Wealth transfers over this limit, whether intentional or not, can be treated as boosting. Unintentional transfers (e.g. randomly finding an extremely underpriced item on market) can be removed. Intentional transfers will result in additional penalties based on severity.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Scamming: </b>\n\t\t\t\t\t\t\tDo not use deception or scamming to gain items from other players. Actions will be taken against scammers given sufficient evidence. However, items lost to scams will not be refunded.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Coordinated Market Manipulation: </b>\n\t\t\t\t\t\t\tPlayers may not organize, incite, or participate in coordinated group efforts to manipulate the in-game economy. Encouraging other players to artificially pump or dump specific items is strictly prohibited.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>Repay Loans Within 7 Days: </b>\n\t\t\t\t\t\t\tLoans with other players are at your own risk. Loans not repaid within 7 days can be considered boosting/scamming.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</li>\n\t\t\t\t<li><b>Chat</b>\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>Use Respectful Language: </b>\n\t\t\t\t\t\t\tThe #1 chat rule is to respect other players. Our goal is to create a friendly community space everyone can enjoy.\n\t\t\t\t\t\t\tPlease avoid intentionally antagonizing or harassing others.\n\t\t\t\t\t\t\tWhile the occasional use of profanity is not against the rule, please don't do so excessively, especially when directed at other players.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>English in General Chat: </b>\n\t\t\t\t\t\t\tPlease primarily use English in the General chat channel. Different languages are acceptable in other channels.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Discrimination: </b>\n\t\t\t\t\t\t\tDo not use slurs, slangs, or any offensive phrases that target any person or group of people.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Illegal or Sexual Topics: </b>\n\t\t\t\t\t\t\tDo not link or discuss illegal activities or sexual topics.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>Avoid Divisive Topics or Drama: </b>\n\t\t\t\t\t\t\tAvoid divisive topics that often lead to drama or conversations inappropriate for public chat.\n\t\t\t\t\t\t\tThis includes, but is not limited to, politics, religion, international conflicts, gender discussions, sexuality,\n\t\t\t\t\t\t\tmute/ban complaints, and other topics that frequently become disruptive.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Spamming: </b>\n\t\t\t\t\t\t\tDo not spam the chat with large number of unnecessary messages, overuse CAPSLOCK, or beg others for free items.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>Do Not Encourage Others to Break Rules: </b>\n\t\t\t\t\t\t\tDo not mislead or instigate other players into breaking game rules.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>Do Not Disclose Personal Information: </b>\n\t\t\t\t\t\t\tDo not disclose identifying personal information about yourself, including, but not limited to, your full name, address, phone number, and email address.\n\t\t\t\t\t\t\tFurthermore, do not disclose ANY personal information about other players that they have not made public themselves, such as their name, age, or location.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>All Advertisements Must be in Appropriate Channels: </b>\n\t\t\t\t\t\t\tAll buying, selling, or service requests should be in trade chat. Guild/Party recruitment or seeking to join guild/party requests should be in recruit channel.\n\t\t\t\t\t\t\tPrice checks are allowed in most channels. No referral links.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>Listen to <modIcon />Moderators: </b>\n\t\t\t\t\t\t\tModerators have the discretion to moderate chat as they see fit in order to maintain a positive environment.\n\t\t\t\t\t\t\tPlease cooperate with their requests. If anyone has disagreements or complaints regarding a moderator, please submit a ticket on Discord or email contact@milkywayidle.com.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</li>\n\t\t\t\t<li><b>Bots, Scripts, and Extensions</b>\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Botting: </b>\n\t\t\t\t\t\t\tDo not use any automation that plays the game for you.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>Scripts and Extensions: </b>\n\t\t\t\t\t\t\tAny scripts or extensions must not take any actions for the player (send any requests to server).\n\t\t\t\t\t\t\tYou are allowed to use them purely for information display purposes or UI improvements. (ex: Display combat summary, track drops, move buttons to different location)\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</li>\n\t\t\t\t<li><b>Bugs and Exploits</b>\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Bug Abusing: </b>\n\t\t\t\t\t\t\tDo not abuse game bugs or exploits to your advantage. Please report them on Discord.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</li>\n\t\t\t</olMain>\n\t\t\t<br />"
+                    content: "<div>\n\t\t\t\tThe rules for Milky Way Idle are designed to ensure an enjoyable and fair experience for all players.\n\t\t\t\tBreaking the rules would result in appropriate penalties dependent on the type and severity of the offense.\n\t\t\t\tPenalties include verbal warning, mute, item removal, trading ban, or account ban.<br /><br />\n\t\t\t</div>\n\t\t\t<olMain>\n\t\t\t\t<li><b>Account</b>\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>Single Account Only: </b>\n\t\t\t\t\t\t\tEach person can only play on 1 account. Guests are also considered accounts.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Account Sharing: </b>\n\t\t\t\t\t\t\tDo not share account with other players.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Inappropriate Name: </b>\n\t\t\t\t\t\t\tNames should not be offensive, sexual, impersonating others, or based on well-known real-world individuals. Inappropriate name may result in mutes and forced name change.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>Age 13+ Only: </b>\n\t\t\t\t\t\t\tIn compliance with COPPA(Children's Online Privacy Protection Act), you must be at least age 13+ to register and play.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</li>\n\t\t\t\t<li><b>Trading</b>\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Real World Trading / Cross-Trading: </b>\n\t\t\t\t\t\t\tDo not trade items or services within Milky Way Idle for anything outside of the game.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Boosting: </b>\n\t\t\t\t\t\t\tDo not use the marketplace to funnel wealth to other players. Intentionally dumping coins through repeated trades, even to random players, is also not allowed.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Scamming: </b>\n\t\t\t\t\t\t\tDo not use deception or scamming to gain items from other players. Actions will be taken against scammers given sufficient evidence. However, items lost to scams will not be refunded.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Coordinated Market Manipulation: </b>\n\t\t\t\t\t\t\tPlayers may not organize, incite, or participate in coordinated group efforts to manipulate the in-game economy. Encouraging other players to artificially pump or dump specific items is strictly prohibited.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</li>\n\t\t\t\t<li><b>Chat</b>\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>Use Respectful Language: </b>\n\t\t\t\t\t\t\tThe #1 chat rule is to respect other players. Our goal is to create a friendly community space everyone can enjoy.\n\t\t\t\t\t\t\tPlease avoid intentionally antagonizing or harassing others.\n\t\t\t\t\t\t\tWhile the occasional use of profanity is not against the rule, please don't do so excessively, especially when directed at other players.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Discrimination: </b>\n\t\t\t\t\t\t\tDo not use slurs, slangs, or any offensive phrases that target any person or group of people.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Illegal or Sexual Topics: </b>\n\t\t\t\t\t\t\tDo not link or discuss illegal activities or sexual topics.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>Avoid Divisive Topics or Drama: </b>\n\t\t\t\t\t\t\tAvoid divisive topics that often lead to drama or conversations inappropriate for public chat.\n\t\t\t\t\t\t\tThis includes, but is not limited to, politics, religion, international conflicts, gender discussions, sexuality,\n\t\t\t\t\t\t\tmute/ban complaints, and other topics that frequently become disruptive.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Spamming: </b>\n\t\t\t\t\t\t\tDo not spam the chat with large number of unnecessary messages, overuse CAPSLOCK, or beg others for free items.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>Do Not Encourage Others to Break Rules: </b>\n\t\t\t\t\t\t\tDo not mislead or instigate other players into breaking game rules.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>Do Not Disclose Personal Information: </b>\n\t\t\t\t\t\t\tDo not disclose identifying personal information about yourself, including, but not limited to, your full name, address, phone number, and email address.\n\t\t\t\t\t\t\tFurthermore, do not disclose ANY personal information about other players that they have not made public themselves, such as their name, age, or location.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>All Advertisements Must be in Appropriate Channels: </b>\n\t\t\t\t\t\t\tAll buying, selling, or service requests should be in trade chat. Guild/Party recruitment or seeking to join guild/party requests should be in recruit channel.\n\t\t\t\t\t\t\tPrice checks are allowed in most channels. No referral links.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>Listen to <modIcon />Moderators: </b>\n\t\t\t\t\t\t\tModerators have the discretion to moderate chat as they see fit in order to maintain a positive environment.\n\t\t\t\t\t\t\tPlease cooperate with their requests. If anyone has disagreements or complaints regarding a moderator, please submit a ticket on Discord or email contact@milkywayidle.com.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</li>\n\t\t\t\t<li><b>Bots, Scripts, and Extensions</b>\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Botting: </b>\n\t\t\t\t\t\t\tDo not use any automation that plays the game for you.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>Scripts and Extensions: </b>\n\t\t\t\t\t\t\tAny scripts or extensions must not take any actions for the player (send any requests to server).\n\t\t\t\t\t\t\tYou are allowed to use them purely for information display purposes or UI improvements. (ex: Display combat summary, track drops, move buttons to different location)\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</li>\n\t\t\t\t<li><b>Bugs and Exploits</b>\n\t\t\t\t\t<ol>\n\t\t\t\t\t\t<li>\n\t\t\t\t\t\t\t<b>No Bug Abusing: </b>\n\t\t\t\t\t\t\tDo not abuse game bugs or exploits to your advantage. Please report them on Discord.\n\t\t\t\t\t\t</li>\n\t\t\t\t\t</ol>\n\t\t\t\t</li>\n\t\t\t</olMain>\n\t\t\t<br />"
                 },
                 tradingRulesModal: {
                     title: "Trading Rules Agreement",
                     introduction: "Before using the marketplace, you must read and accept the following trading rules:",
-                    tradingRulesContent: "<div>\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\t<b>No Real World Trading / Cross-Trading: </b>\n\t\t\t\t\t\tDo not trade items or services within Milky Way Idle for anything outside of the game.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\t<b>No Boosting: </b>\n\t\t\t\t\t\tDo not funnel wealth to other players. Players may receive up to 10M coins in total gifts from others. Wealth transfers over this limit, whether intentional or not, can be treated as boosting. Unintentional transfers (e.g. randomly finding an extremely underpriced item on market) can be removed. Intentional transfers will result in additional penalties based on severity.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\t<b>No Scamming: </b>\n\t\t\t\t\t\tDo not use deception or scamming to gain items from other players. Actions will be taken against scammers given sufficient evidence. However, items lost to scams will not be refunded.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\t<b>No Coordinated Market Manipulation: </b>\n\t\t\t\t\t\tPlayers may not organize, incite, or participate in coordinated group efforts to manipulate the in-game economy. Encouraging other players to artificially pump or dump specific items is strictly prohibited.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\t<b>Repay Loans Within 7 Days: </b>\n\t\t\t\t\t\tLoans with other players are at your own risk. Loans not repaid within 7 days can be considered boosting/scamming.\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t</div>",
+                    tradingRulesContent: "<div>\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\t<b>No Real World Trading / Cross-Trading: </b>\n\t\t\t\t\t\tDo not trade items or services within Milky Way Idle for anything outside of the game.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\t<b>No Boosting: </b>\n\t\t\t\t\t\tDo not use the marketplace to funnel wealth to other players. Intentionally dumping coins through repeated trades, even to random players, is also not allowed.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\t<b>No Scamming: </b>\n\t\t\t\t\t\tDo not use deception or scamming to gain items from other players. Actions will be taken against scammers given sufficient evidence. However, items lost to scams will not be refunded.\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\t<b>No Coordinated Market Manipulation: </b>\n\t\t\t\t\t\tPlayers may not organize, incite, or participate in coordinated group efforts to manipulate the in-game economy. Encouraging other players to artificially pump or dump specific items is strictly prohibited.\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t</div>",
                     acceptButton: "I Accept the Trading Rules"
                 },
                 localStorageWarning: {
                     title: "\u26a0\ufe0f Local Storage Almost Full",
                     percentageUsed: "{{percentage}}% Used",
                     usageInfo: "{{used}} / {{total}}",
-                    warningMessage: "Your localStorage is {{percentage}}% full. This is likely caused by a specific game extension that stores excessive data.",
+                    warningMessage: "Less than {{freeSpaceThreshold}} MB of writable local storage remains. This is likely caused by a specific game extension that stores excessive data.",
                     whatYouCanDo: "What you can do:",
                     tip1: "Temporarily disable game extensions that may be storing excessive data",
                     tip2: "Clear large extension data listed below",
                     tip3: "Ask extension author to update and store less data",
-                    largeItemsTitle: "Data not from base game (larger than 50KB):",
+                    largeItemsTitle: "Data not from base game (larger than {{unknownItemThreshold}} KB):",
                     deleteButton: "Delete",
                     deleteConfirm: "Are you sure you want to delete '{{key}}'? This action cannot be undone.",
                     deleteSuccess: "Successfully deleted '{{key}}'",
                     deleteError: "Failed to delete '{{key}}': {{error}}",
-                    closeButton: "I Understand"
+                    closeButton: "I Understand",
+                    "usedInfo": "{{used}} in use",
+                    "moreItems": "... {{count}} more"
                 },
                 aprilFools: {
                     foolStoneItemName: "Foolosopher's Stone",
@@ -2574,11 +3053,11 @@ const Wa = {
                     "/items/spiked_bulwark": "Spiked Bulwark",
                     "/items/werewolf_slasher": "Werewolf Slasher",
                     "/items/griffin_bulwark": "Griffin Bulwark",
-                    "/items/griffin_bulwark_refined": "Griffin Bulwark (R)",
+                    "/items/griffin_bulwark_refined": "Griffin Bulwark ★",
                     "/items/gobo_shooter": "Gobo Shooter",
                     "/items/vampiric_bow": "Vampiric Bow",
                     "/items/cursed_bow": "Cursed Bow",
-                    "/items/cursed_bow_refined": "Cursed Bow (R)",
+                    "/items/cursed_bow_refined": "Cursed Bow ★",
                     "/items/gobo_boomstick": "Gobo Boomstick",
                     "/items/cheese_bulwark": "Cheese Bulwark",
                     "/items/verdant_bulwark": "Verdant Bulwark",
@@ -2597,23 +3076,23 @@ const Wa = {
                     "/items/stalactite_spear": "Stalactite Spear",
                     "/items/granite_bludgeon": "Granite Bludgeon",
                     "/items/furious_spear": "Furious Spear",
-                    "/items/furious_spear_refined": "Furious Spear (R)",
+                    "/items/furious_spear_refined": "Furious Spear ★",
                     "/items/regal_sword": "Regal Sword",
-                    "/items/regal_sword_refined": "Regal Sword (R)",
+                    "/items/regal_sword_refined": "Regal Sword ★",
                     "/items/chaotic_flail": "Chaotic Flail",
-                    "/items/chaotic_flail_refined": "Chaotic Flail (R)",
+                    "/items/chaotic_flail_refined": "Chaotic Flail ★",
                     "/items/soul_hunter_crossbow": "Soul Hunter Crossbow",
                     "/items/sundering_crossbow": "Sundering Crossbow",
-                    "/items/sundering_crossbow_refined": "Sundering Crossbow (R)",
+                    "/items/sundering_crossbow_refined": "Sundering Crossbow ★",
                     "/items/frost_staff": "Frost Staff",
                     "/items/infernal_battlestaff": "Infernal Battlestaff",
                     "/items/jackalope_staff": "Jackalope Staff",
                     "/items/rippling_trident": "Rippling Trident",
-                    "/items/rippling_trident_refined": "Rippling Trident (R)",
+                    "/items/rippling_trident_refined": "Rippling Trident ★",
                     "/items/blooming_trident": "Blooming Trident",
-                    "/items/blooming_trident_refined": "Blooming Trident (R)",
+                    "/items/blooming_trident_refined": "Blooming Trident ★",
                     "/items/blazing_trident": "Blazing Trident",
-                    "/items/blazing_trident_refined": "Blazing Trident (R)",
+                    "/items/blazing_trident_refined": "Blazing Trident ★",
                     "/items/cheese_sword": "Cheese Sword",
                     "/items/verdant_sword": "Verdant Sword",
                     "/items/azure_sword": "Azure Sword",
@@ -2669,14 +3148,14 @@ const Wa = {
                     "/items/gobo_defender": "Gobo Defender",
                     "/items/vampire_fang_dirk": "Vampire Fang Dirk",
                     "/items/knights_aegis": "Knight's Aegis",
-                    "/items/knights_aegis_refined": "Knight's Aegis (R)",
+                    "/items/knights_aegis_refined": "Knight's Aegis ★",
                     "/items/treant_shield": "Treant Shield",
                     "/items/manticore_shield": "Manticore Shield",
                     "/items/tome_of_healing": "Tome Of Healing",
                     "/items/tome_of_the_elements": "Tome Of The Elements",
                     "/items/watchful_relic": "Watchful Relic",
                     "/items/bishops_codex": "Bishop's Codex",
-                    "/items/bishops_codex_refined": "Bishop's Codex (R)",
+                    "/items/bishops_codex_refined": "Bishop's Codex ★",
                     "/items/cheese_buckler": "Cheese Buckler",
                     "/items/verdant_buckler": "Verdant Buckler",
                     "/items/azure_buckler": "Azure Buckler",
@@ -2692,29 +3171,29 @@ const Wa = {
                     "/items/redwood_shield": "Redwood Shield",
                     "/items/arcane_shield": "Arcane Shield",
                     "/items/gatherer_cape": "Gatherer Cape",
-                    "/items/gatherer_cape_refined": "Gatherer Cape (R)",
+                    "/items/gatherer_cape_refined": "Gatherer Cape ★",
                     "/items/artificer_cape": "Artificer Cape",
-                    "/items/artificer_cape_refined": "Artificer Cape (R)",
+                    "/items/artificer_cape_refined": "Artificer Cape ★",
                     "/items/culinary_cape": "Culinary Cape",
-                    "/items/culinary_cape_refined": "Culinary Cape (R)",
+                    "/items/culinary_cape_refined": "Culinary Cape ★",
                     "/items/chance_cape": "Chance Cape",
-                    "/items/chance_cape_refined": "Chance Cape (R)",
+                    "/items/chance_cape_refined": "Chance Cape ★",
                     "/items/sinister_cape": "Sinister Cape",
-                    "/items/sinister_cape_refined": "Sinister Cape (R)",
+                    "/items/sinister_cape_refined": "Sinister Cape ★",
                     "/items/chimerical_quiver": "Chimerical Quiver",
-                    "/items/chimerical_quiver_refined": "Chimerical Quiver (R)",
+                    "/items/chimerical_quiver_refined": "Chimerical Quiver ★",
                     "/items/enchanted_cloak": "Enchanted Cloak",
-                    "/items/enchanted_cloak_refined": "Enchanted Cloak (R)",
+                    "/items/enchanted_cloak_refined": "Enchanted Cloak ★",
                     "/items/red_culinary_hat": "Red Culinary Hat",
                     "/items/snail_shell_helmet": "Snail Shell Helmet",
                     "/items/vision_helmet": "Vision Helmet",
                     "/items/fluffy_red_hat": "Fluffy Red Hat",
                     "/items/corsair_helmet": "Corsair Helmet",
-                    "/items/corsair_helmet_refined": "Corsair Helmet (R)",
+                    "/items/corsair_helmet_refined": "Corsair Helmet ★",
                     "/items/acrobatic_hood": "Acrobatic Hood",
-                    "/items/acrobatic_hood_refined": "Acrobatic Hood (R)",
+                    "/items/acrobatic_hood_refined": "Acrobatic Hood ★",
                     "/items/magicians_hat": "Magician's Hat",
-                    "/items/magicians_hat_refined": "Magician's Hat (R)",
+                    "/items/magicians_hat_refined": "Magician's Hat ★",
                     "/items/cheese_helmet": "Cheese Helmet",
                     "/items/verdant_helmet": "Verdant Helmet",
                     "/items/azure_helmet": "Azure Helmet",
@@ -2747,23 +3226,23 @@ const Wa = {
                     "/items/colossus_plate_body": "Colossus Plate Body",
                     "/items/demonic_plate_body": "Demonic Plate Body",
                     "/items/anchorbound_plate_body": "Anchorbound Plate Body",
-                    "/items/anchorbound_plate_body_refined": "Anchorbound Plate Body (R)",
+                    "/items/anchorbound_plate_body_refined": "Anchorbound Plate Body ★",
                     "/items/maelstrom_plate_body": "Maelstrom Plate Body",
-                    "/items/maelstrom_plate_body_refined": "Maelstrom Plate Body (R)",
+                    "/items/maelstrom_plate_body_refined": "Maelstrom Plate Body ★",
                     "/items/marine_tunic": "Marine Tunic",
                     "/items/revenant_tunic": "Revenant Tunic",
                     "/items/griffin_tunic": "Griffin Tunic",
                     "/items/kraken_tunic": "Kraken Tunic",
-                    "/items/kraken_tunic_refined": "Kraken Tunic (R)",
+                    "/items/kraken_tunic_refined": "Kraken Tunic ★",
                     "/items/icy_robe_top": "Icy Robe Top",
                     "/items/flaming_robe_top": "Flaming Robe Top",
                     "/items/luna_robe_top": "Luna Robe Top",
                     "/items/royal_water_robe_top": "Royal Water Robe Top",
-                    "/items/royal_water_robe_top_refined": "Royal Water Robe Top (R)",
+                    "/items/royal_water_robe_top_refined": "Royal Water Robe Top ★",
                     "/items/royal_nature_robe_top": "Royal Nature Robe Top",
-                    "/items/royal_nature_robe_top_refined": "Royal Nature Robe Top (R)",
+                    "/items/royal_nature_robe_top_refined": "Royal Nature Robe Top ★",
                     "/items/royal_fire_robe_top": "Royal Fire Robe Top",
-                    "/items/royal_fire_robe_top_refined": "Royal Fire Robe Top (R)",
+                    "/items/royal_fire_robe_top_refined": "Royal Fire Robe Top ★",
                     "/items/cheese_plate_body": "Cheese Plate Body",
                     "/items/verdant_plate_body": "Verdant Plate Body",
                     "/items/azure_plate_body": "Azure Plate Body",
@@ -2795,23 +3274,23 @@ const Wa = {
                     "/items/colossus_plate_legs": "Colossus Plate Legs",
                     "/items/demonic_plate_legs": "Demonic Plate Legs",
                     "/items/anchorbound_plate_legs": "Anchorbound Plate Legs",
-                    "/items/anchorbound_plate_legs_refined": "Anchorbound Plate Legs (R)",
+                    "/items/anchorbound_plate_legs_refined": "Anchorbound Plate Legs ★",
                     "/items/maelstrom_plate_legs": "Maelstrom Plate Legs",
-                    "/items/maelstrom_plate_legs_refined": "Maelstrom Plate Legs (R)",
+                    "/items/maelstrom_plate_legs_refined": "Maelstrom Plate Legs ★",
                     "/items/marine_chaps": "Marine Chaps",
                     "/items/revenant_chaps": "Revenant Chaps",
                     "/items/griffin_chaps": "Griffin Chaps",
                     "/items/kraken_chaps": "Kraken Chaps",
-                    "/items/kraken_chaps_refined": "Kraken Chaps (R)",
+                    "/items/kraken_chaps_refined": "Kraken Chaps ★",
                     "/items/icy_robe_bottoms": "Icy Robe Bottoms",
                     "/items/flaming_robe_bottoms": "Flaming Robe Bottoms",
                     "/items/luna_robe_bottoms": "Luna Robe Bottoms",
                     "/items/royal_water_robe_bottoms": "Royal Water Robe Bottoms",
-                    "/items/royal_water_robe_bottoms_refined": "Royal Water Robe Bottoms (R)",
+                    "/items/royal_water_robe_bottoms_refined": "Royal Water Robe Bottoms ★",
                     "/items/royal_nature_robe_bottoms": "Royal Nature Robe Bottoms",
-                    "/items/royal_nature_robe_bottoms_refined": "Royal Nature Robe Bottoms (R)",
+                    "/items/royal_nature_robe_bottoms_refined": "Royal Nature Robe Bottoms ★",
                     "/items/royal_fire_robe_bottoms": "Royal Fire Robe Bottoms",
-                    "/items/royal_fire_robe_bottoms_refined": "Royal Fire Robe Bottoms (R)",
+                    "/items/royal_fire_robe_bottoms_refined": "Royal Fire Robe Bottoms ★",
                     "/items/cheese_plate_legs": "Cheese Plate Legs",
                     "/items/verdant_plate_legs": "Verdant Plate Legs",
                     "/items/azure_plate_legs": "Azure Plate Legs",
@@ -2834,10 +3313,10 @@ const Wa = {
                     "/items/panda_gloves": "Panda Gloves",
                     "/items/magnetic_gloves": "Magnetic Gloves",
                     "/items/dodocamel_gauntlets": "Dodocamel Gauntlets",
-                    "/items/dodocamel_gauntlets_refined": "Dodocamel Gauntlets (R)",
+                    "/items/dodocamel_gauntlets_refined": "Dodocamel Gauntlets ★",
                     "/items/sighted_bracers": "Sighted Bracers",
                     "/items/marksman_bracers": "Marksman Bracers",
-                    "/items/marksman_bracers_refined": "Marksman Bracers (R)",
+                    "/items/marksman_bracers_refined": "Marksman Bracers ★",
                     "/items/chrono_gloves": "Chrono Gloves",
                     "/items/cheese_gauntlets": "Cheese Gauntlets",
                     "/items/verdant_gauntlets": "Verdant Gauntlets",
@@ -2862,13 +3341,13 @@ const Wa = {
                     "/items/grizzly_bear_shoes": "Grizzly Bear Shoes",
                     "/items/polar_bear_shoes": "Polar Bear Shoes",
                     "/items/pathbreaker_boots": "Pathbreaker Boots",
-                    "/items/pathbreaker_boots_refined": "Pathbreaker Boots (R)",
+                    "/items/pathbreaker_boots_refined": "Pathbreaker Boots ★",
                     "/items/centaur_boots": "Centaur Boots",
                     "/items/pathfinder_boots": "Pathfinder Boots",
-                    "/items/pathfinder_boots_refined": "Pathfinder Boots (R)",
+                    "/items/pathfinder_boots_refined": "Pathfinder Boots ★",
                     "/items/sorcerer_boots": "Sorcerer Boots",
                     "/items/pathseeker_boots": "Pathseeker Boots",
-                    "/items/pathseeker_boots_refined": "Pathseeker Boots (R)",
+                    "/items/pathseeker_boots_refined": "Pathseeker Boots ★",
                     "/items/cheese_boots": "Cheese Boots",
                     "/items/verdant_boots": "Verdant Boots",
                     "/items/azure_boots": "Azure Boots",
@@ -3308,7 +3787,35 @@ const Wa = {
                     "/items/expert_tea_crate": "Expert Tea Crate",
                     "/items/basic_coffee_crate": "Basic Coffee Crate",
                     "/items/advanced_coffee_crate": "Advanced Coffee Crate",
-                    "/items/expert_coffee_crate": "Expert Coffee Crate"
+                    "/items/expert_coffee_crate": "Expert Coffee Crate",
+                    "/items/guild_token": "Guild Token",
+                    "/items/green_guild_credit": "Green Guild Credit",
+                    "/items/brown_guild_credit": "Brown Guild Credit",
+                    "/items/white_guild_credit": "White Guild Credit",
+                    "/items/blue_guild_credit": "Blue Guild Credit",
+                    "/items/purple_guild_credit": "Purple Guild Credit",
+                    "/items/red_guild_credit": "Red Guild Credit",
+                    "/items/silver_guild_credit": "Silver Guild Credit",
+                    "/items/gold_guild_credit": "Gold Guild Credit",
+                    "/items/small_talisman_belt": "Small Talisman Belt",
+                    "/items/medium_talisman_belt": "Medium Talisman Belt",
+                    "/items/large_talisman_belt": "Large Talisman Belt",
+                    "/items/eternal_milk": "Eternal Milk",
+                    "/items/eternal_cheese": "Eternal Cheese",
+                    "/items/ancient_log": "Ancient Log",
+                    "/items/ancient_lumber": "Ancient Lumber",
+                    "/items/dragon_hide": "Dragon Hide",
+                    "/items/dragon_leather": "Dragon Leather",
+                    "/items/basic_talisman_core": "Basic Talisman Core",
+                    "/items/advanced_talisman_core": "Advanced Talisman Core",
+                    "/items/expert_talisman_core": "Expert Talisman Core",
+                    "/items/reshaping_orb": "Reshaping Orb",
+                    "/items/reforging_orb": "Reforging Orb",
+                    "/items/focus_orb": "Focus Orb",
+                    "/items/exchange_orb": "Exchange Orb",
+                    "/items/mutation_orb": "Mutation Orb",
+                    "/items/attunement_orb": "Attunement Orb",
+                    "/items/binding_orb": "Binding Orb"
                 },
                 itemDescriptions: {
                     "/items/coin": "Basic currency",
@@ -3341,18 +3848,18 @@ const Wa = {
                     "/items/purdoras_box_skilling": "Received from the Labyrinth. Contains skilling-related rewards.",
                     "/items/purdoras_box_combat": "Received from the Labyrinth. Contains combat-related rewards.",
                     "/items/labyrinth_refinement_chest": "Received from the Labyrinth. Contains refinement materials.",
-                    "/items/seal_of_gathering": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth)",
-                    "/items/seal_of_gourmet": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth)",
-                    "/items/seal_of_processing": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth)",
-                    "/items/seal_of_efficiency": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth)",
-                    "/items/seal_of_action_speed": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth)",
-                    "/items/seal_of_combat_drop": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth)",
-                    "/items/seal_of_attack_speed": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth)",
-                    "/items/seal_of_cast_speed": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth)",
-                    "/items/seal_of_damage": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth)",
-                    "/items/seal_of_critical_rate": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth)",
-                    "/items/seal_of_wisdom": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth)",
-                    "/items/seal_of_rare_find": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth)",
+                    "/items/seal_of_gathering": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth and Guild Trials)",
+                    "/items/seal_of_gourmet": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth and Guild Trials)",
+                    "/items/seal_of_processing": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth and Guild Trials)",
+                    "/items/seal_of_efficiency": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth and Guild Trials)",
+                    "/items/seal_of_action_speed": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth and Guild Trials)",
+                    "/items/seal_of_combat_drop": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth and Guild Trials)",
+                    "/items/seal_of_attack_speed": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth and Guild Trials)",
+                    "/items/seal_of_cast_speed": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth and Guild Trials)",
+                    "/items/seal_of_damage": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth and Guild Trials)",
+                    "/items/seal_of_critical_rate": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth and Guild Trials)",
+                    "/items/seal_of_wisdom": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth and Guild Trials)",
+                    "/items/seal_of_rare_find": "Received from the Labyrinth. Grants 30 minutes of buff when opened. (Only effective outside of Labyrinth and Guild Trials)",
                     "/items/blue_key_fragment": "Can be used to craft dungeon keys",
                     "/items/green_key_fragment": "Can be used to craft dungeon keys",
                     "/items/purple_key_fragment": "Can be used to craft dungeon keys",
@@ -4258,7 +4765,35 @@ const Wa = {
                     "/items/expert_tea_crate": "Consumed on Labyrinth entry. Grants +15 skilling levels, +15% efficiency, +6% success rate, +6% double progress, +15% skilling XP for the run.",
                     "/items/basic_coffee_crate": "Consumed on Labyrinth entry. Grants +5 combat levels, +5% attack speed, +5% cast speed, +5% combat XP for the run.",
                     "/items/advanced_coffee_crate": "Consumed on Labyrinth entry. Grants +10 combat levels, +10% attack speed, +10% cast speed, +3% crit rate, +5% crit damage, +10% combat XP for the run.",
-                    "/items/expert_coffee_crate": "Consumed on Labyrinth entry. Grants +15 combat levels, +15% attack speed, +15% cast speed, +6% crit rate, +10% crit damage, +15% combat XP for the run."
+                    "/items/expert_coffee_crate": "Consumed on Labyrinth entry. Grants +15 combat levels, +15% attack speed, +15% cast speed, +6% crit rate, +10% crit damage, +15% combat XP for the run.",
+                    "/items/guild_token": "Currency earned from guild weekly trials. Spend these in the Guild Shop",
+                    "/items/green_guild_credit": "Guild currency converted from skilling resources. Spend these in the Guild Shop",
+                    "/items/brown_guild_credit": "Guild currency converted from combat related materials and ability books. Spend these in the Guild Shop",
+                    "/items/white_guild_credit": "Guild currency converted from consumables. Spend these in the Guild Shop",
+                    "/items/blue_guild_credit": "Guild currency converted from essences. Spend these in the Guild Shop",
+                    "/items/purple_guild_credit": "Guild currency converted from skilling equipment. Spend these in the Guild Shop",
+                    "/items/red_guild_credit": "Guild currency converted from combat equipment. Spend these in the Guild Shop",
+                    "/items/silver_guild_credit": "Guild currency converted from rare items. Spend these in the Guild Shop",
+                    "/items/gold_guild_credit": "Guild currency converted from very rare items. Spend these in the Guild Shop",
+                    "/items/small_talisman_belt": "",
+                    "/items/medium_talisman_belt": "",
+                    "/items/large_talisman_belt": "",
+                    "/items/eternal_milk": "moooooooooo",
+                    "/items/eternal_cheese": "",
+                    "/items/ancient_log": "",
+                    "/items/ancient_lumber": "",
+                    "/items/dragon_hide": "",
+                    "/items/dragon_leather": "",
+                    "/items/basic_talisman_core": "Forms a new talisman with one modifier, or adds a second modifier to an existing talisman",
+                    "/items/advanced_talisman_core": "Adds a third modifier to a talisman",
+                    "/items/expert_talisman_core": "Adds a fourth modifier to a talisman",
+                    "/items/reshaping_orb": "Rerolls every unlocked modifier on a talisman, up to grade 4",
+                    "/items/reforging_orb": "Rerolls every unlocked modifier on a talisman, up to grade 6",
+                    "/items/focus_orb": "Rerolls the type of every unlocked modifier on a talisman, keeping their grades. Selected modifiers are more likely to roll. Unique modifiers cannot be selected for focus.",
+                    "/items/exchange_orb": "Shuffles the unlocked modifiers of a talisman between their lines, so each type takes another line's grade",
+                    "/items/mutation_orb": "Rerolls two random unlocked modifiers on a talisman, up to grade 6",
+                    "/items/attunement_orb": "Each unlocked modifier rolls separately: 65% to go down one grade, 20% to stay the same, and 15% to go up one grade. Grades stay between G1 and G6.",
+                    "/items/binding_orb": "Locks one modifier on a talisman so other orbs cannot change it"
                 },
                 itemCategoryNames: {
                     "/item_categories/currency": "Currency",
@@ -4309,7 +4844,8 @@ const Wa = {
                     "/equipment_types/cooking_tool": "Cooking Tool",
                     "/equipment_types/brewing_tool": "Brewing Tool",
                     "/equipment_types/alchemy_tool": "Alchemy Tool",
-                    "/equipment_types/enhancing_tool": "Enhancing Tool"
+                    "/equipment_types/enhancing_tool": "Enhancing Tool",
+                    "/equipment_types/belt": "Belt"
                 },
                 combatStyleNames: {
                     "/combat_styles/stab": "Stab",
@@ -4412,7 +4948,15 @@ const Wa = {
                     "/monsters/veyes": "Veyes",
                     "/monsters/werewolf": "Werewolf",
                     "/monsters/zombie": "Zombie",
-                    "/monsters/zombie_bear": "Zombie Bear"
+                    "/monsters/zombie_bear": "Zombie Bear",
+                    "/monsters/trial_badger": "Trial Badger",
+                    "/monsters/trial_beetle": "Trial Beetle",
+                    "/monsters/trial_chameleon": "Trial Chameleon",
+                    "/monsters/trial_dragonfly": "Trial Dragonfly",
+                    "/monsters/trial_firefly": "Trial Firefly",
+                    "/monsters/trial_hedgehog": "Trial Hedgehog",
+                    "/monsters/trial_jellyfish": "Trial Jellyfish",
+                    "/monsters/trial_wasp": "Trial Wasp"
                 },
                 combatTriggerDependencyNames: {
                     "/combat_trigger_dependencies/all_allies": "Allies' Total",
@@ -4474,7 +5018,8 @@ const Wa = {
                     "/combat_trigger_conditions/toxic_pollen": "Toxic Pollen Debuff",
                     "/combat_trigger_conditions/vampirism": "Vampirism",
                     "/combat_trigger_conditions/weaken": "Weaken",
-                    "/combat_trigger_conditions/wisdom_coffee": "Wisdom Coffee"
+                    "/combat_trigger_conditions/wisdom_coffee": "Wisdom Coffee",
+                    "/combat_trigger_conditions/boss_status": "Boss Status"
                 },
                 combatTriggerComparatorNames: {
                     "/combat_trigger_comparators/less_than_equal": "<=",
@@ -4728,18 +5273,18 @@ const Wa = {
                     "/actions/cheesesmithing/regal_sword": "Regal Sword",
                     "/actions/cheesesmithing/anchorbound_plate_body": "Anchorbound Plate Body",
                     "/actions/cheesesmithing/maelstrom_plate_body": "Maelstrom Plate Body",
-                    "/actions/cheesesmithing/pathbreaker_boots_refined": "Pathbreaker Boots (R)",
-                    "/actions/cheesesmithing/dodocamel_gauntlets_refined": "Dodocamel Gauntlets (R)",
-                    "/actions/cheesesmithing/corsair_helmet_refined": "Corsair Helmet (R)",
-                    "/actions/cheesesmithing/knights_aegis_refined": "Knights Aegis (R)",
-                    "/actions/cheesesmithing/anchorbound_plate_legs_refined": "Anchorbound Plate Legs (R)",
-                    "/actions/cheesesmithing/maelstrom_plate_legs_refined": "Maelstrom Plate Legs (R)",
-                    "/actions/cheesesmithing/griffin_bulwark_refined": "Griffin Bulwark (R)",
-                    "/actions/cheesesmithing/furious_spear_refined": "Furious Spear (R)",
-                    "/actions/cheesesmithing/chaotic_flail_refined": "Chaotic Flail (R)",
-                    "/actions/cheesesmithing/regal_sword_refined": "Regal Sword (R)",
-                    "/actions/cheesesmithing/anchorbound_plate_body_refined": "Anchorbound Plate Body (R)",
-                    "/actions/cheesesmithing/maelstrom_plate_body_refined": "Maelstrom Plate Body (R)",
+                    "/actions/cheesesmithing/pathbreaker_boots_refined": "Pathbreaker Boots ★",
+                    "/actions/cheesesmithing/dodocamel_gauntlets_refined": "Dodocamel Gauntlets ★",
+                    "/actions/cheesesmithing/corsair_helmet_refined": "Corsair Helmet ★",
+                    "/actions/cheesesmithing/knights_aegis_refined": "Knights Aegis ★",
+                    "/actions/cheesesmithing/anchorbound_plate_legs_refined": "Anchorbound Plate Legs ★",
+                    "/actions/cheesesmithing/maelstrom_plate_legs_refined": "Maelstrom Plate Legs ★",
+                    "/actions/cheesesmithing/griffin_bulwark_refined": "Griffin Bulwark ★",
+                    "/actions/cheesesmithing/furious_spear_refined": "Furious Spear ★",
+                    "/actions/cheesesmithing/chaotic_flail_refined": "Chaotic Flail ★",
+                    "/actions/cheesesmithing/regal_sword_refined": "Regal Sword ★",
+                    "/actions/cheesesmithing/anchorbound_plate_body_refined": "Anchorbound Plate Body ★",
+                    "/actions/cheesesmithing/maelstrom_plate_body_refined": "Maelstrom Plate Body ★",
                     "/actions/crafting/lumber": "Lumber",
                     "/actions/crafting/wooden_crossbow": "Wooden Crossbow",
                     "/actions/crafting/wooden_water_staff": "Wooden Water Staff",
@@ -4932,12 +5477,12 @@ const Wa = {
                     "/actions/crafting/grandmaster_ranged_charm": "Grandmaster Ranged Charm",
                     "/actions/crafting/grandmaster_magic_charm": "Grandmaster Magic Charm",
                     "/actions/crafting/philosophers_mirror": "Philosopher's Mirror",
-                    "/actions/crafting/bishops_codex_refined": "Bishop's Codex (R)",
-                    "/actions/crafting/cursed_bow_refined": "Cursed Bow (R)",
-                    "/actions/crafting/sundering_crossbow_refined": "Sundering Crossbow (R)",
-                    "/actions/crafting/rippling_trident_refined": "Rippling Trident (R)",
-                    "/actions/crafting/blooming_trident_refined": "Blooming Trident (R)",
-                    "/actions/crafting/blazing_trident_refined": "Blazing Trident (R)",
+                    "/actions/crafting/bishops_codex_refined": "Bishop's Codex ★",
+                    "/actions/crafting/cursed_bow_refined": "Cursed Bow ★",
+                    "/actions/crafting/sundering_crossbow_refined": "Sundering Crossbow ★",
+                    "/actions/crafting/rippling_trident_refined": "Rippling Trident ★",
+                    "/actions/crafting/blooming_trident_refined": "Blooming Trident ★",
+                    "/actions/crafting/blazing_trident_refined": "Blazing Trident ★",
                     "/actions/tailoring/rough_leather": "Rough Leather",
                     "/actions/tailoring/cotton_fabric": "Cotton Fabric",
                     "/actions/tailoring/rough_boots": "Rough Boots",
@@ -5061,26 +5606,26 @@ const Wa = {
                     "/actions/tailoring/royal_water_robe_top": "Royal Water Robe Top",
                     "/actions/tailoring/royal_nature_robe_top": "Royal Nature Robe Top",
                     "/actions/tailoring/royal_fire_robe_top": "Royal Fire Robe Top",
-                    "/actions/tailoring/gatherer_cape_refined": "Gatherer Cape (R)",
-                    "/actions/tailoring/artificer_cape_refined": "Artificer Cape (R)",
-                    "/actions/tailoring/culinary_cape_refined": "Culinary Cape (R)",
-                    "/actions/tailoring/chance_cape_refined": "Chance Cape (R)",
-                    "/actions/tailoring/chimerical_quiver_refined": "Chimerical Quiver (R)",
-                    "/actions/tailoring/sinister_cape_refined": "Sinister Cape (R)",
-                    "/actions/tailoring/enchanted_cloak_refined": "Enchanted Cloak (R)",
-                    "/actions/tailoring/pathfinder_boots_refined": "Pathfinder Boots (R)",
-                    "/actions/tailoring/pathseeker_boots_refined": "Pathseeker Boots (R)",
-                    "/actions/tailoring/marksman_bracers_refined": "Marksman Bracers (R)",
-                    "/actions/tailoring/acrobatic_hood_refined": "Acrobatic Hood (R)",
-                    "/actions/tailoring/magicians_hat_refined": "Magician's Hat (R)",
-                    "/actions/tailoring/kraken_chaps_refined": "Kraken Chaps (R)",
-                    "/actions/tailoring/royal_water_robe_bottoms_refined": "Royal Water Robe Bottoms (R)",
-                    "/actions/tailoring/royal_nature_robe_bottoms_refined": "Royal Nature Robe Bottoms (R)",
-                    "/actions/tailoring/royal_fire_robe_bottoms_refined": "Royal Fire Robe Bottoms (R)",
-                    "/actions/tailoring/kraken_tunic_refined": "Kraken Tunic (R)",
-                    "/actions/tailoring/royal_water_robe_top_refined": "Royal Water Robe Top (R)",
-                    "/actions/tailoring/royal_nature_robe_top_refined": "Royal Nature Robe Top (R)",
-                    "/actions/tailoring/royal_fire_robe_top_refined": "Royal Fire Robe Top (R)",
+                    "/actions/tailoring/gatherer_cape_refined": "Gatherer Cape ★",
+                    "/actions/tailoring/artificer_cape_refined": "Artificer Cape ★",
+                    "/actions/tailoring/culinary_cape_refined": "Culinary Cape ★",
+                    "/actions/tailoring/chance_cape_refined": "Chance Cape ★",
+                    "/actions/tailoring/chimerical_quiver_refined": "Chimerical Quiver ★",
+                    "/actions/tailoring/sinister_cape_refined": "Sinister Cape ★",
+                    "/actions/tailoring/enchanted_cloak_refined": "Enchanted Cloak ★",
+                    "/actions/tailoring/pathfinder_boots_refined": "Pathfinder Boots ★",
+                    "/actions/tailoring/pathseeker_boots_refined": "Pathseeker Boots ★",
+                    "/actions/tailoring/marksman_bracers_refined": "Marksman Bracers ★",
+                    "/actions/tailoring/acrobatic_hood_refined": "Acrobatic Hood ★",
+                    "/actions/tailoring/magicians_hat_refined": "Magician's Hat ★",
+                    "/actions/tailoring/kraken_chaps_refined": "Kraken Chaps ★",
+                    "/actions/tailoring/royal_water_robe_bottoms_refined": "Royal Water Robe Bottoms ★",
+                    "/actions/tailoring/royal_nature_robe_bottoms_refined": "Royal Nature Robe Bottoms ★",
+                    "/actions/tailoring/royal_fire_robe_bottoms_refined": "Royal Fire Robe Bottoms ★",
+                    "/actions/tailoring/kraken_tunic_refined": "Kraken Tunic ★",
+                    "/actions/tailoring/royal_water_robe_top_refined": "Royal Water Robe Top ★",
+                    "/actions/tailoring/royal_nature_robe_top_refined": "Royal Nature Robe Top ★",
+                    "/actions/tailoring/royal_fire_robe_top_refined": "Royal Fire Robe Top ★",
                     "/actions/cooking/donut": "Donut",
                     "/actions/cooking/cupcake": "Cupcake",
                     "/actions/cooking/gummy": "Gummy",
@@ -5247,7 +5792,15 @@ const Wa = {
                     "/actions/combat/enchanted_fortress": "Enchanted Fortress",
                     "/actions/combat/pirate_cove": "Pirate Cove",
                     "/actions/labyrinth/explore": "Explore Labyrinth",
-                    "/actions/special/party_ready": "Party Ready"
+                    "/actions/special/party_ready": "Party Ready",
+                    "/actions/milking/eternal_holy_cow": "Eternal Holy Cow",
+                    "/actions/woodcutting/ancient_arcane_tree": "Ancient Arcane Tree",
+                    "/actions/cheesesmithing/eternal_cheese": "Eternal Cheese",
+                    "/actions/crafting/ancient_lumber": "Ancient Lumber",
+                    "/actions/crafting/basic_talisman_core": "Basic Talisman Core",
+                    "/actions/crafting/reshaping_orb": "Reshaping Orb",
+                    "/actions/tailoring/dragon_leather": "Dragon Leather",
+                    "/actions/tailoring/small_talisman_belt": "Small Talisman Belt"
                 },
                 actionTypeNames: {
                     "/action_types/milking": "Milking",
@@ -5329,7 +5882,9 @@ const Wa = {
                     "/action_categories/combat/twilight_zone": "Twilight Zone",
                     "/action_categories/combat/infernal_abyss": "Infernal Abyss",
                     "/action_categories/combat/dungeons": "Dungeons",
-                    "/action_categories/labyrinth/explore": "Labyrinth"
+                    "/action_categories/labyrinth/explore": "Labyrinth",
+                    "/action_categories/crafting/talisman": "Talisman",
+                    "/action_categories/tailoring/belt": "Belt"
                 },
                 buffTypeNames: {
                     "/buff_types/gathering": "Gathering",
@@ -5394,7 +5949,9 @@ const Wa = {
                     "/buff_types/success_rate": "Success Rate",
                     "/buff_types/labyrinth_double_progress": "Double Progress",
                     "/buff_types/skilling_experience": "Skilling Experience",
-                    "/buff_types/combat_experience": "Combat Experience"
+                    "/buff_types/combat_experience": "Combat Experience",
+                    "/buff_types/max_hitpoints": "Max HP",
+                    "/buff_types/max_manapoints": "Max MP"
                 },
                 buffTypeDescriptions: {
                     "/buff_types/gathering": "Increases gathering quantity",
@@ -5459,7 +6016,9 @@ const Wa = {
                     "/buff_types/success_rate": "Increases success rate",
                     "/buff_types/labyrinth_double_progress": "Chance to double progress in labyrinth skilling rooms",
                     "/buff_types/skilling_experience": "Increases skilling experience gained",
-                    "/buff_types/combat_experience": "Increases combat experience gained"
+                    "/buff_types/combat_experience": "Increases combat experience gained",
+                    "/buff_types/max_hitpoints": "Increases max HP",
+                    "/buff_types/max_manapoints": "Increases max MP"
                 },
                 buffTypeDebuffDescriptions: {
                     "/buff_types/gathering": "Decreases gathering quantity",
@@ -5524,7 +6083,9 @@ const Wa = {
                     "/buff_types/success_rate": "Decreases success rate",
                     "/buff_types/labyrinth_double_progress": "Decreases chance to double progress",
                     "/buff_types/skilling_experience": "Decreases skilling experience gained",
-                    "/buff_types/combat_experience": "Decreases combat experience gained"
+                    "/buff_types/combat_experience": "Decreases combat experience gained",
+                    "/buff_types/max_hitpoints": "Decreases max HP",
+                    "/buff_types/max_manapoints": "Decreases max MP"
                 },
                 houseRoomNames: {
                     "/house_rooms/dairy_barn": "Dairy Barn",
@@ -5755,7 +6316,8 @@ const Wa = {
                     "/chat_icons/golden_frog": "Golden Frog",
                     "/chat_icons/golden_piggy": "Golden Piggy",
                     "/chat_icons/golden_duckling": "Golden Duckling",
-                    "/chat_icons/golden_whale": "Golden Whale"
+                    "/chat_icons/golden_whale": "Golden Whale",
+                    "/chat_icons/labyrinth": "Labyrinth"
                 },
                 nameColorNames: {
                     "/name_colors/burble": "Burble",
@@ -5782,7 +6344,7 @@ const Wa = {
                     "/community_buff_types/combat_drop_quantity": "Combat Drop Quantity"
                 },
                 chatChannelTypeNames: {
-                    "/chat_channel_types/general": "General",
+                    "/chat_channel_types/general": "Global",
                     "/chat_channel_types/chinese": "\u4e2d\u6587",
                     "/chat_channel_types/french": "Fran\xe7ais",
                     "/chat_channel_types/german": "Deutsch",
@@ -5800,7 +6362,8 @@ const Wa = {
                     "/chat_channel_types/guild": "Guild",
                     "/chat_channel_types/party": "Party",
                     "/chat_channel_types/moderator": "Mod",
-                    "/chat_channel_types/whisper": "Whisper"
+                    "/chat_channel_types/whisper": "Whisper",
+                    "/chat_channel_types/english": "English"
                 },
                 guildCharacterRoleNames: {
                     leader: "Leader",
@@ -5814,7 +6377,7 @@ const Wa = {
                     legacy_ironcow: "Legacy Ironcow",
                     steam_standard: "Standard (Steam)",
                     steam_ironcow: "Ironcow (Steam)",
-                    guild: "Guild"
+                    guild: "Guilds"
                 },
                 leaderboardCategoryNames: {
                     total_level: "Total Level",
@@ -5841,7 +6404,12 @@ const Wa = {
                     collection_points: "Collection Points",
                     bestiary_points: "Bestiary Points",
                     fame_points: "Fame Points",
-                    guild: "Guild"
+                    guild: "Level",
+                    "guild_buildings": "Buildings",
+                    "guild_shrines": "Shrines",
+                    "guild_points": "Guild Points",
+                    "guild_weekly_points": "Weekly Points",
+                    "guild_weekly_trial": "Weekly Trials"
                 },
                 achievementNames: {
                     "/achievements/gather_milk": "Got Milk?",
@@ -6008,6 +6576,158 @@ const Wa = {
                     "/achievement_tiers/veteran": "Veteran",
                     "/achievement_tiers/elite": "Elite",
                     "/achievement_tiers/champion": "Champion"
+                },
+                "guildLink": {
+                    "linkText": "Guild: {{name}}"
+                },
+                "guildTrialNames": {
+                    "/guild_combat/badger": "Trial Badger",
+                    "/guild_combat/chameleon": "Trial Chameleon",
+                    "/guild_combat/jellyfish": "Trial Jellyfish",
+                    "/guild_combat/hedgehog": "Trial Hedgehog",
+                    "/guild_combat/swarm": "Trial Swarm"
+                },
+                "guildTypeNames": {
+                    "casual": "Casual",
+                    "standard": "Standard",
+                    "ironcow": "Ironcow"
+                },
+                "guildTypeSubtitles": {
+                    "casual": "Casual Guild",
+                    "standard": "Standard Guild",
+                    "ironcow": "Ironcow Guild"
+                },
+                "guildTypeDescriptions": {
+                    "casual": "Recruit players of any game mode. The Guild Hall grants 2 member slots per level.",
+                    "standard": "You can only recruit Standard characters. The Guild Hall bonus is increased to 5 member slots per level. This change is permanent.",
+                    "ironcow": "You can only recruit Ironcow characters. The Guild Hall bonus is increased to 5 member slots per level. This change is permanent."
+                },
+                "sharableGuildProfile": {
+                    "overview": "Overview",
+                    "buildings": "Buildings",
+                    "level": "Level {{level}}",
+                    "guildLevel": "Guild Level",
+                    "guildType": "Guild Type",
+                    "guildMembers": "Members",
+                    "memberCount": "{{memberCount}} / {{maxMemberCount}}",
+                    "guildLeader": "Leader",
+                    "totalBuildingLevel": "Building Levels",
+                    "totalShrineLevel": "Shrine Levels",
+                    "guildPoints": "Guild Points",
+                    "totalExperience": "Total Experience: {{experience}}",
+                    "expToLevelUp": "Exp to Level Up: {{experience}}",
+                    "applicationsClosed": "Applications closed.",
+                    "gameModeMismatch": "This guild only accepts players of a different game mode.",
+                    "applicationListFull": "Applications full — try again later.",
+                    "minTotalLevelRequired": "Total Level required: {{level}}+",
+                    "publicMessage": "Profile Message",
+                    "autoAcceptEnabled": "Auto-accept enabled",
+                    "applyToGuild": "Apply",
+                    "withdrawApplication": "Withdraw Application",
+                    "confirmWithdrawApplication": "Are you sure you want to withdraw your application? You will not be able to reapply to the same guild for 3 days.",
+                    "close": "Close"
+                },
+                "talismanModifierNames": {
+                    "/talisman_modifiers/melee_accuracy": "Melee Accuracy",
+                    "/talisman_modifiers/melee_damage": "Melee Damage",
+                    "/talisman_modifiers/melee_evasion": "Melee Evasion",
+                    "/talisman_modifiers/elemental_amplify": "Elemental Amplify",
+                    "/talisman_modifiers/elemental_penetration": "Elemental Penetration",
+                    "/talisman_modifiers/elemental_resistance": "Elemental Resistance",
+                    "/talisman_modifiers/thorns": "Thorns"
+                },
+                "talismansPanel": {
+                    "type": "Type",
+                    "modifiersTitle": "Modifiers",
+                    "beltHint": "Equip a belt to unlock talisman slots.",
+                    "createHint": "Choose a type. Each talisman starts with one random modifier.",
+                    "cost": "Cost",
+                    "modifyTitle": "Modify",
+                    "bindingHint": "Consumes 1 orb to lock a modifier so other orbs cannot change it, replacing any existing lock. Unlocking is free.",
+                    "rerollHint": "Consumes 1 orb. Rerolls all unlocked modifiers, with a maximum grade of {{cap}}. After rolling, choose to keep your current modifiers or use the new roll.",
+                    "rerollHintFocus": "Consumes 1 orb. Rerolls the type of every unlocked modifier, keeping its grade. After rolling, choose to keep your current modifiers or use the new roll.",
+                    "rerollHintRandomLines": "Consumes 1 orb. Rerolls {{count}} randomly chosen unlocked modifiers, with a maximum grade of {{cap}}. Needs at least {{count}} unlocked modifiers. After rolling, choose to keep your current modifiers or use the new roll.",
+                    "rerollHintGradeShift": "Consumes 1 orb. Each unlocked modifier rolls separately: {{down}} to go down one grade, {{same}} to stay the same, and {{up}} to go up one grade. Grades stay between G1 and G{{maxGrade}}. After rolling, choose to keep your current modifiers or use the new roll.",
+                    "rerollHintExchange": "Consumes 1 orb. Shuffles the unlocked modifiers between their lines, so each keeps its type but takes another line's grade. Needs at least two unlocked modifiers. After rolling, choose to keep your current modifiers or use the new roll.",
+                    "chooseOrb": "Choose an orb",
+                    "chooseFocusModifiers": "Choose focus modifiers",
+                    "focusPickHint": "Select up to {{limit}} modifiers. Each selected modifier is {{weight}} times as likely to roll. Unique modifiers cannot be selected for focus.",
+                    "increasedThreat": "Increased Threat",
+                    "reducedThreat": "Reduced Threat",
+                    "focusPickCount": "{{count}} / {{limit}}",
+                    "clearFocusPicks": "Clear",
+                    "upgradeTitle": "Upgrade",
+                    "rerollAction": "Reroll",
+                    "addHint": "Adds one random modifier immediately. Existing modifiers stay unchanged.",
+                    "keepCurrent": "Keep Current",
+                    "useNewRoll": "Use New Roll",
+                    "equipped": "Equipped",
+                    "confirmLock": "Use 1 × {{item}} to lock this modifier? This replaces any existing lock.",
+                    "confirmUnlock": "Unlock this modifier? Locking it again will cost another {{item}}.",
+                    "confirmDiscardGrades": "Total modifier grades: {{discarded}} → {{chosen}}",
+                    "confirmDiscardSpecial": "Unique modifiers lost: {{lines}}",
+                    "confirmKeepCurrentTitle": "Keep current modifiers?",
+                    "confirmUseNewRollTitle": "Use new roll?",
+                    "backToComparison": "Back to Comparison",
+                    "title": "Talismans",
+                    "slotsLabel": "Talisman Slots",
+                    "createLabel": "Create Talisman",
+                    "bagLabel": "Talismans ({{count}}/{{max}})",
+                    "noTalismans": "No talismans yet. Use a Basic Talisman Core to create one.",
+                    "limitReached": "Talisman limit reached",
+                    "combat": "Combat",
+                    "skilling": "Skilling",
+                    "typedTalisman": "{{type}} Talisman",
+                    "linkToChat": "Link to Chat",
+                    "lineCount": "Modifiers: {{count}}",
+                    "grade": "[G{{grade}}]",
+                    "pendingNote": "A reroll is waiting for your decision",
+                    "currentLines": "Current",
+                    "newLines": "New Roll",
+                    "lock": "Lock",
+                    "unlock": "Unlock",
+                    "delete": "Destroy",
+                    "confirmDelete": "Destroy this talisman? This cannot be undone.",
+                    "cannotChangeInCombat": "Cannot change talismans while in combat"
+                },
+                "talismanSlot": {
+                    "talisman": "Talisman",
+                    "locked": "Require<br />Belt",
+                    "requireBiggerBelt": "Require<br />Bigger<br />Belt",
+                    "remove": "Remove",
+                    "cannotChangeInCombat": "Cannot change talismans while in combat",
+                    "noTalismansAvailable": "No talismans available"
+                },
+                "termsOfUseText": {
+                    "content": "<div>\n\t\t\t\tWelcome to the Milky Way Idle game! By using our website or playing our game, you agree to be bound by the following terms and conditions:\n\t\t\t</div>\n\t\t\t<heading>Ownership and License</heading>\n\t\t\t<div>\n\t\t\t\tAll content on this website and in the game, including but not limited to text, graphics, audio, video, code, and software, is the property of Milky Way Idle and is protected by copyright and other intellectual property laws. Milky Way Idle grants you a non-exclusive, non-transferable, revocable license to use the game solely for personal, non-commercial purposes.\n\t\t\t</div>\n\t\t\t<heading>User Accounts</heading>\n\t\t\t<div>\n\t\t\t\tTo access certain features of the Milky Way Idle game, you may be required to create a user account. When creating an account, you must provide accurate and complete information. You are solely responsible for maintaining the confidentiality of your account information and for all activities that occur under your account.\n\t\t\t\t<br /><br />\n\t\t\t\tYou agree to notify Milky Way Idle immediately of any unauthorized use of your account or any other breach of security. Milky Way Idle will not be liable for any losses or damages arising from unauthorized access to your account.\n\t\t\t\t<br /><br />\n\t\t\t\tMilky Way Idle reserves the right to suspend or terminate your account at any time and for any reason, without notice. If your account is terminated, you may lose access to certain features of the game and any virtual goods or items associated with your account.\n\t\t\t\t<br /><br />\n\t\t\t\tBy creating an account, you agree that Milky Way Idle may send you promotional communications related to the game and other Milky Way Idle products or services. You may opt-out of these communications at any time by following the unsubscribe instructions included in the communication.\n\t\t\t</div>\n\t\t\t<heading>User Conduct</heading>\n\t\t\t<div>\n\t\t\t\tYou may not use the game or website for any illegal or unauthorized purpose, including but not limited to violation of any intellectual property rights, or in a manner that harms, threatens, or harasses any person. You may not engage in any activity that interferes with or disrupts the game or website, including but not limited to hacking, scraping, or spamming.\n\t\t\t</div>\n\t\t\t<heading>User Content</heading>\n\t\t\t<div>\n\t\t\t\tBy using the game, you may create or submit content, including but not limited to in-game text, graphics, or other materials (\"User Content\"). You retain all rights to your User Content, but grant Milky Way Idle a non-exclusive, royalty-free, perpetual, irrevocable, and sublicensable license to use, reproduce, modify, adapt, publish, translate, distribute, and display your User Content in any media.\n\t\t\t</div>\n\t\t\t<heading>In-Game Purchases</heading>\n\t\t\t<div>\n\t\t\t\tThe game may offer virtual goods or other items for purchase using real-world currency (\"In-Game Purchases\"). By making an In-Game Purchase, you agree to pay the applicable fees and taxes, and acknowledge that such purchases are final and non-refundable. In addition, you understand that any chargeback or dispute of the transaction may result in the termination of your account.\n\t\t\t\t<br /><br />\n\t\t\t\t<ol>\n\t\t\t\t\t<li>Payment Processing: All In-Game Purchases will be processed through third-party payment processors, and you agree to abide by the terms and conditions of such payment processors.</li>\n\t\t\t\t\t<li>Virtual Goods: In-Game Purchases may include virtual goods that can be used in the game. You acknowledge that virtual goods have no real-world value and cannot be exchanged for real-world currency or goods.</li>\n\t\t\t\t\t<li>Pricing and Availability: Milky Way Idle reserves the right to change the pricing and availability of In-Game Purchases at any time, without notice.</li>\n\t\t\t\t\t<li>Fraud Prevention: Milky Way Idle reserves the right to investigate and prevent fraudulent transactions, including by withholding or delaying the delivery of virtual goods until payment has been verified.</li>\n\t\t\t\t</ol>\n\t\t\t</div>\n\t\t\t<heading>Public Chat</heading>\n\t\t\t<div>\n\t\t\t\tThe game includes a public chat feature that allows you to communicate with other players in real-time. By using the public chat, you agree to the following:\n\t\t\t\t<br /><br />\n\t\t\t\t<ol>\n\t\t\t\t\t<li>User Conduct: You may not use the public chat for any illegal or unauthorized purpose, including but not limited to violation of any intellectual property rights, or in a manner that harms, threatens, or harasses any person. You may not engage in any activity that interferes with or disrupts the public chat or game, including but not limited to hacking, scraping, or spamming.</li>\n\t\t\t\t\t<li>Content Moderation: Milky Way Idle reserves the right to moderate the public chat and remove any content that violates these terms and conditions or is otherwise inappropriate. Milky Way Idle is not responsible for any content posted by users in the public chat.</li>\n\t\t\t\t\t<li>Privacy: The public chat is a public forum, and any information you disclose in the public chat may be visible to other users. Milky Way Idle recommends that you exercise caution when disclosing personal information in the public chat.</li>\n\t\t\t\t\t<li>Disclaimer of Warranties: Milky Way Idle does not warrant that the public chat will be error-free, uninterrupted, or free of viruses or other harmful components.</li>\n\t\t\t\t\t<li>Limitation of Liability: In no event shall Milky Way Idle be liable for any direct, indirect, incidental, special, consequential, or punitive damages arising out of or in connection with the use or inability to use the public chat or game, even if Milky Way Idle has been advised of the possibility of such damages.</li>\n\t\t\t\t\t<li>Disclaimer of Endorsement: Milky Way Idle does not endorse any User Content posted in the public chat, and expressly disclaims any and all liability in connection with such User Content. Any views expressed in the public chat are solely those of the individual users and do not represent the views or opinions of Milky Way Idle.</li>\n\t\t\t\t</ol>\n\t\t\t</div>\n\t\t\t<heading>Disclaimer of Warranties</heading>\n\t\t\t<div>\n\t\t\t\tThe game and website are provided \"as is\" and without warranties of any kind, either express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, or non-infringement. Milky Way Idle does not warrant that the game or website will be error-free, uninterrupted, or free of viruses or other harmful components.\n\t\t\t</div>\n\t\t\t<heading>Limitation of Liability</heading>\n\t\t\t<div>\n\t\t\t\tIn no event shall Milky Way Idle be liable for any direct, indirect, incidental, special, consequential, or punitive damages arising out of or in connection with the use or inability to use the game or website, even if Milky Way Idle has been advised of the possibility of such damages.\n\t\t\t</div>\n\t\t\t<heading>Termination</heading>\n\t\t\t<div>\n\t\t\t\tMilky Way Idle reserves the right to terminate your access to the game or website at any time, for any reason, without notice.\n\t\t\t</div>\n\t\t\t<heading>Governing Law</heading>\n\t\t\t<div>\n\t\t\t\tThese terms are governed by the laws of California, and any legal disputes must be brought exclusively to a California state or federal court.\n\t\t\t</div>\n\t\t\t<heading>Language</heading>\n\t\t\t<div>\n\t\t\t\tThese terms may be made available in other languages for your convenience. In the event of any conflict or inconsistency between the English version and a translated version, the English version prevails.\n\t\t\t</div>"
+                },
+                "privacyPolicyText": {
+                    "content": "<text>\n\t\t\t\tMilky Way Idle operates the www.milkywayidle.com website, which provides the SERVICE.\n\t\t\t</text>\n\t\t\t<text>\n\t\t\t\tThis page is used to inform website visitors regarding our policies with the collection, use, and disclosure of Personal Information if anyone decided to use our Service, the Milky Way Idle website.\n\t\t\t</text>\n\t\t\t<text>\n\t\t\t\tIf you choose to use our Service, then you agree to the collection and use of information in relation with this policy. The Personal Information that we collect are used for providing and improving the Service. We will not use or share your information with anyone except as described in this Privacy Policy.\n\t\t\t</text>\n\t\t\t<heading>Information Collection and Use</heading>\n\t\t\t<text>\n\t\t\t\tFor a better experience while using our Service, we may require you to provide us with certain personally identifiable information, including but not limited to your email and username. The information that we collect will be used to contact or identify you.\n\t\t\t</text>\n\t\t\t<text>\n\t\t\t\tWe may also use third-party services such as Google Analytics to collect, monitor, and analyze the usage of our Service in order to improve its functionality and user experience. Google Analytics is a web analytics service offered by Google that tracks and reports website traffic. By using our Service, you consent to the processing of data about you by Google in the manner described in Google's Privacy Policy and for the purposes set out above.\n\t\t\t</text>\n\t\t\t<heading>General Data Protection Regulation (GDPR)</heading>\n\t\t\t<text>\n\t\t\t\tWe are a Data Controller of your information.\n\t\t\t</text>\n\t\t\t<text>\n\t\t\t\tMilky Way Idle legal basis for collecting and using the personal information described in this Privacy Policy depends on the Personal Information we collect and the specific context in which we collect the information:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>Milky Way Idle needs to perform a contract with you</li>\n\t\t\t\t\t<li>You have given Milky Way Idle permission to do so</li>\n\t\t\t\t\t<li>Processing your personal information is in Milky Way Idle legitimate interests</li>\n\t\t\t\t\t<li>Milky Way Idle needs to comply with the law</li>\n\t\t\t\t</ol>\n\t\t\t</text>\n\t\t\t<text>\n\t\t\t\tMilky Way Idle will retain your personal information only for as long as is necessary for the purposes set out in this Privacy Policy. We will retain and use your information to the extent necessary to comply with our legal obligations, resolve disputes, and enforce our policies.\n\t\t\t</text>\n\t\t\t<text>\n\t\t\t\tIf you are a resident of the European Economic Area (EEA), you have certain data protection rights. If you wish to be informed what Personal Information we hold about you and if you want it to be removed from our systems, please contact us at <contactLink>contact@milkywayidle.com</contactLink>.\n\t\t\t</text>\n\t\t\t<text>\n\t\t\t\tIn certain circumstances, you have the following data protection rights:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>The right to access, update or to delete the information we have on you.</li>\n\t\t\t\t\t<li>The right of rectification.</li>\n\t\t\t\t\t<li>The right to object.</li>\n\t\t\t\t\t<li>The right of restriction.</li>\n\t\t\t\t\t<li>The right to data portability</li>\n\t\t\t\t\t<li>The right to withdraw consent</li>\n\t\t\t\t</ol>\n\t\t\t</text>\n\t\t\t<heading>Log Data</heading>\n\t\t\t<text>\n\t\t\t\tWe want to inform you that whenever you visit our Service, we collect information that your browser sends to us that is called Log Data. This Log Data may include information such as your computer's Internet Protocol (\"IP\") address, browser version, pages of our Service that you visit, the time and date of your visit, the time spent on those pages, and other statistics.\n\t\t\t</text>\n\t\t\t<heading>Cookies</heading>\n\t\t\t<text>\n\t\t\t\tCookies are files with small amount of data that is commonly used an anonymous unique identifier. These are sent to your browser from the website that you visit and are stored in your browser.\n\t\t\t</text>\n\t\t\t<text>\n\t\t\t\tOur website uses these \"cookies\" to collect information and to improve our Service. You may not be able to use some portions of our Service without allowing cookies.\n\t\t\t</text>\n\t\t\t<text>\n\t\t\t\tCookies can be divided into the following two broad categories:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tTechnically necessary cookies (Essential)\n\t\t\t\t\t\t<br />\n\t\t\t\t\t\t<ol>\n\t\t\t\t\t\t\t<li>Technically necessary cookies are required for our website to function properly; they enable you to navigate our website efficiently and use its functional features.</li>\n\t\t\t\t\t\t</ol>\n\t\t\t\t\t</li>\n\t\t\t\t\t<li>\n\t\t\t\t\t\tTechnically non-essential cookies\n\t\t\t\t\t\t<br />\n\t\t\t\t\t\t<ol>\n\t\t\t\t\t\t\t<li>Analytical Cookies: These cookies allow us to measure and report on website activity by tracking page visits, visitor locations, and how visitors move around our website. We place these cookies to help us analyze that data.</li>\n\t\t\t\t\t\t\t<li>Marketing Cookies: Marketing cookies track the effectiveness of our digital marketing activities and allow us to optimize our marketing campaigns on other platforms.</li>\n\t\t\t\t\t\t</ol>\n\t\t\t\t\t</li>\n\t\t\t\t</ol>\n\t\t\t</text>\n\t\t\t<heading>Service Providers</heading>\n\t\t\t<text>\n\t\t\t\tWe may employ third-party companies and individuals due to the following reasons:\n\t\t\t\t<ol>\n\t\t\t\t\t<li>To facilitate our Service;</li>\n\t\t\t\t\t<li>To provide the Service on our behalf;</li>\n\t\t\t\t\t<li>To perform Service-related services; or</li>\n\t\t\t\t\t<li>To assist us in analyzing how our Service is used</li>\n\t\t\t\t</ol>\n\t\t\t</text>\n\t\t\t<text>\n\t\t\t\tWe want to inform our Service users that these third parties may have access to your Personal Information. The reason is to perform the tasks assigned to them on our behalf (ex: payment processing). However, they are obligated not to disclose or use the information for any other purpose.\n\t\t\t</text>\n\t\t\t<heading>Security</heading>\n\t\t\t<text>\n\t\t\t\tWe value your trust in providing us your Personal Information, thus we are striving to use commercially acceptable means of protecting it. But remember that no method of transmission over the internet, or method of electronic storage is 100% secure and reliable, and we cannot guarantee its absolute security.\n\t\t\t</text>\n\t\t\t<heading>Links to Other Sites</heading>\n\t\t\t<text>\n\t\t\t\tOur Service may contain links to other sites. If you click on a third-party link, you will be directed to that site. Note that these external sites are not operated by us. Therefore, we strongly advise you to review the Privacy Policy of these websites. We have no control over, and assume no responsibility for the content, privacy policies, or practices of any third-party sites or services.\n\t\t\t</text>\n\t\t\t<heading>Children's Privacy</heading>\n\t\t\t<text>\n\t\t\t\tOur Services do not address anyone under the age of 13. We do not knowingly collect personal identifiable information from children under 13. In the case we discover that a child under 13 has provided us with personal information, we immediately delete this from our servers. If you are a parent or guardian and you are aware that your child has provided us with personal information, please contact us so that we will be able to take necessary actions.\n\t\t\t</text>\n\t\t\t<heading>Changes to This Privacy Policy</heading>\n\t\t\t<text>\n\t\t\t\tWe may update our Privacy Policy from time to time. Thus, we advise you to review this page periodically for any changes. We will notify you of any changes by posting the new Privacy Policy on this page. These changes are effective immediately, after they are posted on this page.\n\t\t\t</text>\n\t\t\t<heading>Language</heading>\n\t\t\t<text>\n\t\t\t\tThis Privacy Policy may be made available in other languages for your convenience. In the event of any conflict or inconsistency between the English version and a translated version, the English version prevails.\n\t\t\t</text>\n\t\t\t<heading>Contact Us</heading>\n\t\t\t<text>\n\t\t\t\tIf you have any questions or suggestions about our Privacy Policy, do not hesitate to contact us at <contactLink>contact@milkywayidle.com</contactLink>.\n\t\t\t</text>"
+                },
+                "guildBuildingNames": {
+                    "/guild_buildings/guild_hall": "Guild Hall",
+                    "/guild_buildings/builders_hall": "Builder's Hall",
+                    "/guild_buildings/treasury": "Treasury",
+                    "/guild_buildings/archives": "Archives",
+                    "/guild_buildings/skilling_encampment": "Skilling Encampment",
+                    "/guild_buildings/combat_encampment": "Combat Encampment",
+                    "/guild_buildings/dairy_barn": "Guild Dairy Barn",
+                    "/guild_buildings/garden": "Guild Garden",
+                    "/guild_buildings/log_shed": "Guild Log Shed",
+                    "/guild_buildings/forge": "Guild Forge",
+                    "/guild_buildings/workshop": "Guild Workshop",
+                    "/guild_buildings/sewing_parlor": "Guild Sewing Parlor",
+                    "/guild_buildings/kitchen": "Guild Kitchen",
+                    "/guild_buildings/brewery": "Guild Brewery",
+                    "/guild_buildings/laboratory": "Guild Laboratory",
+                    "/guild_buildings/observatory": "Guild Observatory",
+                    "/guild_buildings/dining_room": "Guild Dining Room",
+                    "/guild_buildings/library": "Guild Library",
+                    "/guild_buildings/dojo": "Guild Dojo",
+                    "/guild_buildings/armory": "Guild Armory",
+                    "/guild_buildings/gym": "Guild Gym",
+                    "/guild_buildings/archery_range": "Guild Archery Range",
+                    "/guild_buildings/mystical_study": "Guild Mystical Study"
                 }
             }
         }

@@ -342,6 +342,42 @@ test("event-loop simulations emit a final progress update", async () => {
     assert.deepEqual(progress, [1]);
 });
 
+test("simulation records regular-zone bosses without requiring dungeon spawn data", async () => {
+    const zone = {
+        isDungeon: false,
+        monsterSpawnInfo: { bossSpawns: [{ combatMonsterHrid: "/monsters/boss" }] },
+    };
+    const combat = new simulator.CombatSimulator([], zone, null);
+    combat.processEvent = () => { combat.simulationTime = 1; };
+    const result = await combat.simulate(1);
+    assert.deepEqual(result.bossSpawns, ["/monsters/boss"]);
+
+    zone.monsterSpawnInfo.bossSpawns = null;
+    const noBossResult = await combat.simulate(1);
+    assert.deepEqual(noBossResult.bossSpawns, []);
+});
+
+test("zone boss time includes unfinished fights and does not depend on player attacks", () => {
+    const hour = 3600e9;
+    const result = {
+        isDungeon: false,
+        simulatedTime: 2 * hour,
+        bossSpawns: ["boss1", "boss2", "notEncountered"],
+        attacks: {},
+        timeSpentAlive: [
+            { name: "boss1", timeSpentAlive: 0.3 * hour, spawnedAt: 1.8 * hour, alive: true, count: 2 },
+            { name: "boss2", timeSpentAlive: 0.2 * hour, spawnedAt: 0, alive: false, count: 1 },
+        ],
+    };
+    const stats = simulator.getZoneBossTimeStats(result);
+    assert.deepEqual(stats.map((item) => item.name), ["boss1", "boss2"]);
+    assert.ok(Math.abs(stats[0].hours - 0.5) < 1e-10);
+    assert.ok(Math.abs(stats[0].percentage - 25) < 1e-10);
+    assert.equal(stats[1].hours, 0.2);
+    assert.equal(stats[1].percentage, 10);
+    assert.deepEqual(simulator.getZoneBossTimeStats({ ...result, isDungeon: true }), []);
+});
+
 test("personal buffs stay assigned to character HRIDs when a later character is selected alone", () => {
     const playerOneBuff = { uniqueHrid: "playerOneBuff" };
     const playerTwoBuff = { uniqueHrid: "playerTwoBuff" };

@@ -604,7 +604,7 @@ class CombatSimulator extends EventTarget {
             });
 
         }
-        if (this.zone?.isDungeon && this.zone.monsterSpawnInfo.bossSpawns) {
+        if (this.zone && !this.zone.isDungeon && this.zone.monsterSpawnInfo.bossSpawns) {
             for (const boss of this.zone.monsterSpawnInfo.bossSpawns) {
                 this.simResult.bossSpawns.push(boss.combatMonsterHrid);
             }

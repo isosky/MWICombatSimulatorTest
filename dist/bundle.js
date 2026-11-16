@@ -1745,6 +1745,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   formatHourlyQuantity: () => (/* binding */ formatHourlyQuantity),
 /* harmony export */   formatTwoDecimalQuantity: () => (/* binding */ formatTwoDecimalQuantity),
 /* harmony export */   getComparableItems: () => (/* binding */ getComparableItems),
+/* harmony export */   getZoneBossTimeStats: () => (/* binding */ getZoneBossTimeStats),
 /* harmony export */   groupArchiveRecords: () => (/* binding */ groupArchiveRecords),
 /* harmony export */   initSimulationResultTools: () => (/* binding */ initSimulationResultTools),
 /* harmony export */   minimumPlayerShardDropCount: () => (/* binding */ minimumPlayerShardDropCount),
@@ -1819,6 +1820,16 @@ function calculateSimulationEph(simResult) {
             : simResult.simulatedTime;
     const encounters = simResult.isDungeon ? simResult.dungeonsCompleted : simResult.encounters;
     return duration > 0 ? encounters * ONE_HOUR / duration : 0;
+}
+
+function getZoneBossTimeStats(simResult) {
+    if (simResult.isDungeon || simResult.simulatedTime <= 0) return [];
+    return simResult.bossSpawns.flatMap((name) => {
+        const entry = simResult.timeSpentAlive.find((item) => item.name === name);
+        if (!entry || (!entry.alive && entry.count === 0)) return [];
+        const time = entry.timeSpentAlive + (entry.alive ? simResult.simulatedTime - entry.spawnedAt : 0);
+        return [{ name, hours: time / ONE_HOUR, percentage: time / simResult.simulatedTime * 100 }];
+    });
 }
 
 function minimumPlayerShardDropCount(shardCounts) {
@@ -4415,6 +4426,48 @@ function initEquipmentSection() {
         initEquipmentSelect(type);
         initEnhancementLevelInput(type);
     });
+    document.querySelectorAll(".equipment-panel select[id^='selectEquipment_']:not(#selectEquipment_set)").forEach((select) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "refinement-toggle";
+        button.hidden = true;
+        select.parentElement.classList.add("equipment-selector");
+        select.before(button);
+        button.addEventListener("click", () => {
+            const target = getRefinementTarget(select);
+            if (!target) return;
+            select.value = target;
+            select.dispatchEvent(new Event("change", { bubbles: true }));
+        });
+    });
+    i18next.on("languageChanged", updateRefinementControls);
+}
+
+function getRefinementTarget(select) {
+    const hrid = select.value;
+    if (!hrid) return null;
+    const target = hrid.endsWith("_refined") ? hrid.slice(0, -"_refined".length) : `${hrid}_refined`;
+    const item = _combatsimulator_data_itemDetailMap_json__WEBPACK_IMPORTED_MODULE_3__[hrid];
+    const alternate = _combatsimulator_data_itemDetailMap_json__WEBPACK_IMPORTED_MODULE_3__[target];
+    if (!item || !alternate || item.equipmentDetail?.type !== alternate.equipmentDetail?.type
+        || ![...select.options].some((option) => option.value === target)) return null;
+    return target;
+}
+
+function updateRefinementControls() {
+    document.querySelectorAll(".equipment-selector").forEach((container) => {
+        const select = container.querySelector("select");
+        const button = container.querySelector(".refinement-toggle");
+        const target = getRefinementTarget(select);
+        button.hidden = !target;
+        if (!target) return;
+        const refined = select.value.endsWith("_refined");
+        const label = i18next.t(refined ? "common:equipment.unrefine" : "common:equipment.refine");
+        button.textContent = refined ? "★" : "☆";
+        button.title = label;
+        button.setAttribute("aria-label", label);
+        button.setAttribute("aria-pressed", String(refined));
+    });
 }
 
 function initTalismanModifierSection() {
@@ -6237,6 +6290,7 @@ function showSimulationResult(simResult) {
     showManaUsed(simResult, playerToDisplay);
     showHitpointsGained(simResult, playerToDisplay);
     showManapointsGained(simResult, playerToDisplay);
+    showBossTime(simResult);
     showDamageDone(simResult, playerToDisplay);
     showDamageTaken(simResult, playerToDisplay);
     renderWipeEvents(simResult);
@@ -7560,6 +7614,42 @@ function showManapointsGained(simResult, playerToDisplay) {
     resultDiv.replaceChildren(...newChildren);
 }
 
+function showBossTime(simResult) {
+    let bossTimeHeadingDiv = document.getElementById("simulationBossTimeHeading");
+    bossTimeHeadingDiv.classList.add("d-none");
+    let bossTimeDiv = document.getElementById("simulationBossTime");
+    bossTimeDiv.classList.add("d-none");
+    let newChildren = [];
+
+    if (simResult.isDungeon) {
+        for (const waveName of simResult.bossSpawns) {
+            // waveName is something like "#15,/monsters/jackalope,/monsters/butterjerry"
+            let waveNumber = waveName.split(",")[0];
+            const idx = simResult.timeSpentAlive.findIndex(e => e.name === waveNumber);
+            if (idx == -1 || simResult.timeSpentAlive[idx].count == 0) {
+                continue;
+            }
+            let aliveSecondsSimulated = simResult.timeSpentAlive[idx].timeSpentAlive / ONE_SECOND / simResult.timeSpentAlive[idx].count;
+            let bossRow = createRow(["col-md-6", "col-md-2", "col-md-4 text-end"], [waveNumber, simResult.timeSpentAlive[idx].count, aliveSecondsSimulated.toFixed(1) + "s"]);
+            newChildren.push(bossRow);
+        }
+    } else {
+        for (const boss of (0,_simulationResultTools__WEBPACK_IMPORTED_MODULE_21__.getZoneBossTimeStats)(simResult)) {
+            let bossRow = createRow(
+                ["col-md-6", "col-md-6 text-end"],
+                [_combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_14__[boss.name].name, boss.hours.toFixed(2) + "h(" + boss.percentage.toFixed(2) + "%)"]
+            );
+            bossRow.firstElementChild.setAttribute("data-i18n", "monsterNames." + boss.name);
+            newChildren.push(bossRow);
+        }
+    }
+    bossTimeDiv.replaceChildren(...newChildren);
+    if (newChildren.length > 0) {
+        bossTimeHeadingDiv.classList.remove("d-none");
+        bossTimeDiv.classList.remove("d-none");
+    }
+}
+
 function showDamageDone(simResult, playerToDisplay) {
     let totalDamageDone = {};
     let enemyIndex = 1;
@@ -7570,11 +7660,6 @@ function showDamageDone(simResult, playerToDisplay) {
         let accordion = document.getElementById("simulationResultDamageDoneAccordionEnemy" + i);
         hideElement(accordion);
     }
-
-    let bossTimeHeadingDiv = document.getElementById("simulationBossTimeHeading");
-    bossTimeHeadingDiv.classList.add("d-none");
-    let bossTimeDiv = document.getElementById("simulationBossTime");
-    bossTimeDiv.classList.add("d-none");
 
     if (!simResult.attacks[playerToDisplay]) {
         return;
@@ -7623,39 +7708,7 @@ function showDamageDone(simResult, playerToDisplay) {
         let targetName = _combatsimulator_data_combatMonsterDetailMap_json__WEBPACK_IMPORTED_MODULE_14__[target].name;
         resultAccordionButton.innerHTML = "<b><span data-i18n=\"common:simulationResults.damageDone\">Damage Done</span> (" + "<span data-i18n=\"monsterNames." + target + "\">" + targetName + "</span>" + ")</b>";
 
-        if (simResult.bossSpawns.includes(target)) {
-            let hoursSpentOnBoss = (aliveSecondsSimulated / 60 / 60).toFixed(2);
-            let percentSpentOnBoss = (aliveSecondsSimulated / totalSecondsSimulated * 100).toFixed(2);
-
-            let bossRow = createRow(["col-md-6", "col-md-6 text-end"], [targetName, hoursSpentOnBoss + "h(" + percentSpentOnBoss + "%)"]);
-            bossRow.firstElementChild.setAttribute("data-i18n", "monsterNames." + target);
-            bossTimeDiv.replaceChildren(bossRow);
-
-            bossTimeHeadingDiv.classList.remove("d-none");
-            bossTimeDiv.classList.remove("d-none");
-        }
-
         enemyIndex++;
-    }
-
-    if (simResult.isDungeon) {
-        let newChildren = [];
-        for (const waveName of simResult.bossSpawns) {
-            // waveName is something like "#15,/monsters/jackalope,/monsters/butterjerry"
-            let waveNumber = waveName.split(",")[0];
-            const idx = simResult.timeSpentAlive.findIndex(e => e.name === waveNumber);
-            if (idx == -1 || simResult.timeSpentAlive[idx].count == 0) {
-                continue;
-            }
-            let aliveSecondsSimulated = simResult.timeSpentAlive[idx].timeSpentAlive / ONE_SECOND / simResult.timeSpentAlive[idx].count;
-            let bossRow = createRow(["col-md-6", "col-md-2", "col-md-4 text-end"], [waveNumber, simResult.timeSpentAlive[idx].count, aliveSecondsSimulated.toFixed(1) + "s"]);
-            newChildren.push(bossRow);
-        }
-        if (newChildren.length > 0) {
-            bossTimeHeadingDiv.classList.remove("d-none");
-            bossTimeDiv.classList.remove("d-none");
-            bossTimeDiv.replaceChildren(...newChildren);
-        }
     }
 
     let totalResultDiv = document.getElementById("simulationResultTotalDamageDone");
@@ -10051,6 +10104,7 @@ function updateState() {
 }
 
 function updateUI() {
+    updateRefinementControls();
     updateCombatStatsUI();
     updateFoodUI();
     updateDrinksUI();

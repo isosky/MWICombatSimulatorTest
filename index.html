@@ -7,10 +7,88 @@
             min-width: 3.60rem
         }
 
-        .simulation-quick-select,
-        .simulation-time-input-group {
-            width: 20.375rem;
-            max-width: 100%;
+        @media (min-width: 768px) {
+            .equipment-panel .row > .col-md-6 {
+                width: 58.333333%;
+            }
+
+            .equipment-panel .row > .col-md-4 {
+                width: 25%;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 1599.98px) {
+            .row > .equipment-panel {
+                width: 83.333333%;
+            }
+
+            .row > .talisman-panel {
+                width: 100%;
+            }
+        }
+
+        .equipment-panel label.col-form-label {
+            white-space: nowrap;
+        }
+
+        .equipment-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+
+        .equipment-selector select {
+            min-width: 0;
+        }
+
+        .refinement-toggle {
+            flex: 0 0 1.5rem;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #a76a00;
+            font-size: 1.2rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .refinement-toggle[hidden] {
+            display: none;
+        }
+
+        body.dark-mode .refinement-toggle {
+            color: #ffd27a;
+        }
+
+        #talismanModifierTable {
+            table-layout: fixed;
+        }
+
+        #talismanModifierTable th:first-child {
+            width: 60%;
+        }
+
+        #talismanModifierTable select {
+            min-width: 0;
+        }
+
+        .simulation-setting-row {
+            margin-bottom: 0.65rem;
+        }
+
+        .simulation-setting-row > .col-md {
+            min-width: 0;
+        }
+
+        @media (min-width: 768px) {
+            .simulation-setting-row > label {
+                flex: 0 0 8.5rem;
+                width: 8.5rem;
+            }
+        }
+
+        .simulation-option-panel {
+            height: 100%;
         }
 
         .row.talisman-pool-controls {
@@ -32,6 +110,16 @@
             flex-wrap: wrap;
             gap: 4px;
             margin-top: 4px;
+        }
+
+        #zoneQuickButtons {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+        }
+
+        #zoneQuickButtons .simulation-quick-button {
+            flex: 1 0 24px;
+            max-width: 36px;
         }
 
         .simulation-quick-button {
@@ -97,8 +185,8 @@
             height: 3.1rem;
             border: 1px solid #bbb;
             border-radius: 0.35rem;
-            background: #f8f9fa;
-            color: inherit;
+            background: #000;
+            color: #fff;
         }
 
         .drop-inventory-icon {
@@ -134,7 +222,7 @@
 
         body.dark-mode .drop-inventory-tile {
             border-color: #666;
-            background: #444;
+            background: #000;
         }
 
         body.dark-mode {
@@ -464,7 +552,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-5 equipment-panel">
                         <!-- #region Equipment -->
                         <div class="row mb-3">
                             <div class="col-md-2"><b data-i18n="settingsPanel.slots">Slot</b></div>
@@ -687,7 +775,7 @@
                         </div>
                         <!-- #endregion -->
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-5 talisman-panel">
                         <div class="row mb-3">
                             <b>符石属性选择</b>
                         </div>
@@ -1466,10 +1554,10 @@
                             <b data-i18n="common:simulationResults.killPerHour">Kills per hour</b>
                         </div>
                         <div id="simulationResultKills" class="mb-2"></div>
-                        <div class="row" id="simulationBossTimeHeading">
+                        <div class="row d-none" id="simulationBossTimeHeading">
                             <b data-i18n="common:simulationResults.timeSpentOnBoss">Time spent on boss</b>
                         </div>
-                        <div id="simulationBossTime" class="mb-2"></div>
+                        <div id="simulationBossTime" class="mb-2 d-none"></div>
                         <div class="row">
                             <b data-i18n="common:simulationResults.deathPerHour">Deaths per hour</b>
                         </div>
@@ -1781,29 +1869,29 @@
                 <div class="modal-body">
                     <div class="container-fluid">
                         <div id="simulationSettings"></div>
-                        <div class="row mb-1">
+                        <div class="row simulation-setting-row">
                             <label for="selectZone" class="col-md-3 col-form-label"
                                 data-i18n="party.selectZone">Zone</label>
                             <div class="col-md">
-                                <select id="selectZone" class="form-select simulation-quick-select">
+                                <select id="selectZone" class="form-select">
                                 </select>
                                 <div id="zoneQuickButtons" class="simulation-quick-button-group" role="group"></div>
                             </div>
                         </div>
-                        <div class="row mb-1">
+                        <div class="row simulation-setting-row">
                             <label for="selectDungeon" class="col-md-3 col-form-label"
                                 data-i18n="shopCategoryNames./shop_categories/dungeon">Dungeon</label>
                             <div class="col-md">
-                                <select id="selectDungeon" class="form-select simulation-quick-select">
+                                <select id="selectDungeon" class="form-select">
                                 </select>
                                 <div id="dungeonQuickButtons" class="simulation-quick-button-group" role="group"></div>
                             </div>
                         </div>
-                        <div class="row mb-1">
+                        <div class="row simulation-setting-row">
                             <label for="selectDifficulty" class="col-md-3 col-form-label"
                                 data-i18n="party.difficulty">Difficulty</label>
                             <div class="col-md">
-                                <select id="selectDifficulty" class="form-select simulation-quick-select">
+                                <select id="selectDifficulty" class="form-select">
                                     <option value="0">T0</option>
                                     <option value="1">T1</option>
                                     <option value="2">T2</option>
@@ -1814,11 +1902,11 @@
                                 <div id="difficultyQuickButtons" class="simulation-quick-button-group" role="group"></div>
                             </div>
                         </div>
-                        <div class="row mb-1">
+                        <div class="row simulation-setting-row">
                             <label for="inputSimulationTime" class="col-md-3 col-form-label"
                                 data-i18n="skillActionDetail.duration">Duration</label>
                             <div class="col-md">
-                                <div class="input-group simulation-time-input-group">
+                                <div class="input-group">
                                     <input type="number" id="inputSimulationTime" class="form-control" value="100"
                                         min="1" max="2500" required />
                                     <span class="input-group-text" data-i18n="settingsPanel.hours">hours</span>
@@ -1826,7 +1914,7 @@
                                 <div id="simulationTimeQuickButtons" class="simulation-quick-button-group" role="group"></div>
                             </div>
                         </div>
-                        <div class="row mb-1">
+                        <div class="row simulation-setting-row">
                             <label for="selectLabyrinth" class="col-md-3 col-form-label"
                                 data-i18n="labyrinthPanel.combatRoom">Labyrinth</label>
                             <div class="col-md">
@@ -1834,7 +1922,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="row mb-1">
+                        <div class="row simulation-setting-row">
                             <label for="inputRoomLevel" class="col-md-3 col-form-label"
                                 data-i18n="common:roomLevel">Room Level</label>
                             <div class="col-md">
@@ -1847,7 +1935,7 @@
                         </div>
                         <div class="row">
                             <div class="col-md-6 pt-1">
-                                <div id="playerCheckBox" class="outlined-box">
+                                <div id="playerCheckBox" class="outlined-box simulation-option-panel">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h6 class="mb-2" data-i18n="common:selectPlayer">Select Players</h6>
                                         <div class="form-check mb-2">
@@ -1889,31 +1977,31 @@
                                 </div>
                             </div>
                             <div class="col-md-6 pt-1">
-                                <div class="outlined-box">
-                                    <h6 class="text-md-end" data-i18n="common:simulationSettings">Simulation Settings
+                                <div class="outlined-box simulation-option-panel">
+                                    <h6 class="mb-2" data-i18n="common:simulationSettings">Simulation Settings
                                     </h6>
-                                    <div class="form-check form-check-reverse">
+                                    <div class="form-check">
                                         <input class="form-check-input" type="checkbox" value="" id="simAllZoneToggle">
                                         <label class="form-check-label" for="simAllZoneToggle"
                                             data-i18n="common:simAllZones">
                                             Sim All Zones
                                         </label>
                                     </div>
-                                    <div class="form-check form-check-reverse">
+                                    <div class="form-check">
                                         <input class="form-check-input" type="checkbox" value="" id="simAllSoloToggle">
                                         <label class="form-check-label" for="simAllSoloToggle"
                                             data-i18n="common:simAllSolos">
                                             Sim All Solos
                                         </label>
                                     </div>
-                                    <div class="form-check form-check-reverse">
+                                    <div class="form-check">
                                         <input class="form-check-input" type="checkbox" value="" id="simDungeonToggle">
                                         <label class="form-check-label" for="simDungeonToggle"
                                             data-i18n="common:simDungeon">
                                             Sim Dungeon
                                         </label>
                                     </div>
-                                    <div class="form-check form-check-reverse">
+                                    <div class="form-check">
                                         <input class="form-check-input" type="checkbox" value=""
                                             id="simLabyrinthToggle">
                                         <label class="form-check-label" for="simLabyrinthToggle"
@@ -1921,7 +2009,7 @@
                                             Sim Labyrinth
                                         </label>
                                     </div>
-                                    <div class="form-check form-check-reverse">
+                                    <div class="form-check">
                                         <input class="form-check-input" type="checkbox" value=""
                                             id="simAllLabyrinthsToggle">
                                         <label class="form-check-label" for="simAllLabyrinthsToggle"

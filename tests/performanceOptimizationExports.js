@@ -28,6 +28,7 @@ export {
     formatHourlyQuantity,
     formatTwoDecimalQuantity,
     getComparableItems,
+    getZoneBossTimeStats,
     groupArchiveRecords,
     minimumPlayerShardDropCount,
     normalizeTo24Hours,

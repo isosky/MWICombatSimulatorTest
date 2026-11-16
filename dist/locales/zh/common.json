@@ -6,7 +6,9 @@
         "dropPrices": "掉落物价格"
     },
     "equipment": {
-        "presets": "Presets"
+        "presets": "Presets",
+        "refine": "切换到精炼装备",
+        "unrefine": "切换到未精炼装备"
     },
     "player": "玩家",
     "trigger": "触发条件",

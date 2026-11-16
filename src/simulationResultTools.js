@@ -65,6 +65,16 @@ export function calculateSimulationEph(simResult) {
     return duration > 0 ? encounters * ONE_HOUR / duration : 0;
 }
 
+export function getZoneBossTimeStats(simResult) {
+    if (simResult.isDungeon || simResult.simulatedTime <= 0) return [];
+    return simResult.bossSpawns.flatMap((name) => {
+        const entry = simResult.timeSpentAlive.find((item) => item.name === name);
+        if (!entry || (!entry.alive && entry.count === 0)) return [];
+        const time = entry.timeSpentAlive + (entry.alive ? simResult.simulatedTime - entry.spawnedAt : 0);
+        return [{ name, hours: time / ONE_HOUR, percentage: time / simResult.simulatedTime * 100 }];
+    });
+}
+
 export function minimumPlayerShardDropCount(shardCounts) {
     return shardCounts.length ? Math.min(...shardCounts) : 0;
 }
