@@ -24,6 +24,7 @@ export {
     calculateSimulationEph,
     classifyDropCategory,
     comparisonTone,
+    compressArchiveConfiguration,
     createRecordExport,
     formatHourlyQuantity,
     formatTwoDecimalQuantity,
@@ -32,6 +33,7 @@ export {
     groupArchiveRecords,
     minimumPlayerShardDropCount,
     normalizeTo24Hours,
+    readArchiveConfiguration,
     roundSavedResultValues,
     roundToTwoDecimals,
 } from "../src/simulationResultTools";

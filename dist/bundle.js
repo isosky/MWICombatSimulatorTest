@@ -1741,6 +1741,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   calculateSimulationEph: () => (/* binding */ calculateSimulationEph),
 /* harmony export */   classifyDropCategory: () => (/* binding */ classifyDropCategory),
 /* harmony export */   comparisonTone: () => (/* binding */ comparisonTone),
+/* harmony export */   compressArchiveConfiguration: () => (/* binding */ compressArchiveConfiguration),
 /* harmony export */   createRecordExport: () => (/* binding */ createRecordExport),
 /* harmony export */   formatHourlyQuantity: () => (/* binding */ formatHourlyQuantity),
 /* harmony export */   formatTwoDecimalQuantity: () => (/* binding */ formatTwoDecimalQuantity),
@@ -1750,6 +1751,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   initSimulationResultTools: () => (/* binding */ initSimulationResultTools),
 /* harmony export */   minimumPlayerShardDropCount: () => (/* binding */ minimumPlayerShardDropCount),
 /* harmony export */   normalizeTo24Hours: () => (/* binding */ normalizeTo24Hours),
+/* harmony export */   readArchiveConfiguration: () => (/* binding */ readArchiveConfiguration),
 /* harmony export */   roundSavedResultValues: () => (/* binding */ roundSavedResultValues),
 /* harmony export */   roundToTwoDecimals: () => (/* binding */ roundToTwoDecimals),
 /* harmony export */   setCurrentSimulationResult: () => (/* binding */ setCurrentSimulationResult)
@@ -1767,6 +1769,8 @@ const ONE_HOUR = 60 * 60 * 1e9;
 let latestResultContext = null;
 let records = [];
 let storageError = null;
+let captureConfiguration;
+let applyConfiguration;
 
 function classifyDropCategory(hrid, itemMap = _combatsimulator_data_itemDetailMap_json__WEBPACK_IMPORTED_MODULE_0__) {
     const item = itemMap[hrid];
@@ -1854,6 +1858,43 @@ function sanitizeFileName(value) {
         .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-")
         .replace(/[. ]+$/g, "")
         .trim() || "simulation-result";
+}
+
+async function compressArchiveConfiguration(configuration) {
+    const stream = new Blob([JSON.stringify(configuration)]).stream().pipeThrough(new CompressionStream("gzip"));
+    const bytes = new Uint8Array(await new Response(stream).arrayBuffer());
+    let binary = "";
+    for (const byte of bytes) binary += String.fromCharCode(byte);
+    return btoa(binary);
+}
+
+async function readArchiveConfiguration(configuration) {
+    if (!configuration?.compressed) {
+        return configuration?.groupJson ? { groupJson: configuration.groupJson } : null;
+    }
+    const binary = atob(configuration.compressed);
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+    const result = JSON.parse(await new Response(stream).text());
+    if (result?.groupJson && result.simulationSettings && !result.mapSettings) {
+        const { values, toggles, selectedPlayers } = result.simulationSettings;
+        if (!Array.isArray(selectedPlayers)) throw new Error("Saved player selections are invalid.");
+        return {
+            groupJson: result.groupJson,
+            mapSettings: {
+                values,
+                toggles,
+                checkboxes: Object.fromEntries(
+                    [1, 2, 3, 4, 5].map((number) => [`player${number}`, selectedPlayers.includes(number)])
+                ),
+            },
+            partial: true,
+        };
+    }
+    if (!result || typeof result !== "object" || !result.groupJson || !result.mapSettings) {
+        throw new Error("Saved simulation configuration is invalid.");
+    }
+    return result;
 }
 
 function createRecordExport(record) {
@@ -2363,11 +2404,12 @@ function getArchiveNotice() {
     return document.getElementById("simulationResultArchiveNotice");
 }
 
-function exportRecord(record) {
+async function exportRecord(record) {
     const notice = getArchiveNotice();
     let exportData;
     try {
-        exportData = createRecordExport(record);
+        const configuration = await readArchiveConfiguration(record.configuration);
+        exportData = createRecordExport({ ...record, configuration });
     } catch (error) {
         console.error("Could not export saved player configuration.", error);
         setNotice(notice, toolText("exportError", "Could not export this saved configuration."), true);
@@ -2391,6 +2433,24 @@ function exportRecord(record) {
         URL.revokeObjectURL(url);
     }
     setNotice(notice, `${toolText("exported", "Exported")} ${exportData.fileName}`, false);
+}
+
+async function loadRecord(record) {
+    const notice = getArchiveNotice();
+    try {
+        const configuration = await readArchiveConfiguration(record.configuration);
+        if (!configuration) {
+            setNotice(notice, toolText("loadUnavailable", "No configuration is available to load."), true);
+            return;
+        }
+        applyConfiguration(configuration);
+        setNotice(notice, configuration.mapSettings && !configuration.partial
+            ? toolText("loaded", "Configuration loaded.")
+            : toolText("loadedLegacy", "Older configuration loaded; check map settings that were not saved."), false);
+    } catch (error) {
+        console.error("Could not load saved simulation configuration.", error);
+        setNotice(notice, toolText("loadError", "Could not load this saved configuration."), true);
+    }
 }
 
 function renderArchive() {
@@ -2467,7 +2527,16 @@ function renderArchive() {
                 event.stopPropagation();
                 exportRecord(record);
             });
-            recordSummary.append(identity, stats, compareButton, exportButton, deleteButton);
+            const loadButton = document.createElement("button");
+            loadButton.type = "button";
+            loadButton.className = "btn btn-sm btn-outline-secondary me-1";
+            loadButton.textContent = toolText("load", "Load");
+            loadButton.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                loadRecord(record);
+            });
+            recordSummary.append(identity, stats, compareButton, loadButton, exportButton, deleteButton);
             recordDetails.append(recordSummary, renderRecordDetails(record));
             details.append(recordDetails);
         }
@@ -2524,16 +2593,17 @@ function getTeamExpectedDrops(playerExpectedDrops) {
     return [...combined.values()];
 }
 
-function saveCurrentResult() {
+async function saveCurrentResult() {
     const notice = getArchiveNotice();
     if (!latestResultContext) {
         setNotice(notice, toolText("noCurrentResult", "Run a simulation before saving a result."), true);
         return;
     }
 
-    const { simResult } = latestResultContext;
-    const playerHrids = latestResultContext.playerHrids.length
-        ? latestResultContext.playerHrids
+    const context = latestResultContext;
+    const { simResult } = context;
+    const playerHrids = context.playerHrids.length
+        ? context.playerHrids
         : ["player1"];
     const durationHours = simResult.simulatedTime / ONE_HOUR;
     if (!Number.isFinite(durationHours) || durationHours <= 0) {
@@ -2541,7 +2611,7 @@ function saveCurrentResult() {
         return;
     }
     const isDungeon = Boolean(simResult.isDungeon);
-    const playerExpectedDrops = getExpectedDropsByPlayer(latestResultContext, playerHrids, durationHours);
+    const playerExpectedDrops = getExpectedDropsByPlayer(context, playerHrids, durationHours);
     const expectedDrops = getTeamExpectedDrops(playerExpectedDrops);
     const shardsPerPlayer = playerExpectedDrops.map(({ drops }) =>
         drops
@@ -2590,6 +2660,20 @@ function saveCurrentResult() {
             ? `T${simResult.difficultyTier}`
             : "?";
     const shardsPerDay = minimumPlayerShardDropCount(shardsPerPlayer);
+    let compressed;
+    let configuration;
+    const saveButton = document.getElementById("buttonSaveSimulationResult");
+    try {
+        saveButton.disabled = true;
+        configuration = captureConfiguration();
+        compressed = await compressArchiveConfiguration(configuration);
+    } catch (error) {
+        console.error("Could not save simulation configuration.", error);
+        setNotice(notice, toolText("configurationSaveError", "Could not save the configuration. Check the settings and browser compression support."), true);
+        return;
+    } finally {
+        saveButton.disabled = false;
+    }
     const savedRecord = roundSavedResultValues({
         id: `result-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         schemaVersion: 2,
@@ -2607,9 +2691,9 @@ function saveCurrentResult() {
         configuration: {
             simulationHours: durationHours,
             simDungeon: isDungeon,
-            simAllZone: Boolean(document.getElementById("simAllZoneToggle")?.checked),
-            simAllSolo: Boolean(document.getElementById("simAllSoloToggle")?.checked),
-            groupJson: latestResultContext.getGroupConfigJson?.() || "",
+            simAllZone: configuration.mapSettings.toggles.simAllZoneToggle,
+            simAllSolo: configuration.mapSettings.toggles.simAllSoloToggle,
+            compressed,
         },
         metrics: {
             eph: calculateSimulationEph(simResult),
@@ -2626,9 +2710,9 @@ function saveCurrentResult() {
     try {
         records = [savedRecord, ...records].slice(0, MAX_RECORDS);
         persistRecords();
-        setNotice(notice, toolText("saved", "Result saved."), false);
         renderArchive();
         renderCompareOptions();
+        setNotice(notice, toolText("saved", "Result saved."), false);
     } catch {
         records = previousRecords;
         setNotice(notice, toolText("storageError", "Could not read or write saved results."), true);
@@ -2787,16 +2871,17 @@ function openCompareWithRecord(id) {
     bootstrap.Modal.getOrCreateInstance(archiveModal).hide();
 }
 
-function setCurrentSimulationResult(simResult, playerHrids, getExpectedDropsForPlayer, getGroupConfigJson) {
+function setCurrentSimulationResult(simResult, playerHrids, getExpectedDropsForPlayer) {
     latestResultContext = {
         simResult,
         playerHrids,
         getExpectedDropsForPlayer,
-        getGroupConfigJson,
     };
 }
 
-function initSimulationResultTools() {
+function initSimulationResultTools(configurationHandlers) {
+    captureConfiguration = configurationHandlers.capture;
+    applyConfiguration = configurationHandlers.apply;
     records = loadRecords();
     document.getElementById("buttonSaveSimulationResult").addEventListener("click", saveCurrentResult);
     document.getElementById("buttonClearSimulationResults").addEventListener("click", clearRecords);
@@ -6309,8 +6394,7 @@ function showSimulationResult(simResult) {
         playerHrids.length ? playerHrids : [playerToDisplay],
         (playerHrid) => simResult.isDungeon
             ? new Map()
-            : calcDropMaps(simResult, playerHrid, false).noRngTotalDropMap,
-        () => JSON.stringify(playerDataMap)
+            : calcDropMaps(simResult, playerHrid, false).noRngTotalDropMap
     );
 }
 
@@ -9385,6 +9469,97 @@ function doGroupImport() {
     }
 }
 
+const archiveMapValueIds = [
+    "selectZone", "selectDungeon", "selectDifficulty", "selectLabyrinth", "inputRoomLevel",
+    "inputSimulationTime", "selectCoffeeCrates", "selectFoodCrates",
+];
+const archiveOptionalMapValueIds = ["selectTeaCrates"];
+const archiveMapToggleIds = [
+    "simDungeonToggle", "simLabyrinthToggle", "simAllLabyrinthsToggle", "simAllZoneToggle", "simAllSoloToggle",
+];
+const archiveCheckboxSelector = ".player-checkbox, .zone-checkbox, .solo-checkbox";
+
+function captureArchiveConfiguration() {
+    updateState();
+    savePreviousPlayer(currentPlayerTabId);
+    return {
+        groupJson: JSON.stringify(playerDataMap),
+        mapSettings: {
+            values: Object.fromEntries([
+                ...archiveMapValueIds.map((id) => [id, document.getElementById(id).value]),
+                ...archiveOptionalMapValueIds.flatMap((id) => {
+                    const element = document.getElementById(id);
+                    return element ? [[id, element.value]] : [];
+                }),
+            ]),
+            toggles: Object.fromEntries(archiveMapToggleIds.map((id) => [id, document.getElementById(id).checked])),
+            checkboxes: Object.fromEntries(
+                [...document.querySelectorAll(archiveCheckboxSelector)].map((element) => [element.id, element.checked])
+            ),
+        },
+    };
+}
+
+function applyArchiveConfiguration(configuration) {
+    const group = typeof configuration.groupJson === "string"
+        ? JSON.parse(configuration.groupJson)
+        : configuration.groupJson;
+    if (!group || typeof group !== "object" || typeof group[currentPlayerTabId] !== "string") {
+        throw new Error("Saved group configuration is invalid.");
+    }
+    for (const id of ["1", "2", "3", "4", "5"]) {
+        if (group[id] === undefined) continue;
+        const savedPlayer = JSON.parse(group[id]);
+        if (!savedPlayer?.player || !Array.isArray(savedPlayer.player.equipment)) {
+            throw new Error(`Saved player ${id} is invalid.`);
+        }
+    }
+    const settings = configuration.mapSettings;
+    if (settings) {
+        for (const id of archiveMapToggleIds) {
+            if (typeof settings.toggles?.[id] !== "boolean") {
+                throw new Error(`Saved map setting ${id} is invalid.`);
+            }
+        }
+        for (const id of [...archiveMapValueIds, ...archiveOptionalMapValueIds]) {
+            const element = document.getElementById(id);
+            const value = settings.values?.[id];
+            if (archiveOptionalMapValueIds.includes(id) && value === undefined) continue;
+            if (typeof value !== "string"
+                || !element
+                || (element instanceof HTMLSelectElement && ![...element.options].some((option) => option.value === value))) {
+                throw new Error(`Saved map setting ${id} is invalid.`);
+            }
+        }
+        if (!settings.checkboxes || typeof settings.checkboxes !== "object"
+            || Object.values(settings.checkboxes).some((value) => typeof value !== "boolean")) {
+            throw new Error("Saved map selections are invalid.");
+        }
+    }
+    playerDataMap = group;
+    updateNextPlayer(currentPlayerTabId);
+    updateState();
+    updateUI();
+
+    if (!settings) return;
+    for (const id of archiveMapToggleIds) {
+        const element = document.getElementById(id);
+        element.checked = settings.toggles[id];
+        element.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    for (const id of [...archiveMapValueIds, ...archiveOptionalMapValueIds]) {
+        if (settings.values[id] === undefined) continue;
+        const element = document.getElementById(id);
+        element.value = settings.values[id];
+        element.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    document.querySelectorAll(archiveCheckboxSelector).forEach((element) => {
+        if (typeof settings.checkboxes?.[element.id] !== "boolean") return;
+        element.checked = settings.checkboxes[element.id];
+        element.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+}
+
 function doSoloImport() {
     let importSet = document.getElementById("inputSetSolo").value;
     importSet = JSON.parse(importSet);
@@ -10179,7 +10354,7 @@ initDamageDoneTaken();
 initPatchNotes();
 initExtraBuffSection();
 initHpMpVisualization();
-(0,_simulationResultTools__WEBPACK_IMPORTED_MODULE_21__.initSimulationResultTools)();
+(0,_simulationResultTools__WEBPACK_IMPORTED_MODULE_21__.initSimulationResultTools)({ capture: captureArchiveConfiguration, apply: applyArchiveConfiguration });
 (0,_talismanPoolUI__WEBPACK_IMPORTED_MODULE_23__.initTalismanPool)({
     getSnapshot: getTalismanPoolSnapshot,
     modifierMap: _combatsimulator_data_talismanModifierDetailMap_json__WEBPACK_IMPORTED_MODULE_20__,

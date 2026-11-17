@@ -2014,8 +2014,7 @@ function showSimulationResult(simResult) {
         playerHrids.length ? playerHrids : [playerToDisplay],
         (playerHrid) => simResult.isDungeon
             ? new Map()
-            : calcDropMaps(simResult, playerHrid, false).noRngTotalDropMap,
-        () => JSON.stringify(playerDataMap)
+            : calcDropMaps(simResult, playerHrid, false).noRngTotalDropMap
     );
 }
 
@@ -5090,6 +5089,97 @@ function doGroupImport() {
     }
 }
 
+const archiveMapValueIds = [
+    "selectZone", "selectDungeon", "selectDifficulty", "selectLabyrinth", "inputRoomLevel",
+    "inputSimulationTime", "selectCoffeeCrates", "selectFoodCrates",
+];
+const archiveOptionalMapValueIds = ["selectTeaCrates"];
+const archiveMapToggleIds = [
+    "simDungeonToggle", "simLabyrinthToggle", "simAllLabyrinthsToggle", "simAllZoneToggle", "simAllSoloToggle",
+];
+const archiveCheckboxSelector = ".player-checkbox, .zone-checkbox, .solo-checkbox";
+
+function captureArchiveConfiguration() {
+    updateState();
+    savePreviousPlayer(currentPlayerTabId);
+    return {
+        groupJson: JSON.stringify(playerDataMap),
+        mapSettings: {
+            values: Object.fromEntries([
+                ...archiveMapValueIds.map((id) => [id, document.getElementById(id).value]),
+                ...archiveOptionalMapValueIds.flatMap((id) => {
+                    const element = document.getElementById(id);
+                    return element ? [[id, element.value]] : [];
+                }),
+            ]),
+            toggles: Object.fromEntries(archiveMapToggleIds.map((id) => [id, document.getElementById(id).checked])),
+            checkboxes: Object.fromEntries(
+                [...document.querySelectorAll(archiveCheckboxSelector)].map((element) => [element.id, element.checked])
+            ),
+        },
+    };
+}
+
+function applyArchiveConfiguration(configuration) {
+    const group = typeof configuration.groupJson === "string"
+        ? JSON.parse(configuration.groupJson)
+        : configuration.groupJson;
+    if (!group || typeof group !== "object" || typeof group[currentPlayerTabId] !== "string") {
+        throw new Error("Saved group configuration is invalid.");
+    }
+    for (const id of ["1", "2", "3", "4", "5"]) {
+        if (group[id] === undefined) continue;
+        const savedPlayer = JSON.parse(group[id]);
+        if (!savedPlayer?.player || !Array.isArray(savedPlayer.player.equipment)) {
+            throw new Error(`Saved player ${id} is invalid.`);
+        }
+    }
+    const settings = configuration.mapSettings;
+    if (settings) {
+        for (const id of archiveMapToggleIds) {
+            if (typeof settings.toggles?.[id] !== "boolean") {
+                throw new Error(`Saved map setting ${id} is invalid.`);
+            }
+        }
+        for (const id of [...archiveMapValueIds, ...archiveOptionalMapValueIds]) {
+            const element = document.getElementById(id);
+            const value = settings.values?.[id];
+            if (archiveOptionalMapValueIds.includes(id) && value === undefined) continue;
+            if (typeof value !== "string"
+                || !element
+                || (element instanceof HTMLSelectElement && ![...element.options].some((option) => option.value === value))) {
+                throw new Error(`Saved map setting ${id} is invalid.`);
+            }
+        }
+        if (!settings.checkboxes || typeof settings.checkboxes !== "object"
+            || Object.values(settings.checkboxes).some((value) => typeof value !== "boolean")) {
+            throw new Error("Saved map selections are invalid.");
+        }
+    }
+    playerDataMap = group;
+    updateNextPlayer(currentPlayerTabId);
+    updateState();
+    updateUI();
+
+    if (!settings) return;
+    for (const id of archiveMapToggleIds) {
+        const element = document.getElementById(id);
+        element.checked = settings.toggles[id];
+        element.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    for (const id of [...archiveMapValueIds, ...archiveOptionalMapValueIds]) {
+        if (settings.values[id] === undefined) continue;
+        const element = document.getElementById(id);
+        element.value = settings.values[id];
+        element.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    document.querySelectorAll(archiveCheckboxSelector).forEach((element) => {
+        if (typeof settings.checkboxes?.[element.id] !== "boolean") return;
+        element.checked = settings.checkboxes[element.id];
+        element.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+}
+
 function doSoloImport() {
     let importSet = document.getElementById("inputSetSolo").value;
     importSet = JSON.parse(importSet);
@@ -5884,7 +5974,7 @@ initDamageDoneTaken();
 initPatchNotes();
 initExtraBuffSection();
 initHpMpVisualization();
-initSimulationResultTools();
+initSimulationResultTools({ capture: captureArchiveConfiguration, apply: applyArchiveConfiguration });
 initTalismanPool({
     getSnapshot: getTalismanPoolSnapshot,
     modifierMap: talismanModifierDetailMap,

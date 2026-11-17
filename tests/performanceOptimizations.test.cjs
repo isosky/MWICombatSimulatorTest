@@ -1016,6 +1016,43 @@ test("saved result export contains the original group configuration and names th
     assert.equal(integerMetricExport.fileName, "Pirate Base-T2-81.json");
 });
 
+test("archive configuration compresses and restores player and map settings", async () => {
+    const player = JSON.stringify({
+        player: { attackLevel: 42, equipment: [{ itemHrid: "/items/sword" }] },
+        abilities: [{ abilityHrid: "/abilities/test" }],
+        food: { "/action_types/combat": [{ itemHrid: "/items/apple" }] },
+        name: "角色",
+    });
+    const configuration = {
+        groupJson: JSON.stringify({ 1: player, 2: player }),
+        mapSettings: {
+            values: { selectZone: "/actions/combat/fly", selectDifficulty: "2" },
+            toggles: { simDungeonToggle: false },
+            checkboxes: { player1: true, player2: false },
+        },
+    };
+    const compressed = await simulator.compressArchiveConfiguration(configuration);
+    assert.deepEqual(await simulator.readArchiveConfiguration({ compressed }), configuration);
+    assert.deepEqual(await simulator.readArchiveConfiguration({ groupJson: configuration.groupJson }), {
+        groupJson: configuration.groupJson,
+    });
+    assert.equal(await simulator.readArchiveConfiguration({}), null);
+    await assert.rejects(simulator.readArchiveConfiguration({ compressed: "invalid" }));
+    const olderCompressed = await simulator.compressArchiveConfiguration({
+        groupJson: configuration.groupJson,
+        simulationSettings: { ...configuration.mapSettings, selectedPlayers: [1, 3] },
+    });
+    assert.deepEqual(await simulator.readArchiveConfiguration({ compressed: olderCompressed }), {
+        groupJson: configuration.groupJson,
+        mapSettings: {
+            values: configuration.mapSettings.values,
+            toggles: configuration.mapSettings.toggles,
+            checkboxes: { player1: true, player2: false, player3: true, player4: false, player5: false },
+        },
+        partial: true,
+    });
+});
+
 test("saved result shard summary uses the lowest per-player drop count", () => {
     assert.equal(simulator.minimumPlayerShardDropCount([5, 2, 7]), 2);
     assert.equal(simulator.minimumPlayerShardDropCount([]), 0);
