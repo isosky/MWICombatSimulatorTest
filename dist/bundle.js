@@ -5217,7 +5217,10 @@ function updateCombatStatsUI() {
     const formatContribution = (value, stat) => {
         value ??= 0;
         if (percentageStats.has(stat)) {
-            return `${(value * 100).toLocaleString([], { maximumFractionDigits: 4 })}%`;
+            return `${(value * 100).toLocaleString([], {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            })}%`;
         }
         return Math.floor(value).toLocaleString();
     };
@@ -7309,14 +7312,24 @@ function createDropInventory(dropMap) {
     const grid = document.createElement("div");
     grid.className = "drop-inventory-grid";
     grid.setAttribute("role", "list");
+    const specialGrid = document.createElement("div");
+    specialGrid.className = "drop-inventory-special-grid";
+    specialGrid.setAttribute("role", "list");
+    specialGrid.hidden = true;
     const list = document.createElement("div");
     list.className = "drop-inventory-list";
     list.setAttribute("role", "list");
+    const specialList = document.createElement("div");
+    specialList.className = "drop-inventory-special-list";
+    specialList.setAttribute("role", "list");
+    specialList.hidden = true;
 
     const setMode = (mode) => {
         root.dataset.mode = mode;
         grid.hidden = mode !== "icons";
         list.hidden = mode !== "text";
+        specialGrid.hidden = mode !== "icons";
+        specialList.hidden = mode !== "text";
         controls.querySelectorAll("button").forEach((button) => {
             button.setAttribute("aria-pressed", String(button.dataset.mode === mode));
         });
@@ -7333,11 +7346,26 @@ function createDropInventory(dropMap) {
         controls.append(button);
     }
 
-    for (const [hrid, amount] of dropMap) {
+    const sortedDrops = [...dropMap].sort(([hridA], [hridB]) => {
+        const itemA = _combatsimulator_data_itemDetailMap_json__WEBPACK_IMPORTED_MODULE_3__[hridA];
+        const itemB = _combatsimulator_data_itemDetailMap_json__WEBPACK_IMPORTED_MODULE_3__[hridB];
+        return (itemA?.categoryHrid || "").localeCompare(itemB?.categoryHrid || "")
+            || (itemA?.name || hridA).localeCompare(itemB?.name || hridB);
+    });
+    sortedDrops.sort(([hridA], [hridB]) => {
+        const isSpecialA = hridA.endsWith("_charm") || hridA.endsWith("_key_fragment");
+        const isSpecialB = hridB.endsWith("_charm") || hridB.endsWith("_key_fragment");
+        return Number(isSpecialB) - Number(isSpecialA);
+    });
+
+    for (const [hrid, amount] of sortedDrops) {
         const item = _combatsimulator_data_itemDetailMap_json__WEBPACK_IMPORTED_MODULE_3__[hrid];
         const itemName = item?.name || hrid;
         const quantity = formatExpectedDropQuantity(amount);
         const fullQuantity = Number(amount).toLocaleString(undefined, { maximumSignificantDigits: 16 });
+        const isCharmOrFragment = hrid.endsWith("_charm") || hrid.endsWith("_key_fragment");
+        const targetGrid = isCharmOrFragment ? specialGrid : grid;
+        const targetList = isCharmOrFragment ? specialList : list;
 
         const tile = document.createElement("button");
         tile.type = "button";
@@ -7371,7 +7399,7 @@ function createDropInventory(dropMap) {
         count.setAttribute("aria-hidden", "true");
         count.textContent = quantity;
         tile.append(count);
-        grid.append(tile);
+        targetGrid.append(tile);
 
         const row = document.createElement("div");
         row.className = "drop-inventory-text-row";
@@ -7383,10 +7411,12 @@ function createDropInventory(dropMap) {
         const textQuantity = document.createElement("span");
         textQuantity.textContent = quantity;
         row.append(name, textQuantity);
-        list.append(row);
+        targetList.append(row);
     }
 
-    root.append(controls, grid, list);
+    if (specialGrid.childElementCount === 0) specialGrid.remove();
+    if (specialList.childElementCount === 0) specialList.remove();
+    root.append(controls, specialGrid, grid, specialList, list);
     setMode("icons");
     return root;
 }
