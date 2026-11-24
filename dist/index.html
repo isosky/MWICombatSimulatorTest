@@ -407,6 +407,44 @@
             white-space: nowrap;
         }
 
+        #combatStatsPanel .combat-stats-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            margin: 0 0 1rem;
+        }
+
+        #combatStatsPanel .combat-stats-heading>* {
+            width: auto;
+        }
+
+        #combatStatsPanel .combat-stats-toggle {
+            flex-shrink: 0;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+
+        #combatStatsPanel.combat-stats-collapsed .combat-stats-content {
+            display: none;
+        }
+
+        #combatStatsPanel.combat-stats-collapsed .combat-stats-heading {
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        @media (min-width: 768px) {
+            #combatStatsPanel.combat-stats-collapsed {
+                width: 8.33333333%;
+            }
+
+            #combatStatsPanel.combat-stats-collapsed + .simulation-results-panel {
+                width: 50%;
+            }
+        }
+
         #simulationResultArchiveModal .simulation-result-archive-dialog {
             max-width: min(98vw, 1800px);
         }
@@ -452,9 +490,6 @@
     <script
         src="https://cdnjs.cloudflare.com/ajax/libs/i18next-browser-languagedetector/6.1.3/i18nextBrowserLanguageDetector.min.js"
         integrity="sha512-w/1n/omCK6/QXznOMYrp+arhVcWM87ioNqNkpWyFYhDFBgLNiwUG9Omp/YGPwy5Q/p7lktUI1eXZX3nN/TDDAA=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/i18next-http-backend/1.3.2/i18nextHttpBackend.min.js"
-        integrity="sha512-6KSl9S4uqyiqhlImZ5pcEQKCU7Mk/nyr+nJQAZe9ZY9en6cUmQKG/b3v1Db/1fOiV5zdOjjwWQ/S90p7eDLxgA=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 
@@ -573,32 +608,6 @@
                             </button>
                         </div>
                         <!-- #endregion -->
-                        <div class="row">
-                            <b data-i18n="common:priceSettings.title">Price Settings</b>
-                        </div>
-                        <div class="row">
-                            <label for="selectPrices_consumables" class="col-md-12 col-form-label"
-                                data-i18n="common:priceSettings.consumablePrices">Consumable
-                                Prices</label>
-                            <div class="col-md-12 mb-2">
-                                <select id="selectPrices_consumables" class="form-select">
-                                    <option default value="ask" data-i18n="marketplacePanel.bestAskPrice">Ask (SO)
-                                    </option>
-                                    <option value="bid" data-i18n="marketplacePanel.bestBidPrice">Bid (BO)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <label for="selectPrices_drops" class="col-md-12 col-form-label"
-                                data-i18n="common:priceSettings.dropPrices">Drop Prices</label>
-                            <div class="col-md-12">
-                                <select id="selectPrices_drops" class="form-select">
-                                    <option default value="bid" data-i18n="marketplacePanel.bestBidPrice">Bid (BO)
-                                    </option>
-                                    <option value="ask" data-i18n="marketplacePanel.bestAskPrice">Ask (SO)</option>
-                                </select>
-                            </div>
-                        </div>
                     </div>
                     <div class="col-md-5 equipment-panel">
                         <!-- #region Equipment -->
@@ -788,37 +797,6 @@
                             <div class="col-md-4">
                                 <input type="number" id="inputEquipmentEnhancementLevel_belt" class="form-control"
                                     value="0" min="0" max="20" required />
-                            </div>
-                        </div>
-                        <div class="row mb-2">
-                            <label for="selectEquipment_set" class="col-md-2 col-form-label">Presets</label>
-                            <div class="col-md-6">
-                                <select id="selectEquipment_set" class="form-select">
-                                    <option value="">None</option>
-                                    <optgroup label="MELEE">
-                                        <option value="Cheese">Cheese</option>
-                                        <option value="Verdant">Verdant</option>
-                                        <option value="Azure">Azure</option>
-                                        <option value="Burble">Burble</option>
-                                        <option value="Crimson">Crimson</option>
-                                        <option value="Rainbow">Rainbow</option>
-                                        <option value="Holy">Holy</option>
-                                    </optgroup>
-                                    <optgroup label="MAGIC">
-                                        <option value="Cotton">Cotton</option>
-                                        <option value="Linen">Linen</option>
-                                        <option value="Bamboo">Bamboo</option>
-                                        <option value="Silk">Silk</option>
-                                        <option value="Radiant">Radiant</option>
-                                    </optgroup>
-                                    <optgroup label="RANGED">
-                                        <option value="Rough">Rough</option>
-                                        <option value="Reptile">Reptile</option>
-                                        <option value="Gobo">Gobo</option>
-                                        <option value="Beast">Beast</option>
-                                        <option value="Umbral">Umbral</option>
-                                    </optgroup>
-                                </select>
                             </div>
                         </div>
                         <!-- #endregion -->
@@ -1274,18 +1252,23 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-2" id="combatStatsPanel">
+            <div class="col-md-2 combat-stats-collapsed" id="combatStatsPanel">
                 <!-- #region Combat stats -->
-                <div class="row mb-3">
-                    <b data-i18n="equipmentPanel.combatStats">Combat Stats</b>
+                <div class="row combat-stats-heading">
+                    <b class="combat-stats-title" data-i18n="equipmentPanel.combatStats">Combat Stats</b>
+                    <button class="btn btn-outline-primary combat-stats-toggle" id="buttonToggleCombatStats"
+                        type="button" aria-expanded="false" aria-controls="combatStatsContent">
+                        <span data-i18n="common:controls.expandCombatStats">Expand</span>
+                    </button>
                 </div>
-                <div class="row combat-stat-header">
-                    <div data-i18n="combatStats.statName">属性名称</div>
-                    <div data-i18n="combatStats.finalValue">最终值</div>
-                    <div data-i18n="combatStats.equipmentContribution">装备加成</div>
-                    <div data-i18n="combatStats.talismanContribution">符石加成</div>
-                </div>
-                <div class="row">
+                <div class="combat-stats-content" id="combatStatsContent">
+                    <div class="row combat-stat-header">
+                        <div data-i18n="combatStats.statName">属性名称</div>
+                        <div data-i18n="combatStats.finalValue">最终值</div>
+                        <div data-i18n="combatStats.equipmentContribution">装备加成</div>
+                        <div data-i18n="combatStats.talismanContribution">符石加成</div>
+                    </div>
+                    <div class="row">
                     <div class="col-md-8" data-i18n="combatStats.maxHitpoints">Max HP:</div>
                     <div class="col-md-4" id="combatStat_maxHitpoints"></div>
                 </div>
@@ -1588,6 +1571,7 @@
                 <div class="row">
                     <div class="col-md-8" data-i18n="combatStats.magicExperience">Magic Experience:</div>
                     <div class="col-md-4" id="combatStat_magicExperience"></div>
+                    </div>
                 </div>
                 <!-- #endregion -->
             </div>

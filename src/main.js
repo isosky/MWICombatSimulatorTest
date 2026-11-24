@@ -69,6 +69,8 @@ window.noRngRevenue = 0;
 window.expenses = 0;
 window.profit = 0;
 window.noRngProfit = 0;
+const consumablePriceMode = "ask";
+const dropPriceMode = "bid";
 
 // #region Worker
 
@@ -131,7 +133,7 @@ function initEquipmentSection() {
         initEquipmentSelect(type);
         initEnhancementLevelInput(type);
     });
-    document.querySelectorAll(".equipment-panel select[id^='selectEquipment_']:not(#selectEquipment_set)").forEach((select) => {
+    document.querySelectorAll(".equipment-panel select[id^='selectEquipment_']").forEach((select) => {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "refinement-toggle";
@@ -728,61 +730,6 @@ function updateEquipmentState() {
         let enhancementLevel = Number(document.getElementById("inputEquipmentEnhancementLevel_" + selectType).value);
         player.equipment[equipmentType] = new Equipment(gameItem.hrid, enhancementLevel);
     });
-}
-
-document.getElementById("selectEquipment_set").onchange = changeEquipmentSetListener;
-
-function changeEquipmentSetListener() {
-    let value = this.value
-    let optgroupType = this.options[this.selectedIndex].parentNode.label;
-
-    ["head", "body", "legs", "feet", "hands"].forEach((type) => {
-        let selectType = type;
-
-        let currentEquipment = document.getElementById("selectEquipment_" + selectType);
-        if (type === "feet") {
-            type = "_boots";
-        }
-        if (type === "hands") {
-            if (optgroupType === "RANGED") {
-                type = "_bracers";
-            } else if (optgroupType === "MAGIC") {
-                type = "_gloves";
-            } else {
-                type = "_gauntlets";
-            }
-        }
-        if (type === "head") {
-            if (optgroupType === "RANGED") {
-                type = "_hood";
-            } else if (optgroupType === "MAGIC") {
-                type = "_hat";
-            } else {
-                type = "_helmet";
-            }
-        }
-        if (type === "legs") {
-            if (optgroupType === "RANGED") {
-                type = "_chaps";
-            } else if (optgroupType === "MAGIC") {
-                type = "_robe_bottoms";
-            } else {
-                type = "_plate_legs";
-            }
-        }
-        if (type === "body") {
-            if (optgroupType === "RANGED") {
-                type = "_tunic";
-            } else if (optgroupType === "MAGIC") {
-                type = "_robe_top";
-            } else {
-                type = "_plate_body";
-            }
-        }
-        currentEquipment.value = "/items/" + value.toLowerCase() + type;
-    });
-    updateEquipmentState();
-    updateUI();
 }
 
 // #endregion
@@ -2556,7 +2503,7 @@ function getDropProfit(simResult, playerToDisplay) {
     let noRngTotal = 0;
     for (let [name, dropAmount] of noRngTotalDropMap.entries()) {
         let price = -1;
-        let revenueSetting = document.getElementById('selectPrices_drops').value;
+        let revenueSetting = dropPriceMode;
         if (window.prices) {
             let item = window.prices[name];
             if (item) {
@@ -2592,7 +2539,7 @@ function getDropProfit(simResult, playerToDisplay) {
     let expenses = 0;
     for (const [consumable, amount] of consumablesUsed) {
         let price = -1;
-        let expensesSetting = document.getElementById('selectPrices_consumables').value;
+        let expensesSetting = consumablePriceMode;
         if (window.prices) {
             let item = window.prices[consumable];
             if (item) {
@@ -2816,7 +2763,7 @@ function showKills(simResult, playerToDisplay) {
         tableRow += name;
         tableRow += '"></td><td contenteditable="true">';
         let price = -1;
-        let revenueSetting = document.getElementById('selectPrices_drops').value;
+        let revenueSetting = dropPriceMode;
         if (window.prices) {
             let item = window.prices[name];
             if (item) {
@@ -2857,7 +2804,7 @@ function showKills(simResult, playerToDisplay) {
         tableRow += name;
         tableRow += '"></td><td contenteditable="true">';
         let price = -1;
-        let revenueSetting = document.getElementById('selectPrices_drops').value;
+        let revenueSetting = dropPriceMode;
         if (window.prices) {
             let item = window.prices[name];
             if (item) {
@@ -2881,7 +2828,7 @@ function showKills(simResult, playerToDisplay) {
         }
         tableRow += price;
         tableRow += '</td><td>';
-        tableRow += dropAmount;
+        tableRow += formatExpectedDropQuantity(dropAmount);
         tableRow += '</td><td>';
         tableRow += price * dropAmount;
         tableRow += '</td></tr>';
@@ -2917,10 +2864,8 @@ const dropItemSpriteUrl = new URL("assets/drop-items.svg", document.baseURI).hre
 
 function formatExpectedDropQuantity(value) {
     const number = Number(value);
-    if (!Number.isFinite(number)) return "0";
-    const magnitude = Math.abs(number);
-    if (magnitude > 0 && magnitude < 0.001) return number < 0 ? ">-0.001" : "<0.001";
-    return number.toLocaleString(undefined, { maximumSignificantDigits: 6 });
+    if (!Number.isFinite(number)) return "0.00";
+    return number.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function createDropInventory(dropMap) {
@@ -3132,7 +3077,7 @@ function showConsumablesUsed(simResult, playerToDisplay) {
         tableRow += consumable;
         tableRow += '"></td><td contenteditable="true">';
         let price = -1;
-        let expensesSetting = document.getElementById('selectPrices_consumables').value;
+        let expensesSetting = consumablePriceMode;
         if (window.prices) {
             let item = window.prices[consumable];
             if (item) {
@@ -5697,8 +5642,8 @@ document.addEventListener("input", (e) => {
         let item = row[0].getAttribute('data-i18n').split('.')[1];
         let newPrice = element.innerText;
 
-        let revenueSetting = document.getElementById('selectPrices_drops').value;
-        let expensesSetting = document.getElementById('selectPrices_consumables').value;
+        let revenueSetting = dropPriceMode;
+        let expensesSetting = consumablePriceMode;
 
         let expensesDifference = 0;
         let revenueDifference = 0;
@@ -5938,6 +5883,28 @@ function updateUI() {
     updateContent();
 }
 
+function initCombatStatsPanel() {
+    const panel = document.getElementById("combatStatsPanel");
+    const toggleButton = document.getElementById("buttonToggleCombatStats");
+    const toggleLabel = toggleButton.querySelector("[data-i18n]");
+
+    const setExpanded = (expanded) => {
+        panel.classList.toggle("combat-stats-collapsed", !expanded);
+        toggleButton.setAttribute("aria-expanded", String(expanded));
+        toggleLabel.setAttribute(
+            "data-i18n",
+            expanded ? "common:controls.collapseCombatStats" : "common:controls.expandCombatStats",
+        );
+        updateContent();
+    };
+
+    toggleButton.addEventListener("click", () => {
+        setExpanded(toggleButton.getAttribute("aria-expanded") !== "true");
+    });
+
+    setExpanded(false);
+}
+
 const darkModeToggle = document.getElementById('darkModeToggle');
 const body = document.body;
 
@@ -6004,6 +5971,7 @@ initDamageDoneTaken();
 initPatchNotes();
 initExtraBuffSection();
 initHpMpVisualization();
+initCombatStatsPanel();
 initSimulationResultTools({ capture: captureArchiveConfiguration, apply: applyArchiveConfiguration });
 initTalismanPool({
     getSnapshot: getTalismanPoolSnapshot,

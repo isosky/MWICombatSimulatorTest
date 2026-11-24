@@ -10,6 +10,39 @@
         "refine": "切换到精炼装备",
         "unrefine": "切换到未精炼装备"
     },
+    "combatStats": {
+        "statName": "属性名称",
+        "finalValue": "最终值",
+        "equipmentContribution": "装备加成",
+        "talismanContribution": "符石加成"
+    },
+    "talismanPresets": {
+        "namePlaceholder": "配置名称",
+        "save": "保存",
+        "clear": "清空符石",
+        "selectPlaceholder": "选择已保存配置",
+        "load": "加载",
+        "delete": "删除",
+        "limitReached": "最多保存30套配置"
+    },
+    "consumablePresets": {
+        "title": "食物与饮料配置",
+        "targets": "应用到角色（不选则为当前角色）",
+        "all": "全部",
+        "clearTargets": "清空选择",
+        "save": "保存",
+        "load": "读取",
+        "saved": "配置已保存。",
+        "loaded": "配置已应用。",
+        "error": "无法读取、保存或应用配置。",
+        "unavailable": "配置中包含不可用的食物或饮料。"
+    },
+    "guildShrineNames": {
+        "name": "公会神龛",
+        "force": "力量神龛",
+        "tempo": "节奏神龛",
+        "spirit": "精神神龛"
+    },
     "player": "玩家",
     "trigger": "触发条件",
     "getPrices": "获取价格",
@@ -33,7 +66,9 @@
         "delete": "删除",
         "create": "创建",
         "close": "关闭",
-        "name": "名称"
+        "name": "名称",
+        "expandCombatStats": "展开",
+        "collapseCombatStats": "折叠"
     },
     "talismanPool": {
         "title": "符石池模拟",

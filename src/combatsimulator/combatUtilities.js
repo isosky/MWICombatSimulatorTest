@@ -167,6 +167,11 @@ class CombatUtilities {
         let sourceMinDamage = sourceDamageMultiplier * (1 + baseDamageFlat + armorDamageRatioFlat);
         let sourceMaxDamage = sourceDamageMultiplier * (baseDamageRatio * sourceAutoAttackMaxDamage + baseDamageFlat + armorDamageRatioFlat);
 
+        if (!abilityEffect) {
+            const consistency = Math.min(1, Math.max(0, source.combatDetails.combatStats.consistency));
+            sourceMinDamage = Math.max(sourceMinDamage, sourceMaxDamage * consistency);
+        }
+
         if (Math.random() < critChance) {
             sourceMaxDamage = sourceMaxDamage * (1 + bonusCritDamage);
             sourceMinDamage = sourceMaxDamage;

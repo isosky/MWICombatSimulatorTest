@@ -27,7 +27,7 @@ class Player extends CombatUnit {
         "curse", "fury", "weaken", "ripple", "bloom", "blaze", "attackSpeed", "foodHaste",
         "drinkConcentration", "autoAttackDamage", "abilityDamage", "staminaExperience", "intelligenceExperience",
         "attackExperience", "defenseExperience", "meleeExperience", "rangedExperience", "magicExperience",
-        "retaliation", "fortify",
+        "retaliation", "fortify", "consistency",
     ];
     talismanModifiers = [];
     equipment = {

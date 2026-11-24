@@ -81,6 +81,7 @@ class CombatUnit {
             smite: 0,
             overkill: 0,
             fortify: 0,
+            consistency: 0,
             stabAccuracy: 0,
             slashAccuracy: 0,
             smashAccuracy: 0,

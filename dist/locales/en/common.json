@@ -10,6 +10,39 @@
         "refine": "Switch to refined equipment",
         "unrefine": "Switch to unrefined equipment"
     },
+    "combatStats": {
+        "statName": "Stat",
+        "finalValue": "Final",
+        "equipmentContribution": "Equipment Bonus",
+        "talismanContribution": "Talisman Bonus"
+    },
+    "talismanPresets": {
+        "namePlaceholder": "Preset name",
+        "save": "Save",
+        "clear": "Clear Talismans",
+        "selectPlaceholder": "Select a saved preset",
+        "load": "Load",
+        "delete": "Delete",
+        "limitReached": "You can save up to 30 presets"
+    },
+    "consumablePresets": {
+        "title": "Food and Drink Presets",
+        "targets": "Apply to players (current player if none selected)",
+        "all": "All",
+        "clearTargets": "Clear selection",
+        "save": "Save",
+        "load": "Load",
+        "saved": "Preset saved.",
+        "loaded": "Preset applied.",
+        "error": "Could not read, save, or apply the preset.",
+        "unavailable": "This preset contains an unavailable food or drink."
+    },
+    "guildShrineNames": {
+        "name": "Guild Shrines",
+        "force": "Force",
+        "tempo": "Tempo",
+        "spirit": "Spirit"
+    },
     "player": "Player",
     "trigger": "Trigger",
     "getPrices": "Get Prices",
@@ -33,7 +66,9 @@
         "delete": "Delete",
         "create": "Create",
         "close": "Close",
-        "name": "Name"
+        "name": "Name",
+        "expandCombatStats": "Expand",
+        "collapseCombatStats": "Collapse"
     },
     "talismanPool": {
         "title": "Talisman Pool Simulation",
