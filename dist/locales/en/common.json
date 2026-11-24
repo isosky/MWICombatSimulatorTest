@@ -68,7 +68,8 @@
         "close": "Close",
         "name": "Name",
         "expandCombatStats": "Expand",
-        "collapseCombatStats": "Collapse"
+        "collapseCombatStats": "Collapse",
+        "recentUpdates": "Updates"
     },
     "talismanPool": {
         "title": "Talisman Pool Simulation",

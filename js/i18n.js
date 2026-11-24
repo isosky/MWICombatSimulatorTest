@@ -132,13 +132,20 @@ function addLanguageSwitcher() {
     switcherContainer.style.right = "10px";
     switcherContainer.style.zIndex = "1000";
 
+    const updatesButton = document.createElement("button");
     const enButton = document.createElement("button");
     const zhButton = document.createElement("button");
 
     const refreshButtons = function () {
+        updatesButton.textContent = i18next.t("common:controls.recentUpdates");
         enButton.className = "btn btn-sm " + (i18next.language === "en" ? "btn-primary" : "btn-outline-primary");
         zhButton.className = "btn btn-sm " + (i18next.language === "zh" ? "btn-primary" : "btn-outline-primary");
     };
+
+    updatesButton.className = "btn btn-sm btn-outline-secondary";
+    updatesButton.type = "button";
+    updatesButton.dataset.bsToggle = "modal";
+    updatesButton.dataset.bsTarget = "#patchNotesModal";
 
     enButton.textContent = "English";
     enButton.onclick = function () {
@@ -157,6 +164,8 @@ function addLanguageSwitcher() {
     };
 
     refreshButtons();
+    switcherContainer.appendChild(updatesButton);
+    switcherContainer.appendChild(document.createTextNode(" "));
     switcherContainer.appendChild(enButton);
     switcherContainer.appendChild(document.createTextNode(" "));
     switcherContainer.appendChild(zhButton);

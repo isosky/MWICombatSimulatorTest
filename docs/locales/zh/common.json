@@ -68,7 +68,8 @@
         "close": "关闭",
         "name": "名称",
         "expandCombatStats": "展开",
-        "collapseCombatStats": "折叠"
+        "collapseCombatStats": "折叠",
+        "recentUpdates": "更新"
     },
     "talismanPool": {
         "title": "符石池模拟",
